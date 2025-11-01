@@ -1,0 +1,1 @@
+export const YES_BASE_URL = "https://more.app.vanderbilt.edu/more"
