@@ -21,9 +21,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "@prisma/client": "^6.18.0",
+    "@supabase/supabase-js": "^2.78.0",
+    "@vanderbilt/yes-api": "^1.0.8",
     "argon2": "^0.44.0",
     "axios": "^1.13.1",
     "cheerio": "^1.1.2",
@@ -32,6 +34,7 @@
     "express": "^5.1.0",
     "express-rate-limit": "^8.2.1",
     "express-validator": "^7.3.0",
+    "got": "^14.6.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
@@ -39,6 +42,8 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
+    "tough-cookie": "^6.0.0",
+    "winston": "^3.18.3",
     "zod": "^4.1.12"
   },
   "devDependencies": {
@@ -53,6 +58,7 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
     "@types/supertest": "^6.0.3",
+    "@types/tough-cookie": "^4.0.5",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
     "@vitest/ui": "^4.0.6",
