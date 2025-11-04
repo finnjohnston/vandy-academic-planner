@@ -12,6 +12,9 @@ import {SectionDetailScraper} from "./scrapers/section.detail.scraper.js";
 import {SectionQueryScraper} from "./scrapers/section.query.scraper.js";
 import {SectionExistsScraper} from "./scrapers/section.exists.scraper.js";
 
+import {CourseDetails, CourseID} from "./types/course.type.js";
+import {CourseDetailScraper} from "./scrapers/course.detail.scraper.js";
+
 
 /**
  * Fetches all Subjects available on YES
@@ -74,5 +77,16 @@ export async function getAllSections(term: Term, detailed: boolean, handler?: St
  */
 export async function sectionExists(sectionID: SectionID, termID: TermID, handler?: StreamedResponseHandler<boolean>): Promise<boolean> {
     const scraper = new SectionExistsScraper(sectionID, termID);
+    return (await scraper.scrape(handler))[0];
+}
+
+/**
+ * Fetches detailed information for a Course from the catalog
+ * @param courseId ID of the Course to fetch details for
+ * @param offerNumber Offer number (defaults to '1')
+ * @param handler Streamed Response Handler to incrementally process discovered Course Details
+ */
+export async function getCourseDetails(courseId: CourseID, offerNumber: string = '1', handler?: StreamedResponseHandler<CourseDetails>): Promise<CourseDetails> {
+    const scraper = new CourseDetailScraper(courseId, offerNumber);
     return (await scraper.scrape(handler))[0];
 }
