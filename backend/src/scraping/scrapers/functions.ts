@@ -1,7 +1,6 @@
 import {StreamedResponseHandler} from "./scrapers/utils/scraper.js";
 
 import {Subject} from "./types/subject.type.js";
-import {SubjectScraper} from "./scrapers/subject.scraper.js";
 
 import {Term} from "./types/term.type.js";
 import {TermScraper} from "./scrapers/term.scraper.js";
@@ -13,16 +12,6 @@ import {SectionQueryScraper} from "./scrapers/section.query.scraper.js";
 import {CourseDetails, CourseID} from "./types/course.type.js";
 import {CourseDetailScraper} from "./scrapers/course.detail.scraper.js";
 
-
-/**
- * Fetches all Subjects available on YES
- * @param handler Streamed Response Handler to incrementally process discovered Subjects
- */
-export async function getSubjects(handler?: StreamedResponseHandler<Subject>): Promise<Subject[]> {
-    const scraper = new SubjectScraper();
-    const defaultHandler: StreamedResponseHandler<Subject> = () => {};
-    return await scraper.scrape(handler ?? defaultHandler);
-}
 
 /**
  * Fetches all Terms available on YES
