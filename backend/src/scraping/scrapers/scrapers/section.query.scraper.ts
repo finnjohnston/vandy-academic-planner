@@ -88,7 +88,7 @@ export class SectionQueryScraper extends Scraper<Section> {
                         transform: async (response: Response<string>) => {
                             return await this.extractSectionsFromBody(response.body, term, handler);
                         },
-                        paginate: ({response}) => {
+                        paginate: () => {
                             curPage++;
 
                             // Either stop pagination or increase the page #
@@ -116,7 +116,7 @@ export class SectionQueryScraper extends Scraper<Section> {
         let sectionTokens: Section[] = [];
 
         // Search for all classes on the page
-        $(".classTable").each(function (this: any, index, e) {
+        $(".classTable").each(function (this: any) {
             const element = $(this);
 
             // Extract header information for all sections under this sections.
@@ -124,7 +124,7 @@ export class SectionQueryScraper extends Scraper<Section> {
             const title = element.find('.classDescription').text().trim();
 
             // Iterate over sections.
-            element.find('.classRow').each(function (this: any, index, e) {
+            element.find('.classRow').each(function (this: any) {
                 const row = $(this);
 
                 // Only create a token for allowed class types.
