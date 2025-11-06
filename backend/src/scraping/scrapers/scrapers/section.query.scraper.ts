@@ -159,7 +159,7 @@ export class SectionQueryScraper extends Scraper<Section> {
                     id: sectionId,
                     term: term,
 
-                    course: {
+                    class: {
                         subject: trimmedAbbrev.split(' ')[0],
                         abbreviation: trimmedAbbrev,
                         name: title

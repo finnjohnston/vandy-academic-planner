@@ -1,5 +1,5 @@
 import {TermID} from "./term.type.js";
-import {Course} from "./course.type.js";
+import {Class} from "./class.type.js";
 
 export type SectionID = string;
 
@@ -7,7 +7,7 @@ export interface Section {
     id: SectionID,
     term: TermID,
 
-    course: Course
+    class: Class
     number: string
 
     instructors: string[],

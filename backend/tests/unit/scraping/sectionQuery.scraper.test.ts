@@ -70,7 +70,7 @@ describe('searchSections', () => {
         expect(results[0]).toEqual({
             id: '12345',
             term: '1040',
-            course: {
+            class: {
                 subject: 'CS',
                 abbreviation: 'CS 1101',
                 name: 'Programming and Problem Solving'
@@ -85,7 +85,7 @@ describe('searchSections', () => {
         expect(results[1]).toEqual({
             id: '12346',
             term: '1040',
-            course: {
+            class: {
                 subject: 'CS',
                 abbreviation: 'CS 1101',
                 name: 'Programming and Problem Solving'
