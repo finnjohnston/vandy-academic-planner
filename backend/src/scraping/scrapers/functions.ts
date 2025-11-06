@@ -12,6 +12,9 @@ import {SectionQueryScraper} from "./scrapers/section.query.scraper.js";
 import {CourseDetails, CourseID} from "./types/course.type.js";
 import {CourseDetailScraper} from "./scrapers/course.detail.scraper.js";
 
+import {ClassDetails} from "./types/class.type.js";
+import {ClassDetailScraper} from "./scrapers/class.detail.scraper.js";
+
 
 /**
  * Fetches all Terms available on YES
@@ -52,5 +55,16 @@ export async function getAllSections(term: Term, handler?: StreamedResponseHandl
  */
 export async function getCourseDetails(courseId: CourseID, offerNumber: string = '1', handler?: StreamedResponseHandler<CourseDetails>): Promise<CourseDetails> {
     const scraper = new CourseDetailScraper(courseId, offerNumber);
+    return (await scraper.scrape(handler))[0];
+}
+
+/**
+ * Fetches detailed information for a Class section in a specific term
+ * @param classNumber Class number to fetch details for
+ * @param termCode Term code for the class section
+ * @param handler Streamed Response Handler to incrementally process discovered Class Details
+ */
+export async function getClassDetails(classNumber: string, termCode: string, handler?: StreamedResponseHandler<ClassDetails>): Promise<ClassDetails> {
+    const scraper = new ClassDetailScraper(classNumber, termCode);
     return (await scraper.scrape(handler))[0];
 }

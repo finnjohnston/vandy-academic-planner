@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ClassDetailScraper } from '../../../src/scraping/scrapers/scrapers/class.detail.scraper.js';
+import { getClassDetails } from '../../../src/scraping/scrapers/functions.js';
 import got from 'got';
 
 vi.mock('got');
 
-describe('ClassDetailScraper', () => {
+describe('getClassDetails', () => {
     const mockClassDetailsHtml = `
         <div id="classSectionDetailDialog" class="dialogPanel">
 
@@ -131,11 +131,9 @@ describe('ClassDetailScraper', () => {
             body: mockClassDetailsHtml
         } as any);
 
-        const scraper = new ClassDetailScraper('1898', '1040');
-        const results = await scraper.scrape();
+        const details = await getClassDetails('1898', '1040');
 
-        expect(results).toHaveLength(1);
-        expect(results[0]).toEqual({
+        expect(details).toEqual({
             school: 'College of Arts and Science',
             hours: 4.0,
             grading: 'Student Option Grading Basis',
@@ -168,11 +166,10 @@ describe('ClassDetailScraper', () => {
             body: mockClassDetailsHtml
         } as any);
 
-        const scraper = new ClassDetailScraper('1898', '1040');
-        const results = await scraper.scrape();
+        const details = await getClassDetails('1898', '1040');
 
-        expect(results[0].hours).toBe(4.0);
-        expect(typeof results[0].hours).toBe('number');
+        expect(details.hours).toBe(4.0);
+        expect(typeof details.hours).toBe('number');
     });
 
     it('should extract components from both Component and Associated Component(s) fields', async () => {
@@ -182,11 +179,10 @@ describe('ClassDetailScraper', () => {
             body: mockClassDetailsHtml
         } as any);
 
-        const scraper = new ClassDetailScraper('1898', '1040');
-        const results = await scraper.scrape();
+        const details = await getClassDetails('1898', '1040');
 
-        expect(results[0].components).toEqual(['Lecture', 'Discussion']);
-        expect(results[0].components).toHaveLength(2);
+        expect(details.components).toEqual(['Lecture', 'Discussion']);
+        expect(details.components).toHaveLength(2);
     });
 
     it('should not duplicate components when they appear in both fields', async () => {
@@ -196,11 +192,10 @@ describe('ClassDetailScraper', () => {
             body: mockClassDetailsHtml
         } as any);
 
-        const scraper = new ClassDetailScraper('1898', '1040');
-        const results = await scraper.scrape();
+        const details = await getClassDetails('1898', '1040');
 
         // Lecture appears in both Component and Associated Component(s), should only appear once
-        const lectureCount = results[0].components.filter(c => c === 'Lecture').length;
+        const lectureCount = details.components.filter(c => c === 'Lecture').length;
         expect(lectureCount).toBe(1);
     });
 
@@ -211,13 +206,12 @@ describe('ClassDetailScraper', () => {
             body: mockClassDetailsHtml
         } as any);
 
-        const scraper = new ClassDetailScraper('1898', '1040');
-        const results = await scraper.scrape();
+        const details = await getClassDetails('1898', '1040');
 
-        expect(results[0].attributes).toHaveLength(3);
-        expect(results[0].attributes).toContain('CORE: B-Systemic & Structural Reasoning');
-        expect(results[0].attributes).toContain('LE: MNS-Math and Natural Sciences');
-        expect(results[0].attributes).toContain('AXLE: Math and Natural Sciences');
+        expect(details.attributes).toHaveLength(3);
+        expect(details.attributes).toContain('CORE: B-Systemic & Structural Reasoning');
+        expect(details.attributes).toContain('LE: MNS-Math and Natural Sciences');
+        expect(details.attributes).toContain('AXLE: Math and Natural Sciences');
     });
 
     it('should handle HTML entities in attributes', async () => {
@@ -227,12 +221,11 @@ describe('ClassDetailScraper', () => {
             body: mockClassDetailsHtml
         } as any);
 
-        const scraper = new ClassDetailScraper('1898', '1040');
-        const results = await scraper.scrape();
+        const details = await getClassDetails('1898', '1040');
 
         // The &amp; should be decoded to &
-        expect(results[0].attributes[0]).toContain('&');
-        expect(results[0].attributes[0]).not.toContain('&amp;');
+        expect(details.attributes[0]).toContain('&');
+        expect(details.attributes[0]).not.toContain('&amp;');
     });
 
     it('should call handler with class details and timestamp', async () => {
@@ -243,8 +236,7 @@ describe('ClassDetailScraper', () => {
         } as any);
 
         const handler = vi.fn();
-        const scraper = new ClassDetailScraper('1898', '1040');
-        await scraper.scrape(handler);
+        await getClassDetails('1898', '1040', handler);
 
         expect(handler).toHaveBeenCalledTimes(1);
         expect(handler).toHaveBeenCalledWith(
@@ -264,10 +256,9 @@ describe('ClassDetailScraper', () => {
             body: mockMinimalHtml
         } as any);
 
-        const scraper = new ClassDetailScraper('9999', '1040');
-        const results = await scraper.scrape();
+        const details = await getClassDetails('9999', '1040');
 
-        expect(results[0]).toEqual({
+        expect(details).toEqual({
             school: null,
             hours: null,
             grading: null,
@@ -285,11 +276,10 @@ describe('ClassDetailScraper', () => {
             body: mockClassDetailsHtml
         } as any);
 
-        const scraper = new ClassDetailScraper('1898', '1040');
-        const results = await scraper.scrape();
+        const details = await getClassDetails('1898', '1040');
 
-        expect(results).toBeDefined();
-        expect(results[0].school).toBe('College of Arts and Science');
+        expect(details).toBeDefined();
+        expect(details.school).toBe('College of Arts and Science');
     });
 
     it('should handle single component classes', async () => {
@@ -324,11 +314,10 @@ describe('ClassDetailScraper', () => {
             body: singleComponentHtml
         } as any);
 
-        const scraper = new ClassDetailScraper('1234', '1040');
-        const results = await scraper.scrape();
+        const details = await getClassDetails('1234', '1040');
 
-        expect(results[0].components).toEqual(['Lecture']);
-        expect(results[0].components).toHaveLength(1);
+        expect(details.components).toEqual(['Lecture']);
+        expect(details.components).toHaveLength(1);
     });
 
     it('should trim whitespace from all fields', async () => {
@@ -367,11 +356,10 @@ describe('ClassDetailScraper', () => {
             body: whitespaceHtml
         } as any);
 
-        const scraper = new ClassDetailScraper('1234', '1040');
-        const results = await scraper.scrape();
+        const details = await getClassDetails('1234', '1040');
 
-        expect(results[0].school).toBe('School of Engineering');
-        expect(results[0].grading).toBe('Standard Grading');
+        expect(details.school).toBe('School of Engineering');
+        expect(details.grading).toBe('Standard Grading');
     });
 
     it('should handle decimal credit hours', async () => {
@@ -406,10 +394,9 @@ describe('ClassDetailScraper', () => {
             body: decimalHoursHtml
         } as any);
 
-        const scraper = new ClassDetailScraper('1234', '1040');
-        const results = await scraper.scrape();
+        const details = await getClassDetails('1234', '1040');
 
-        expect(results[0].hours).toBe(2.5);
+        expect(details.hours).toBe(2.5);
     });
 
     it('should extract description from Description section', async () => {
@@ -419,10 +406,9 @@ describe('ClassDetailScraper', () => {
             body: mockClassDetailsHtml
         } as any);
 
-        const scraper = new ClassDetailScraper('1898', '1040');
-        const results = await scraper.scrape();
+        const details = await getClassDetails('1898', '1040');
 
-        expect(results[0].description).toBeDefined();
-        expect(results[0].description).toContain('Differentiation and integration of transcendental functions');
+        expect(details.description).toBeDefined();
+        expect(details.description).toContain('Differentiation and integration of transcendental functions');
     });
 });
