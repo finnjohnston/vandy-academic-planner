@@ -5,18 +5,15 @@ import {load} from "cheerio";
 import {CookieJar} from "tough-cookie";
 import {Section} from "../types/section.type.js";
 import {TermID} from "../types/term.type.js";
-import {SectionDetailScraper} from "./section.detail.scraper.js";
 
 export class SectionQueryScraper extends Scraper<Section> {
 
     private readonly query: string;
-    private readonly fetchDetails: boolean;
     private readonly term: TermID;
 
-    constructor(query: string, term: TermID, fetchDetails: boolean = false, cookieJar?: CookieJar, startTime?: number) {
+    constructor(query: string, term: TermID, cookieJar?: CookieJar, startTime?: number) {
         super(cookieJar, startTime);
         this.query = query;
-        this.fetchDetails = fetchDetails;
         this.term = term;
     }
 
@@ -180,12 +177,6 @@ export class SectionQueryScraper extends Scraper<Section> {
 
         // Trigger the handler
         for (let token of sectionTokens) {
-            // Fetch details if needed
-            if (this.fetchDetails) {
-                const detailsScraper = new SectionDetailScraper(token, undefined, this.startTime());
-                token.details = (await detailsScraper.scrape())[0];
-            }
-
             await handler(token, this.timeSinceStart());
         }
 

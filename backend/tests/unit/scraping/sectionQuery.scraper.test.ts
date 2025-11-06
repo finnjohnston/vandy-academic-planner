@@ -63,7 +63,7 @@ describe('searchSections', () => {
             body: mockSearchResultsHtml
         } as any);
 
-        const results = await searchSections('CS 1101', mockTerm, false);
+        const results = await searchSections('CS 1101', mockTerm);
 
         expect(results).toHaveLength(2);
 
@@ -112,7 +112,7 @@ describe('searchSections', () => {
             body: mockNoResultsHtml
         } as any);
 
-        const results = await searchSections('NONEXISTENT 9999', mockTerm, false);
+        const results = await searchSections('NONEXISTENT 9999', mockTerm);
 
         expect(results).toHaveLength(0);
         expect(mockGot).toHaveBeenCalledTimes(2);
@@ -130,7 +130,7 @@ describe('searchSections', () => {
         } as any);
 
         const handler = vi.fn();
-        await searchSections('CS 1101', mockTerm, false, handler);
+        await searchSections('CS 1101', mockTerm, handler);
 
         // Handler should be called twice (once per section)
         expect(handler).toHaveBeenCalledTimes(2);
@@ -168,7 +168,7 @@ describe('searchSections', () => {
         mockGot.mockResolvedValueOnce({ body: '' } as any);
         mockGot.mockResolvedValueOnce({ body: mockHtmlNoInstructor } as any);
 
-        const results = await searchSections('CS 2201', mockTerm, false);
+        const results = await searchSections('CS 2201', mockTerm);
 
         expect(results).toHaveLength(1);
         expect(results[0].instructors).toEqual(['staff']);
