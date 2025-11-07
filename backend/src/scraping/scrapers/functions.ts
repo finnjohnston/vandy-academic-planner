@@ -10,6 +10,7 @@ import {SectionQueryScraper} from "./scrapers/section.query.scraper.js";
 import {CatalogCourse, CourseDetails, CourseID} from "./types/course.type.js";
 import {CourseDetailScraper} from "./scrapers/course.detail.scraper.js";
 import {CourseQueryScraper} from "./scrapers/course.query.scraper.js";
+import {CourseTermScraper} from "./scrapers/course.term.scraper.js";
 
 import {ClassDetails, SemesterClass} from "./types/class.type.js";
 import {ClassDetailScraper} from "./scrapers/class.detail.scraper.js";
@@ -67,6 +68,15 @@ export async function getCourseDetails(courseId: CourseID, offerNumber: string =
 export async function getCourse(courseId: CourseID, offerNumber: string = '1', handler?: StreamedResponseHandler<CatalogCourse>): Promise<CatalogCourse> {
     const scraper = new CourseQueryScraper(courseId, offerNumber);
     return (await scraper.scrape(handler))[0];
+}
+
+/**
+ * Fetches all Courses from the catalog
+ * @param handler Streamed Response Handler to incrementally process discovered Courses
+ */
+export async function getAllCourses(handler?: StreamedResponseHandler<CatalogCourse>): Promise<CatalogCourse[]> {
+    const scraper = new CourseTermScraper();
+    return await scraper.scrape(handler);
 }
 
 /**
