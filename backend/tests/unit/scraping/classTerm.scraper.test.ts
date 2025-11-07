@@ -1,21 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SectionTermScraper } from '../../../src/scraping/scrapers/scrapers/section.term.scraper.js';
+import { ClassTermScraper } from '../../../src/scraping/scrapers/scrapers/class.term.scraper.js';
 import got from 'got';
 
 vi.mock('got');
 
-describe('SectionTermScraper', () => {
+describe('ClassTermScraper', () => {
     const termId = '1040';
 
-    // Mock HTML with a single section
-    const createMockHtml = (sectionId: string, courseNum: string) => `
+    // Mock HTML with a single class
+    const createMockHtml = (classId: string, courseNum: string) => `
         <html>
             <body>
                 <div class="classTable">
                     <div class="classAbbreviation">CS ${courseNum}:</div>
                     <div class="classDescription">Test Course</div>
                     <div class="classRow">
-                        <div class="classSection" id="section_${sectionId}">01</div>
+                        <div class="classSection" id="section_${classId}">01</div>
                         <div class="classType">Lecture</div>
                         <div class="classInstructor">Test Instructor</div>
                         <div class="classMeetingDays">MWF<br></div>
@@ -27,6 +27,43 @@ describe('SectionTermScraper', () => {
         </html>
     `;
 
+    const mockClassDetailsHtml = `
+        <div id="classSectionDetailDialog" class="dialogPanel">
+           <h1>TEST-1000-01 : Test Course</h1>
+           <div class="classNumber">Class Number: 12345</div>
+           <div id="mainSection">
+               <div class="detailHeader">Details</div>
+               <div class="detailPanel">
+                   <table class="nameValueTable">
+                       <tr>
+                           <td>
+                               <table>
+                                   <tr>
+                                       <td class="label">School:</td>
+                                       <td>College of Arts and Science</td>
+                                   </tr>
+                                   <tr>
+                                       <td class="label">Hours:</td>
+                                       <td>3.0</td>
+                                   </tr>
+                                   <tr>
+                                       <td class="label">Grading Basis:</td>
+                                       <td>Standard Grading</td>
+                                   </tr>
+                                   <tr>
+                                       <td class="label">Component:</td>
+                                       <td>Lecture</td>
+                                   </tr>
+                               </table>
+                           </td>
+                       </tr>
+                   </table>
+               </div>
+           </div>
+           <div id="rightSection"></div>
+        </div>
+    `;
+
     beforeEach(() => {
         vi.clearAllMocks();
         // Setup mock for paginate.all
@@ -36,12 +73,11 @@ describe('SectionTermScraper', () => {
         };
     });
 
-    it('should scrape sections for a term with basic search', async () => {
+    it('should scrape classes for a term with basic search', async () => {
         const mockGot = vi.mocked(got) as any;
 
-        // Mock limited number of searches to keep test simple
-        // Each search pattern requires: set term + search call
-        const numSearchPatterns = 20; // 0-9 and X0-X9 patterns
+        // Each search pattern requires: set term + search call + detail calls
+        const numSearchPatterns = 20;
 
         for (let i = 0; i < numSearchPatterns; i++) {
             // Set term call
@@ -52,6 +88,8 @@ describe('SectionTermScraper', () => {
                 mockGot.mockResolvedValueOnce({
                     body: createMockHtml(`${1000 + i}`, `110${i}`)
                 } as any);
+                // Detail call for the class found
+                mockGot.mockResolvedValueOnce({ body: mockClassDetailsHtml } as any);
             } else {
                 mockGot.mockResolvedValueOnce({
                     body: '<html><body>No classes found</body></html>'
@@ -59,20 +97,26 @@ describe('SectionTermScraper', () => {
             }
         }
 
-        const scraper = new SectionTermScraper(termId);
-        const sections = await scraper.scrape();
+        const scraper = new ClassTermScraper(termId);
+        const classes = await scraper.scrape();
 
-        expect(sections.length).toBeGreaterThanOrEqual(0);
+        expect(classes.length).toBeGreaterThanOrEqual(0);
 
-        // Verify sections have correct term if any found
-        if (sections.length > 0) {
-            sections.forEach(section => {
-                expect(section.term).toBe(termId);
+        // Verify classes have correct structure if any found
+        if (classes.length > 0) {
+            classes.forEach(classItem => {
+                expect(classItem).toHaveProperty('id');
+                expect(classItem).toHaveProperty('subject');
+                expect(classItem).toHaveProperty('abbreviation');
+                expect(classItem).toHaveProperty('name');
+                expect(classItem).toHaveProperty('details');
+                expect(classItem.details).toHaveProperty('school');
+                expect(classItem.details).toHaveProperty('hours');
             });
         }
     });
 
-    it('should call handler for each discovered section', async () => {
+    it('should call handler for each discovered class', async () => {
         const mockGot = vi.mocked(got) as any;
 
         const numSearchPatterns = 20;
@@ -85,6 +129,7 @@ describe('SectionTermScraper', () => {
                 mockGot.mockResolvedValueOnce({
                     body: createMockHtml(`${2000 + i}`, `220${i}`)
                 } as any);
+                mockGot.mockResolvedValueOnce({ body: mockClassDetailsHtml } as any);
             } else {
                 mockGot.mockResolvedValueOnce({
                     body: '<html><body>No classes found</body></html>'
@@ -92,7 +137,7 @@ describe('SectionTermScraper', () => {
             }
         }
 
-        const scraper = new SectionTermScraper(termId);
+        const scraper = new ClassTermScraper(termId);
         const handler = vi.fn();
 
         await scraper.scrape(handler);
@@ -102,7 +147,7 @@ describe('SectionTermScraper', () => {
         if (handler.mock.calls.length > 0) {
             handler.mock.calls.forEach(call => {
                 expect(call[0]).toHaveProperty('id');
-                expect(call[0]).toHaveProperty('term');
+                expect(call[0]).toHaveProperty('details');
                 expect(call[1]).toBeTypeOf('number');
             });
         }
@@ -120,7 +165,7 @@ describe('SectionTermScraper', () => {
             } as any);
         }
 
-        const scraper = new SectionTermScraper(termId);
+        const scraper = new ClassTermScraper(termId);
         await scraper.scrape();
 
         // Verify blacklisted codes (3850, 3851, 3852, 7999, 8999, 9999) are not searched
@@ -136,21 +181,22 @@ describe('SectionTermScraper', () => {
         }
     });
 
-    it('should deduplicate sections with same ID', async () => {
+    it('should deduplicate classes with same ID', async () => {
         const mockGot = vi.mocked(got) as any;
 
         const duplicateHtml = createMockHtml('5555', '1101');
         const numSearchPatterns = 20;
 
-        // Mock searches - return same section multiple times
+        // Mock searches - return same class multiple times
         for (let i = 0; i < numSearchPatterns; i++) {
             mockGot.mockResolvedValueOnce({ body: '' } as any);
 
             if (i < 3) {
-                // Return same section 3 times
+                // Return same class 3 times
                 mockGot.mockResolvedValueOnce({
                     body: duplicateHtml
                 } as any);
+                mockGot.mockResolvedValueOnce({ body: mockClassDetailsHtml } as any);
             } else {
                 mockGot.mockResolvedValueOnce({
                     body: '<html><body>No classes found</body></html>'
@@ -158,14 +204,14 @@ describe('SectionTermScraper', () => {
             }
         }
 
-        const scraper = new SectionTermScraper(termId);
-        const sections = await scraper.scrape();
+        const scraper = new ClassTermScraper(termId);
+        const classes = await scraper.scrape();
 
         // Verify deduplication - no duplicate IDs
-        const sectionIds = sections.map(s => s.id);
-        const uniqueIds = new Set(sectionIds);
+        const classIds = classes.map(c => c.id);
+        const uniqueIds = new Set(classIds);
 
-        expect(sectionIds.length).toBe(uniqueIds.size);
+        expect(classIds.length).toBe(uniqueIds.size);
     });
 
     it('should handle term scraping without errors', async () => {
@@ -180,11 +226,11 @@ describe('SectionTermScraper', () => {
             } as any);
         }
 
-        const scraper = new SectionTermScraper(termId);
-        const sections = await scraper.scrape();
+        const scraper = new ClassTermScraper(termId);
+        const classes = await scraper.scrape();
 
         // Should complete without errors
-        expect(sections).toBeDefined();
-        expect(Array.isArray(sections)).toBe(true);
+        expect(classes).toBeDefined();
+        expect(Array.isArray(classes)).toBe(true);
     });
 });

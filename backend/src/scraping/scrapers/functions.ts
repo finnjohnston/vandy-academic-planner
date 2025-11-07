@@ -1,14 +1,19 @@
 import {StreamedResponseHandler} from "./scrapers/utils/scraper.js";
+
 import {Term} from "./types/term.type.js";
 import {TermScraper} from "./scrapers/term.scraper.js";
+
 import {Section} from "./types/section.type.js";
 import {SectionTermScraper} from "./scrapers/section.term.scraper.js";
 import {SectionQueryScraper} from "./scrapers/section.query.scraper.js";
+
 import {CourseDetails, CourseID} from "./types/course.type.js";
 import {CourseDetailScraper} from "./scrapers/course.detail.scraper.js";
+
 import {ClassDetails, SemesterClass} from "./types/class.type.js";
 import {ClassDetailScraper} from "./scrapers/class.detail.scraper.js";
 import {ClassQueryScraper} from "./scrapers/class.query.scraper.js";
+import {ClassTermScraper } from "./scrapers/class.term.scraper.js";
 
 /**
  * Fetches all Terms available on YES
@@ -71,5 +76,15 @@ export async function getClassDetails(classNumber: string, termCode: string, han
  */
 export async function searchClasses(query: string, term: Term, handler?: StreamedResponseHandler<SemesterClass>): Promise<SemesterClass[]> {
     const scraper = new ClassQueryScraper(query, term.id);
+    return await scraper.scrape(handler);
+}
+
+/**
+ * Fetches all Classes for a given Term
+ * @param term A Term object to search for Classes within
+ * @param handler Streamed Response Handler to incrementally process discovered Classes
+ */
+export async function getAllClasses(term: Term, handler?: StreamedResponseHandler<SemesterClass>): Promise<SemesterClass[]> {
+    const scraper = new ClassTermScraper(term.id);
     return await scraper.scrape(handler);
 }
