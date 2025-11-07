@@ -1,21 +1,14 @@
 import {StreamedResponseHandler} from "./scrapers/utils/scraper.js";
-
-import {Subject} from "./types/subject.type.js";
-
 import {Term} from "./types/term.type.js";
 import {TermScraper} from "./scrapers/term.scraper.js";
-
 import {Section} from "./types/section.type.js";
 import {SectionTermScraper} from "./scrapers/section.term.scraper.js";
 import {SectionQueryScraper} from "./scrapers/section.query.scraper.js";
-
 import {CourseDetails, CourseID} from "./types/course.type.js";
 import {CourseDetailScraper} from "./scrapers/course.detail.scraper.js";
-
 import {ClassDetails, SemesterClass} from "./types/class.type.js";
 import {ClassDetailScraper} from "./scrapers/class.detail.scraper.js";
 import {ClassQueryScraper} from "./scrapers/class.query.scraper.js";
-
 
 /**
  * Fetches all Terms available on YES
