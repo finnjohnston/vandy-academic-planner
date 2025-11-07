@@ -7,8 +7,9 @@ import {Section} from "./types/section.type.js";
 import {SectionTermScraper} from "./scrapers/section.term.scraper.js";
 import {SectionQueryScraper} from "./scrapers/section.query.scraper.js";
 
-import {CourseDetails, CourseID} from "./types/course.type.js";
+import {CatalogCourse, CourseDetails, CourseID} from "./types/course.type.js";
 import {CourseDetailScraper} from "./scrapers/course.detail.scraper.js";
+import {CourseQueryScraper} from "./scrapers/course.query.scraper.js";
 
 import {ClassDetails, SemesterClass} from "./types/class.type.js";
 import {ClassDetailScraper} from "./scrapers/class.detail.scraper.js";
@@ -54,6 +55,17 @@ export async function getAllSections(term: Term, handler?: StreamedResponseHandl
  */
 export async function getCourseDetails(courseId: CourseID, offerNumber: string = '1', handler?: StreamedResponseHandler<CourseDetails>): Promise<CourseDetails> {
     const scraper = new CourseDetailScraper(courseId, offerNumber);
+    return (await scraper.scrape(handler))[0];
+}
+
+/**
+ * Fetches a Course from the catalog with complete information
+ * @param courseId ID of the Course to fetch
+ * @param offerNumber Offer number (defaults to '1')
+ * @param handler Streamed Response Handler to incrementally process discovered Course
+ */
+export async function getCourse(courseId: CourseID, offerNumber: string = '1', handler?: StreamedResponseHandler<CatalogCourse>): Promise<CatalogCourse> {
+    const scraper = new CourseQueryScraper(courseId, offerNumber);
     return (await scraper.scrape(handler))[0];
 }
 
