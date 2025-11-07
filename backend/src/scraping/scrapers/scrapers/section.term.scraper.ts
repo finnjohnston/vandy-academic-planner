@@ -18,11 +18,8 @@ export class SectionTermScraper extends Scraper<Section> {
 
     private discoveredSections: Section[] = [];
 
-    private fetchDetails: boolean;
-
-    constructor(term: TermID, fetchDetails: boolean = false, cookieJar?: CookieJar, startTime?: number) {
+    constructor(term: TermID, cookieJar?: CookieJar, startTime?: number) {
         super(cookieJar, startTime);
-        this.fetchDetails = fetchDetails;
         this.term = term;
     }
 
@@ -49,7 +46,7 @@ export class SectionTermScraper extends Scraper<Section> {
             if (!this.BLACKLISTED_CODES.includes(searchA) && !this.searchedTerms.includes(searchA)) {
                 this.searchedTerms.push(searchA);
 
-                const scraper = new SectionQueryScraper(searchA, this.term, this.fetchDetails, undefined, this.startTime());
+                const scraper = new SectionQueryScraper(searchA, this.term, undefined, this.startTime());
                 const sections: Section[] = await scraper.scrape(handler);
 
                 this.discoverSections(sections);
@@ -62,7 +59,7 @@ export class SectionTermScraper extends Scraper<Section> {
             if (!this.BLACKLISTED_CODES.includes(searchB) && !this.searchedTerms.includes(searchB)) {
                 this.searchedTerms.push(searchB);
 
-                const scraper = new SectionQueryScraper(searchB, this.term, this.fetchDetails, undefined, this.startTime());
+                const scraper = new SectionQueryScraper(searchB, this.term, undefined, this.startTime());
                 const sections: Section[] = await scraper.scrape(handler);
 
                 this.discoverSections(sections);

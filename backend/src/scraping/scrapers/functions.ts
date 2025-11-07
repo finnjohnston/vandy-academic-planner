@@ -12,8 +12,9 @@ import {SectionQueryScraper} from "./scrapers/section.query.scraper.js";
 import {CourseDetails, CourseID} from "./types/course.type.js";
 import {CourseDetailScraper} from "./scrapers/course.detail.scraper.js";
 
-import {ClassDetails} from "./types/class.type.js";
+import {ClassDetails, SemesterClass} from "./types/class.type.js";
 import {ClassDetailScraper} from "./scrapers/class.detail.scraper.js";
+import {ClassQueryScraper} from "./scrapers/class.query.scraper.js";
 
 
 /**
@@ -67,4 +68,15 @@ export async function getCourseDetails(courseId: CourseID, offerNumber: string =
 export async function getClassDetails(classNumber: string, termCode: string, handler?: StreamedResponseHandler<ClassDetails>): Promise<ClassDetails> {
     const scraper = new ClassDetailScraper(classNumber, termCode);
     return (await scraper.scrape(handler))[0];
+}
+
+/**
+ * Fetches all Classes by a search query with complete details
+ * @param query Query to search by
+ * @param term A Term object to search for Classes within
+ * @param handler Streamed Response Handler to incrementally process discovered Classes
+ */
+export async function searchClasses(query: string, term: Term, handler?: StreamedResponseHandler<SemesterClass>): Promise<SemesterClass[]> {
+    const scraper = new ClassQueryScraper(query, term.id);
+    return await scraper.scrape(handler);
 }
