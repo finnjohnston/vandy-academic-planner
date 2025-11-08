@@ -28,7 +28,7 @@ export async function getTerms(handler?: StreamedResponseHandler<Term>): Promise
 }
 
 /**
- * Fetches all Sections by a search query.
+ * Fetches all Sections by a search query
  * @param query Query to search by
  * @param term A Term object to search for Sections within
  * @param handler Streamed Response Handler to incrementally process discovered Sections
@@ -60,12 +60,12 @@ export async function getCourseDetails(courseId: CourseID, offerNumber: string =
 }
 
 /**
- * Fetches a Course from the catalog with complete information
+ * Fetches all Courses by a search query
  * @param courseId ID of the Course to fetch
  * @param offerNumber Offer number (defaults to '1')
  * @param handler Streamed Response Handler to incrementally process discovered Course
  */
-export async function getCourse(courseId: CourseID, offerNumber: string = '1', handler?: StreamedResponseHandler<CatalogCourse>): Promise<CatalogCourse> {
+export async function searchCourses(courseId: CourseID, offerNumber: string = '1', handler?: StreamedResponseHandler<CatalogCourse>): Promise<CatalogCourse> {
     const scraper = new CourseQueryScraper(courseId, offerNumber);
     return (await scraper.scrape(handler))[0];
 }
@@ -91,7 +91,7 @@ export async function getClassDetails(classNumber: string, termCode: string, han
 }
 
 /**
- * Fetches all Classes by a search query with complete details
+ * Fetches all Classes by a search query
  * @param query Query to search by
  * @param term A Term object to search for Classes within
  * @param handler Streamed Response Handler to incrementally process discovered Classes
