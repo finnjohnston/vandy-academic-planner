@@ -113,7 +113,7 @@ describe('getCourseDetails', () => {
 
         expect(details).toEqual({
             school: 'College of Arts and Science',
-            hours: 4.0,
+            hours: '4.0',
             grading: 'Student Option Grading Basis',
             components: ['Lecture', 'Discussion'],
             typicallyOffered: 'Fall, Spring, Summer',
@@ -147,8 +147,8 @@ describe('getCourseDetails', () => {
 
         const details = await getCourseDetails('101770');
 
-        expect(details.hours).toBe(4.0);
-        expect(typeof details.hours).toBe('number');
+        expect(details.hours).toBe('4.0');
+        expect(typeof details.hours).toBe('string');
     });
 
     it('should extract multiple components correctly', async () => {
@@ -207,7 +207,7 @@ describe('getCourseDetails', () => {
         expect(handler).toHaveBeenCalledWith(
             expect.objectContaining({
                 school: 'College of Arts and Science',
-                hours: 4.0,
+                hours: '4.0',
                 grading: 'Student Option Grading Basis'
             }),
             expect.any(Number) // timestamp
@@ -390,7 +390,7 @@ describe('getCourseDetails', () => {
 
         const details = await getCourseDetails('12345');
 
-        expect(details.hours).toBe(2.5);
+        expect(details.hours).toBe('2.5');
     });
 
     it('should handle "Requirements" label (plural)', async () => {

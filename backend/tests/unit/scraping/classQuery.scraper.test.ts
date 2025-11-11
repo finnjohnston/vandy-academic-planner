@@ -144,7 +144,7 @@ describe('searchClasses', () => {
             name: 'Programming and Problem Solving',
             details: {
                 school: 'College of Arts and Science',
-                hours: 3.0,
+                hours: '3.0',
                 grading: 'Standard Grading',
                 components: ['Lecture'],
                 requirements: 'None',

@@ -170,7 +170,7 @@ export class SectionQueryScraper extends Scraper<Section> {
                     schedule: combinedSchedule.join(','),
                     instructors: instructors,
 
-                    hours: Number.parseInt(hours)
+                    hours: hours
                 });
             });
         });

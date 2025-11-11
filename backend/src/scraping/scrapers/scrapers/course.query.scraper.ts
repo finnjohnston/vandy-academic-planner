@@ -104,11 +104,7 @@ export class CourseQueryScraper extends Scraper<CatalogCourse> {
                     details.school = valueCell.text().trim();
                     break;
                 case 'units':
-                    const unitsText = valueCell.text().trim();
-                    const unitsMatch = unitsText.match(/(\d+(?:\.\d+)?)/);
-                    if (unitsMatch) {
-                        details.hours = parseFloat(unitsMatch[1]);
-                    }
+                    details.hours = valueCell.text().trim();
                     break;
                 case 'grading basis':
                     details.grading = valueCell.text().trim();

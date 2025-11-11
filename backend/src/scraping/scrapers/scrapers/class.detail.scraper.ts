@@ -45,7 +45,7 @@ export class ClassDetailScraper extends Scraper<ClassDetails> {
         let school: string | null = null;
         let attributes: string[] = [];
         let requirements: string | null = null;
-        let hours: number | null = null;
+        let hours: string | null = null;
         let grading: string | null = null;
         let components: string[] = [];
 
@@ -107,15 +107,11 @@ export class ClassDetailScraper extends Scraper<ClassDetails> {
         return requirements;
     }
 
-    private extractHoursFromDetailsPanel($: any, panelNode: any): number | null {
-        let hours: number | null = null;
+    private extractHoursFromDetailsPanel($: any, panelNode: any): string | null {
+        let hours: string | null = null;
         $(panelNode).find('td.label').each(function (this: any) {
             if ($(this).text().trim() === 'Hours:') {
-                const hoursText = $(this).next().text().trim();
-                const hoursMatch = hoursText.match(/(\d+(?:\.\d+)?)/);
-                if (hoursMatch) {
-                    hours = parseFloat(hoursMatch[1]);
-                }
+                hours = $(this).next().text().trim();
             }
         });
         return hours;

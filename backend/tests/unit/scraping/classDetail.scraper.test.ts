@@ -135,7 +135,7 @@ describe('getClassDetails', () => {
 
         expect(details).toEqual({
             school: 'College of Arts and Science',
-            hours: 4.0,
+            hours: '4.0',
             grading: 'Student Option Grading Basis',
             components: ['Lecture', 'Discussion'],
             requirements: 'MATH 1300 or 1201 is a prerequisite to this course. Not open to students who have earned credit for MATH 1201 without permission.',
@@ -168,8 +168,8 @@ describe('getClassDetails', () => {
 
         const details = await getClassDetails('1898', '1040');
 
-        expect(details.hours).toBe(4.0);
-        expect(typeof details.hours).toBe('number');
+        expect(details.hours).toBe('4.0');
+        expect(typeof details.hours).toBe('string');
     });
 
     it('should extract components from both Component and Associated Component(s) fields', async () => {
@@ -242,7 +242,7 @@ describe('getClassDetails', () => {
         expect(handler).toHaveBeenCalledWith(
             expect.objectContaining({
                 school: 'College of Arts and Science',
-                hours: 4.0,
+                hours: '4.0',
                 grading: 'Student Option Grading Basis'
             }),
             expect.any(Number) // timestamp
@@ -396,7 +396,7 @@ describe('getClassDetails', () => {
 
         const details = await getClassDetails('1234', '1040');
 
-        expect(details.hours).toBe(2.5);
+        expect(details.hours).toBe('2.5');
     });
 
     it('should extract description from Description section', async () => {

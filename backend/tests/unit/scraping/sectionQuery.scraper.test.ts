@@ -25,7 +25,7 @@ describe('searchSections', () => {
                         <div class="classInstructor">John Doe</div>
                         <div class="classMeetingDays">MWF<br></div>
                         <div class="classMeetingTimes">10:00AM - 10:50AM<br></div>
-                        <div class="classHours">3</div>
+                        <div class="classHours">3.0 hrs</div>
                     </div>
                     <div class="classRow">
                         <div class="classSection" id="section_12346">02</div>
@@ -33,7 +33,7 @@ describe('searchSections', () => {
                         <div class="classInstructor">Jane Smith</div>
                         <div class="classMeetingDays">TR<br></div>
                         <div class="classMeetingTimes">2:00PM - 3:15PM<br></div>
-                        <div class="classHours">3</div>
+                        <div class="classHours">3.0 hrs</div>
                     </div>
                 </div>
             </body>
@@ -79,7 +79,7 @@ describe('searchSections', () => {
             type: 'Lecture',
             instructors: ['John Doe'],
             schedule: 'MWF;10:00AM-10:50AM',
-            hours: 3
+            hours: '3.0 hrs'
         });
 
         expect(results[1]).toEqual({
@@ -94,7 +94,7 @@ describe('searchSections', () => {
             type: 'Lecture',
             instructors: ['Jane Smith'],
             schedule: 'TR;2:00PM-3:15PM',
-            hours: 3
+            hours: '3.0 hrs'
         });
 
         // Verify got was called correctly
@@ -157,7 +157,7 @@ describe('searchSections', () => {
                             <div class="classInstructor"></div>
                             <div class="classMeetingDays">MWF<br></div>
                             <div class="classMeetingTimes">9:00AM - 9:50AM<br></div>
-                            <div class="classHours">3</div>
+                            <div class="classHours">3.0 hrs</div>
                         </div>
                     </div>
                 </body>

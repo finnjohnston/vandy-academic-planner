@@ -14,5 +14,5 @@ export interface Section {
 
     type: string,
     schedule: string,
-    hours: number
+    hours: string
 }

@@ -8,7 +8,7 @@ export interface Course {
 
 export interface CourseDetails {
     school: string | null,
-    hours: number | null,
+    hours: string | null,
     grading: string | null,
     components: string[],
     typicallyOffered: string | null,

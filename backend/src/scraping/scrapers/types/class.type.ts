@@ -8,7 +8,7 @@ export interface Class {
 
 export interface ClassDetails {
     school: string | null,
-    hours: number | null,
+    hours: string | null,
     grading: string | null,
     components: string[],
     requirements: string | null,

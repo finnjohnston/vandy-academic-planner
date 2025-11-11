@@ -20,7 +20,7 @@ describe('CourseQueryScraper', () => {
                         </tr>
                         <tr>
                             <td class="label"><strong>Units:</strong></td>
-                            <td>3.0 units</td>
+                            <td>3.0</td>
                         </tr>
                         <tr>
                             <td class="label"><strong>Grading Basis:</strong></td>
@@ -86,7 +86,7 @@ describe('CourseQueryScraper', () => {
         expect(course.name).toBe('Programming and Problem Solving');
 
         expect(course.details.school).toBe('College of Arts and Science');
-        expect(course.details.hours).toBe(3.0);
+        expect(course.details.hours).toBe('3.0');
         expect(course.details.grading).toBe('Standard Grading');
         expect(course.details.components).toEqual(['Lecture', 'Lab']);
         expect(course.details.typicallyOffered).toBe('Fall, Spring');
