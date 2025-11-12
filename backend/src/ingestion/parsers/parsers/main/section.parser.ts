@@ -1,7 +1,7 @@
-import {Section} from "../../scrapers/types/section.type.js";
-import {ParsedSection} from "../types/parsed.section.type.js";
-import {parseSchedule} from "../parsers/core/schedule.parser.js";
-import {parseCredits} from "../parsers/core/credits.parser.js";
+import {Section} from "../../../scrapers/types/section.type.js";
+import {ParsedSection} from "../../types/parsed.section.type.js";
+import {parseSchedule} from "../core/schedule.parser.js";
+import {parseCredits} from "../core/credits.parser.js";
 
 /**
  * Parses a scraped Section into a ParsedSection with structured schedule and credits
