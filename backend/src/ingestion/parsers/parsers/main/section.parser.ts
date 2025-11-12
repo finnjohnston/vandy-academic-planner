@@ -1,5 +1,5 @@
 import {Section} from "../../../scrapers/types/section.type.js";
-import {ParsedSection} from "../../types/parsed.section.type.js";
+import {ParsedSection} from "../../types/main/parsed.section.type.js";
 import {parseSchedule} from "../core/schedule.parser.js";
 import {parseCredits} from "../core/credits.parser.js";
 

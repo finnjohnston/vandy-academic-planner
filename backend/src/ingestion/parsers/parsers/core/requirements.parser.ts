@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { ParsedRequirements } from "../../types/parsed.requirements.type.js";
+import { ParsedRequirements } from "../../types/core/parsed.requirements.type.js";
 
 const promptTemplate = `
 You are a meticulous data parsing expert specializing in university course catalogs. Your task is to analyze the provided description text for a specific course and convert it into a structured JSON object according to the rules below.

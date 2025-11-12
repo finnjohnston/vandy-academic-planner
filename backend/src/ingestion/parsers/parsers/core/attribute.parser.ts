@@ -1,4 +1,4 @@
-import {ParsedAttributes} from "../../types/parsed.attributes.type.js";
+import {ParsedAttributes} from "../../types/core/parsed.attributes.type.js";
 
 /**
  * Parses an array of attribute strings into structured ParsedAttributes format

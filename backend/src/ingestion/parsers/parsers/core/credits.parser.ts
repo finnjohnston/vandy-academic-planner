@@ -1,4 +1,4 @@
-import {ParsedCredits} from "../../types/parsed.credits.type.js";
+import {ParsedCredits} from "../../types/core/parsed.credits.type.js";
 
 /**
  * Parses a credit hours string into structured ParsedCredits format
