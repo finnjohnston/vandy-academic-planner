@@ -1,4 +1,4 @@
-import {ParsedSchedule} from "../types/parsed.schedule.type.js";
+import {ParsedSchedule} from "../../types/parsed.schedule.type.js";
 
 /**
  * Parses a schedule string into structured ParsedSchedule format

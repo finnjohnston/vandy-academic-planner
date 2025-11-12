@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseSchedule } from '../../../src/scraping/parsers/parsers/core/schedule.parser.js';
+import { parseSchedule } from '../../../src/ingestion/parsers/parsers/core/schedule.parser.js';
 
 describe('parseSchedule', () => {
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { searchSections } from '../../../src/scraping/scrapers/functions.js';
-import { Term } from '../../../src/scraping/scrapers/types/term.type.js';
+import { searchSections } from '../../../src/ingestion/scrapers/functions.js';
+import { Term } from '../../../src/ingestion/scrapers/types/term.type.js';
 import got from 'got';
 
 vi.mock('got');

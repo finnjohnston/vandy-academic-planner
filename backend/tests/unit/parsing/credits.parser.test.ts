@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseCredits, ParsedCredits } from '../../../src/scraping/parsers/index.js';
+import { parseCredits, ParsedCredits } from '../../../src/ingestion/parsers/index.js';
 
 describe('parseCredits', () => {
 

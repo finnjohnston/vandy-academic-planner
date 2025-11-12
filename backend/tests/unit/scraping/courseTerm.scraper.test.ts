@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { CourseTermScraper } from '../../../src/scraping/scrapers/scrapers/course.term.scraper.js';
+import { CourseTermScraper } from '../../../src/ingestion/scrapers/scrapers/course.term.scraper.js';
 import got from 'got';
 
 vi.mock('got');

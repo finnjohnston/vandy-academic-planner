@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { parseSection, ParsedSection } from '../../../src/scraping/parsers/index.js';
-import { Section } from '../../../src/scraping/scrapers/types/section.type.js';
+import { parseSection, ParsedSection } from '../../../src/ingestion/parsers/index.js';
+import { Section } from '../../../src/ingestion/scrapers/types/section.type.js';
 
 describe('parseSection', () => {
 
