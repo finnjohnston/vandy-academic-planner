@@ -48,7 +48,6 @@ model Class {
   creditsMin            Float                 @map("credits_min")
   creditsMax            Float                 @map("credits_max")
   description           String?               @db.Text
-  
   attributes            Json?                 @db.JsonB
   requirements          Json?                 @db.JsonB
   
