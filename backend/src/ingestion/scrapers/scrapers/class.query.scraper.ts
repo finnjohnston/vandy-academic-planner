@@ -124,12 +124,15 @@ export class ClassQueryScraper extends Scraper<SemesterClass> {
                 const classId = sectionIdAttr ? sectionIdAttr.split('_')[1].trim() : '';
 
                 const trimmedAbbrev = abbreviation.slice(0, abbreviation.length - 1);
+                const parts = trimmedAbbrev.split(' ');
+                const subject = parts[0]; // "CS"
+                const courseNumber = parts.slice(1).join(' '); // "1101" or "2953L"
 
                 // Create a placeholder - we'll fetch details later
                 classTokens.push({
                     id: classId,
-                    subject: trimmedAbbrev.split(' ')[0],
-                    abbreviation: trimmedAbbrev,
+                    subject: subject,
+                    abbreviation: courseNumber,
                     name: title,
                     details: {
                         school: null,
