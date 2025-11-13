@@ -131,6 +131,7 @@ export class ClassQueryScraper extends Scraper<SemesterClass> {
                 // Create a placeholder - we'll fetch details later
                 classTokens.push({
                     id: classId,
+                    termId: term,
                     subject: subject,
                     abbreviation: courseNumber,
                     name: title,

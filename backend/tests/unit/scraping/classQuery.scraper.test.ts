@@ -139,6 +139,7 @@ describe('searchClasses', () => {
         // First class should be CS 1101
         expect(results[0]).toMatchObject({
             id: '12345',
+            termId: '1040',
             subject: 'CS',
             abbreviation: '1101',
             name: 'Programming and Problem Solving',
@@ -156,6 +157,7 @@ describe('searchClasses', () => {
         // Second class should be MATH 1301
         expect(results[1]).toMatchObject({
             id: '1898',
+            termId: '1040',
             subject: 'MATH',
             abbreviation: '1301',
             name: 'Accelerated Single-Variable Calculus II'
@@ -229,6 +231,7 @@ describe('searchClasses', () => {
             1,
             expect.objectContaining({
                 id: '12345',
+                termId: '1040',
                 subject: 'CS',
                 abbreviation: '1101',
                 details: expect.objectContaining({

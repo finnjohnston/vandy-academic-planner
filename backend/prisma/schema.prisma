@@ -8,3 +8,76 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+model Course {
+  id                    Int                   @id @default(autoincrement())
+  courseId              String                @unique @map("course_id") @db.VarChar(50)
+  academicYearId        Int                   @map("academic_year_id")
+
+  subjectCode           String                @map("subject_code") @db.VarChar(10)
+  courseNumber          String                @map("course_number") @db.VarChar(10)
+  title                 String                @db.VarChar(255)
+
+  school                String?               @db.VarChar(255)
+  creditsMin            Float                 @map("credits_min")
+  creditsMax            Float                 @map("credits_max")
+  typicallyOffered      String?               @map("typically_offered") @db.Text
+  description           String?               @db.Text
+  attributes            Json?                 @db.JsonB
+  requirements          Json?                 @db.JsonB
+
+  isCatalogCourse       Boolean               @default(true) @map("is_catalog_course")
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+
+  @@unique([academicYearId, subjectCode, courseNumber])
+  @@index([academicYearId, subjectCode, courseNumber])
+  @@map("courses")
+}
+
+model Class {
+  id                    Int                   @id @default(autoincrement())
+  classId               String                @unique @map("class_id") @db.VarChar(50)
+  termId                String                @map("term_id") @db.VarChar(20)
+
+  subjectCode           String                @map("subject_code") @db.VarChar(10)
+  courseNumber          String                @map("course_number") @db.VarChar(10)
+  title                 String                @db.VarChar(255)
+  
+  school                String?               @db.VarChar(255)
+  creditsMin            Float                 @map("credits_min")
+  creditsMax            Float                 @map("credits_max")
+  description           String?               @db.Text
+  
+  attributes            Json?                 @db.JsonB
+  requirements          Json?                 @db.JsonB
+  
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+  
+  @@unique([termId, subjectCode, courseNumber])
+  @@index([termId])
+  @@map("classes") 
+}
+
+model Section {
+  id                    Int                   @id @default(autoincrement())
+  sectionId             String                @unique @map("section_id") @db.VarChar(50)
+  termId                String                @map("term_id") @db.VarChar(20)
+  classId               String                @map("class_id") @db.VarChar(50)
+  
+  sectionNumber         String                @map("section_number") @db.VarChar(10)
+  sectionType           String                @map("section_type") @db.VarChar(10)
+  
+  instructors           Json                  @db.JsonB
+  schedule              Json?                 @db.JsonB
+  creditsMin            Float                 @map("credits_min")
+  creditsMax            Float                 @map("credits_max")
+  
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+  
+  @@index([classId])
+  @@index([termId])
+  @@map("sections")
+}

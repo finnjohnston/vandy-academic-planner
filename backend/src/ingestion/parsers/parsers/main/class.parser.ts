@@ -21,6 +21,7 @@ export async function parseClass(semesterClass: SemesterClass): Promise<ParsedSe
 
     return {
         id: semesterClass.id,
+        termId: semesterClass.termId,
         subject: semesterClass.subject,
         abbreviation: semesterClass.abbreviation,
         name: semesterClass.name,
