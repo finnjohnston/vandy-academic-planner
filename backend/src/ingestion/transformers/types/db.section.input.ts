@@ -1,7 +1,6 @@
 export interface DbSectionInput {
   sectionId: string;
   termId: string;
-  classId: string;
 
   sectionNumber: string;
   sectionType: string;
