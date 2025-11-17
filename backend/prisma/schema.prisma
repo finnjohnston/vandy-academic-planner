@@ -9,6 +9,36 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model AcademicYear {
+  id        Int      @id @default(autoincrement())
+  year      String   @unique @db.VarChar(10)
+  start     Int
+  end       Int
+  isCurrent Boolean  @default(false) @map("is_current")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  courses   Course[]
+  terms     Term[]
+
+  @@map("academic_years")
+}
+
+model Term {
+  id             Int          @id @default(autoincrement())
+  termId         String       @unique @map("term_id") @db.VarChar(20)
+  academicYearId Int          @map("academic_year_id")
+  name           String       @db.VarChar(100)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  classes        Class[]
+  sections       Section[]
+
+  @@map("terms")
+}
+
 model Course {
   id                    Int                   @id @default(autoincrement())
   courseId              String                @unique @map("course_id") @db.VarChar(50)
@@ -29,6 +59,8 @@ model Course {
   isCatalogCourse       Boolean               @default(true) @map("is_catalog_course")
   createdAt             DateTime              @default(now()) @map("created_at")
   updatedAt             DateTime              @updatedAt @map("updated_at")
+
+  academicYear          AcademicYear          @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
 
   @@unique([academicYearId, subjectCode, courseNumber])
   @@index([academicYearId, subjectCode, courseNumber])
@@ -53,10 +85,13 @@ model Class {
   
   createdAt             DateTime              @default(now()) @map("created_at")
   updatedAt             DateTime              @updatedAt @map("updated_at")
-  
+
+  term                  Term                  @relation(fields: [termId], references: [termId], onDelete: Cascade)
+  sections              Section[]
+
   @@unique([termId, subjectCode, courseNumber])
   @@index([termId])
-  @@map("classes") 
+  @@map("classes")
 }
 
 model Section {
@@ -75,7 +110,10 @@ model Section {
   
   createdAt             DateTime              @default(now()) @map("created_at")
   updatedAt             DateTime              @updatedAt @map("updated_at")
-  
+
+  term                  Term                  @relation(fields: [termId], references: [termId], onDelete: Cascade)
+  class                 Class                 @relation(fields: [classId], references: [classId], onDelete: Cascade)
+
   @@index([classId])
   @@index([termId])
   @@map("sections")

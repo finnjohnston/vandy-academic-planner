@@ -1,26 +1,40 @@
-import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+// Load test environment variables FIRST, before any imports that might use them
 import { config } from 'dotenv';
+config({ path: '.env.test', override: true });
 
-// Load environment variables from .env file
-config();
+import { beforeAll, afterAll, beforeEach } from 'vitest';
+import { PrismaClient } from '@prisma/client';
+import { execSync } from 'child_process';
+
+// Create Prisma client for tests (after env vars are loaded)
+export const prisma = new PrismaClient();
 
 // Global test setup
 beforeAll(async () => {
-  // Setup that runs once before all tests
-  // e.g., start test database, initialize services
+  // Push schema to test database (using db push since no migrations yet)
+  try {
+    execSync('npx prisma db push --skip-generate', {
+      stdio: 'inherit',
+      env: process.env,
+    });
+  } catch (error) {
+    console.error('Failed to push schema to test database:', error);
+    throw error;
+  }
 });
 
 afterAll(async () => {
-  // Cleanup that runs once after all tests
-  // e.g., close database connections, cleanup resources
+  // Disconnect Prisma client
+  await prisma.$disconnect();
 });
 
-beforeEach(() => {
-  // Setup that runs before each test
-  // e.g., reset database state, clear mocks
-});
-
-afterEach(() => {
-  // Cleanup that runs after each test
-  // e.g., restore mocks, cleanup test data
+beforeEach(async () => {
+  // Clean database between tests (in reverse order of foreign keys)
+  await prisma.$transaction([
+    prisma.section.deleteMany(),
+    prisma.class.deleteMany(),
+    prisma.course.deleteMany(),
+    prisma.term.deleteMany(),
+    prisma.academicYear.deleteMany(),
+  ]);
 });
