@@ -18,5 +18,6 @@ export interface ClassDetails {
 
 export interface SemesterClass extends Class {
     id: ClassID,
+    termId: string,
     details: ClassDetails
 }

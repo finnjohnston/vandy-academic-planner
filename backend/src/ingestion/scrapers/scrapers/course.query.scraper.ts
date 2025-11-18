@@ -60,12 +60,12 @@ export class CourseQueryScraper extends Scraper<CatalogCourse> {
                 const fullSubjectName = match[1].trim(); // "Computer Science"
                 const courseNumber = match[2].trim(); // "1101"
 
-                // Create abbreviation from first letters of each word
+                // Create subject from first letters of each word
                 subject = fullSubjectName.split(' ')
                     .map(word => word.charAt(0).toUpperCase())
                     .join(''); // "CS"
 
-                abbreviation = `${subject} ${courseNumber}`; // "CS 1101"
+                abbreviation = courseNumber; // "1101"
             }
         }
 

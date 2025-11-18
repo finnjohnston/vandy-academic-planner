@@ -82,7 +82,7 @@ describe('CourseQueryScraper', () => {
 
         expect(course.id).toBe(courseId);
         expect(course.subject).toBe('CS');
-        expect(course.abbreviation).toBe('CS 1101');
+        expect(course.abbreviation).toBe('1101');
         expect(course.name).toBe('Programming and Problem Solving');
 
         expect(course.details.school).toBe('College of Arts and Science');
@@ -120,7 +120,7 @@ describe('CourseQueryScraper', () => {
         const courses = await scraper.scrape();
 
         expect(courses[0].subject).toBe('BS');
-        expect(courses[0].abbreviation).toBe('BS 1100');
+        expect(courses[0].abbreviation).toBe('1100');
         expect(courses[0].name).toBe('General Biology');
     });
 
@@ -179,7 +179,7 @@ describe('CourseQueryScraper', () => {
             expect.objectContaining({
                 id: courseId,
                 subject: 'CS',
-                abbreviation: 'CS 1101'
+                abbreviation: '1101'
             }),
             expect.any(Number)
         );

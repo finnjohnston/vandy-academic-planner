@@ -13,5 +13,6 @@ interface ParsedClassDetails {
 
 export interface ParsedSemesterClass extends Class {
   id: ClassID;
+  termId: string;
   details: ParsedClassDetails;
 }

@@ -72,7 +72,7 @@ describe('searchSections', () => {
             term: '1040',
             class: {
                 subject: 'CS',
-                abbreviation: 'CS 1101',
+                abbreviation: '1101',
                 name: 'Programming and Problem Solving'
             },
             number: '01',
@@ -87,7 +87,7 @@ describe('searchSections', () => {
             term: '1040',
             class: {
                 subject: 'CS',
-                abbreviation: 'CS 1101',
+                abbreviation: '1101',
                 name: 'Programming and Problem Solving'
             },
             number: '02',

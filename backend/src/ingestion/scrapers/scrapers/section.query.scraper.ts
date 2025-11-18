@@ -153,6 +153,9 @@ export class SectionQueryScraper extends Scraper<Section> {
                 }
 
                 const trimmedAbbrev = abbreviation.slice(0, abbreviation.length - 1);
+                const parts = trimmedAbbrev.split(' ');
+                const subject = parts[0]; // "CS"
+                const courseNumber = parts.slice(1).join(' '); // "1101"
 
                 // Notify that we've found a new section.
                 sectionTokens.push({
@@ -160,8 +163,8 @@ export class SectionQueryScraper extends Scraper<Section> {
                     term: term,
 
                     class: {
-                        subject: trimmedAbbrev.split(' ')[0],
-                        abbreviation: trimmedAbbrev,
+                        subject: subject,
+                        abbreviation: courseNumber,
                         name: title
                     },
 

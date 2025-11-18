@@ -11,7 +11,7 @@ describe('parseSection', () => {
                 term: '1040',
                 class: {
                     subject: 'CS',
-                    abbreviation: 'CS 1101',
+                    abbreviation: '1101',
                     name: 'Programming and Problem Solving'
                 },
                 number: '01',
@@ -27,7 +27,7 @@ describe('parseSection', () => {
             expect(parsed.term).toBe('1040');
             expect(parsed.class).toEqual({
                 subject: 'CS',
-                abbreviation: 'CS 1101',
+                abbreviation: '1101',
                 name: 'Programming and Problem Solving'
             });
             expect(parsed.number).toBe('01');
@@ -51,7 +51,7 @@ describe('parseSection', () => {
                 term: '1040',
                 class: {
                     subject: 'MUSL',
-                    abbreviation: 'MUSL 1220',
+                    abbreviation: '1220',
                     name: 'Private Instruction'
                 },
                 number: '03',
@@ -82,7 +82,7 @@ describe('parseSection', () => {
                 term: '1040',
                 class: {
                     subject: 'MATH',
-                    abbreviation: 'MATH 2300',
+                    abbreviation: '2300',
                     name: 'Multivariable Calculus'
                 },
                 number: '02',
@@ -106,7 +106,7 @@ describe('parseSection', () => {
                 term: '1040',
                 class: {
                     subject: 'ECON',
-                    abbreviation: 'ECON 1010',
+                    abbreviation: '1010',
                     name: 'Principles of Microeconomics'
                 },
                 number: '01',
@@ -130,7 +130,7 @@ describe('parseSection', () => {
                 term: '1040',
                 class: {
                     subject: 'PHYS',
-                    abbreviation: 'PHYS 1601',
+                    abbreviation: '1601',
                     name: 'Introductory Physics I'
                 },
                 number: '05',
@@ -151,7 +151,7 @@ describe('parseSection', () => {
                 term: '1040',
                 class: {
                     subject: 'CS',
-                    abbreviation: 'CS 3251',
+                    abbreviation: '3251',
                     name: 'Intermediate Software Design'
                 },
                 number: '02',
@@ -172,7 +172,7 @@ describe('parseSection', () => {
                 term: '1040',
                 class: {
                     subject: 'BSCI',
-                    abbreviation: 'BSCI 1100',
+                    abbreviation: '1100',
                     name: 'General Biology'
                 },
                 number: '01',
@@ -195,7 +195,7 @@ describe('parseSection', () => {
                 term: '1040',
                 class: {
                     subject: 'ART',
-                    abbreviation: 'ART 1000',
+                    abbreviation: '1000',
                     name: 'Introduction to Art'
                 },
                 number: '01',
@@ -224,7 +224,7 @@ describe('parseSection', () => {
                 term: '1040',
                 class: {
                     subject: 'MUS',
-                    abbreviation: 'MUS 1000',
+                    abbreviation: '1000',
                     name: 'Music Ensemble'
                 },
                 number: '01',
@@ -249,7 +249,7 @@ describe('parseSection', () => {
                 term: '1040',
                 class: {
                     subject: 'CS',
-                    abbreviation: 'CS 2201',
+                    abbreviation: '2201',
                     name: 'Data Structures'
                 },
                 number: '01',
@@ -266,7 +266,7 @@ describe('parseSection', () => {
                 term: '1040',
                 class: {
                     subject: 'CS',
-                    abbreviation: 'CS 2201',
+                    abbreviation: '2201',
                     name: 'Data Structures'
                 },
                 number: '01',
@@ -293,7 +293,7 @@ describe('parseSection', () => {
                 term: '1040',
                 class: {
                     subject: 'CS',
-                    abbreviation: 'CS 3860',
+                    abbreviation: '3860',
                     name: 'Independent Study'
                 },
                 number: '01',

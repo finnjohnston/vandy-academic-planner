@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../node_modules/.prisma/client"
@@ -13,4 +7,114 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+}
+
+model AcademicYear {
+  id        Int      @id @default(autoincrement())
+  year      String   @unique @db.VarChar(10)
+  start     Int
+  end       Int
+  isCurrent Boolean  @default(false) @map("is_current")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  courses   Course[]
+  terms     Term[]
+
+  @@map("academic_years")
+}
+
+model Term {
+  id             Int          @id @default(autoincrement())
+  termId         String       @unique @map("term_id") @db.VarChar(20)
+  academicYearId Int          @map("academic_year_id")
+  name           String       @db.VarChar(100)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  classes        Class[]
+  sections       Section[]
+
+  @@map("terms")
+}
+
+model Course {
+  id                    Int                   @id @default(autoincrement())
+  courseId              String                @unique @map("course_id") @db.VarChar(50)
+  academicYearId        Int                   @map("academic_year_id")
+
+  subjectCode           String                @map("subject_code") @db.VarChar(10)
+  courseNumber          String                @map("course_number") @db.VarChar(10)
+  title                 String                @db.VarChar(255)
+
+  school                String?               @db.VarChar(255)
+  creditsMin            Float                 @map("credits_min")
+  creditsMax            Float                 @map("credits_max")
+  typicallyOffered      String?               @map("typically_offered") @db.Text
+  description           String?               @db.Text
+  attributes            Json?                 @db.JsonB
+  requirements          Json?                 @db.JsonB
+
+  isCatalogCourse       Boolean               @default(true) @map("is_catalog_course")
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+
+  academicYear          AcademicYear          @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  @@unique([academicYearId, subjectCode, courseNumber])
+  @@index([academicYearId, subjectCode, courseNumber])
+  @@map("courses")
+}
+
+model Class {
+  id                    Int                   @id @default(autoincrement())
+  classId               String                @unique @map("class_id") @db.VarChar(50)
+  termId                String                @map("term_id") @db.VarChar(20)
+
+  subjectCode           String                @map("subject_code") @db.VarChar(10)
+  courseNumber          String                @map("course_number") @db.VarChar(10)
+  title                 String                @db.VarChar(255)
+  
+  school                String?               @db.VarChar(255)
+  creditsMin            Float                 @map("credits_min")
+  creditsMax            Float                 @map("credits_max")
+  description           String?               @db.Text
+  attributes            Json?                 @db.JsonB
+  requirements          Json?                 @db.JsonB
+  
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+
+  term                  Term                  @relation(fields: [termId], references: [termId], onDelete: Cascade)
+  sections              Section[]
+
+  @@unique([termId, subjectCode, courseNumber])
+  @@index([termId])
+  @@map("classes")
+}
+
+model Section {
+  id                    Int                   @id @default(autoincrement())
+  sectionId             String                @unique @map("section_id") @db.VarChar(50)
+  termId                String                @map("term_id") @db.VarChar(20)
+  classId               String                @map("class_id") @db.VarChar(50)
+  
+  sectionNumber         String                @map("section_number") @db.VarChar(10)
+  sectionType           String                @map("section_type") @db.VarChar(10)
+  
+  instructors           Json                  @db.JsonB
+  schedule              Json?                 @db.JsonB
+  creditsMin            Float                 @map("credits_min")
+  creditsMax            Float                 @map("credits_max")
+  
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+
+  term                  Term                  @relation(fields: [termId], references: [termId], onDelete: Cascade)
+  class                 Class                 @relation(fields: [classId], references: [classId], onDelete: Cascade)
+
+  @@index([classId])
+  @@index([termId])
+  @@map("sections")
 }

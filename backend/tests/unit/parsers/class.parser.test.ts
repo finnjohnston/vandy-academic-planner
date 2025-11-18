@@ -13,6 +13,7 @@ describe('parseClass', () => {
         it('should parse a class with single credit value and prerequisites', async () => {
             const semesterClass: SemesterClass = {
                 id: 'CS 2201',
+                termId: '1040',
                 subject: 'CS',
                 abbreviation: '2201',
                 name: 'Data Structures',
@@ -31,6 +32,7 @@ describe('parseClass', () => {
 
             // Basic fields should be preserved
             expect(parsed.id).toBe('CS 2201');
+            expect(parsed.termId).toBe('1040');
             expect(parsed.subject).toBe('CS');
             expect(parsed.abbreviation).toBe('2201');
             expect(parsed.name).toBe('Data Structures');
@@ -61,6 +63,7 @@ describe('parseClass', () => {
         it('should parse a class with complex prerequisites', async () => {
             const semesterClass: SemesterClass = {
                 id: 'PHYS 2953L',
+                termId: '1040',
                 subject: 'PHYS',
                 abbreviation: '2953L',
                 name: 'Modern Physics Laboratory',
@@ -100,6 +103,7 @@ describe('parseClass', () => {
         it('should parse a class with variable credits', async () => {
             const semesterClass: SemesterClass = {
                 id: 'CS 3860',
+                termId: '1040',
                 subject: 'CS',
                 abbreviation: '3860',
                 name: 'Independent Study',
@@ -128,6 +132,7 @@ describe('parseClass', () => {
         it('should handle class with no prerequisites', async () => {
             const semesterClass: SemesterClass = {
                 id: 'HOD 1100',
+                termId: '1040',
                 subject: 'HOD',
                 abbreviation: '1100',
                 name: 'Human and Organizational Development',
@@ -157,6 +162,7 @@ describe('parseClass', () => {
         it('should handle class with both prerequisites and corequisites', async () => {
             const semesterClass: SemesterClass = {
                 id: 'PHYS 2255',
+                termId: '1040',
                 subject: 'PHYS',
                 abbreviation: '2255',
                 name: 'Modern Physics',
@@ -202,6 +208,7 @@ describe('parseClass', () => {
         it('should handle class with multiple attribute types', async () => {
             const semesterClass: SemesterClass = {
                 id: 'BSCI 1100',
+                termId: '1040',
                 subject: 'BSCI',
                 abbreviation: '1100',
                 name: 'General Biology',
@@ -232,6 +239,7 @@ describe('parseClass', () => {
         it('should handle null/empty fields gracefully', async () => {
             const semesterClass: SemesterClass = {
                 id: 'TEST 2000',
+                termId: '1040',
                 subject: 'TEST',
                 abbreviation: '2000',
                 name: 'Test Class',
@@ -261,6 +269,7 @@ describe('parseClass', () => {
         it('should handle empty hours string', async () => {
             const semesterClass: SemesterClass = {
                 id: 'MUS 1000',
+                termId: '1040',
                 subject: 'MUS',
                 abbreviation: '1000',
                 name: 'Music Ensemble',
