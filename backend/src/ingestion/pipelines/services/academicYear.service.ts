@@ -50,7 +50,18 @@ export async function createAcademicYear(
     );
 
     return success(academicYear);
-  } catch (err) {
+  } catch (err: any) {
+    // Handle unique constraint violation (P2002) - might happen in race conditions
+    if (err?.code === 'P2002') {
+      logger.warn(`Academic year ${year} was created by another process, fetching it`);
+      const existing = await prisma.academicYear.findUnique({
+        where: { year },
+      });
+      if (existing) {
+        return success(existing);
+      }
+    }
+
     logger.error(`Failed to create academic year ${year}`, err);
     return failure(
       'Failed to create academic year',
