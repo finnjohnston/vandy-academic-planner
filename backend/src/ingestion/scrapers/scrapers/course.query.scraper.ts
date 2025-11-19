@@ -55,12 +55,12 @@ export class CourseQueryScraper extends Scraper<CatalogCourse> {
             const courseIdentifier = parts[0].trim(); // "Computer Science 1101"
             name = parts.slice(1).join(' - ').trim(); // "Programming and Problem Solving"
 
-            // Extract course number
-            // Match: words followed by numbers
-            const match = courseIdentifier.match(/^(.+?)\s+(\d+)$/);
+            // Extract course number (with optional letter suffixes like L, W, etc.)
+            // Match: words followed by numbers and optional letters
+            const match = courseIdentifier.match(/^(.+?)\s+(\d+[A-Z]*)$/);
             if (match) {
-                const courseNumber = match[2].trim(); // "1101"
-                abbreviation = courseNumber; // "1101"
+                const courseNumber = match[2].trim(); // "1101", "1101L", "2000W", etc.
+                abbreviation = courseNumber;
 
                 // If no subject code was provided, fall back to deriving it from the title
                 // This maintains backward compatibility for cases where subject code isn't available

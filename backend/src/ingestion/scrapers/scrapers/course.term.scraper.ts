@@ -19,8 +19,11 @@ export class CourseTermScraper extends Scraper<CatalogCourse> {
 
     private discoveredCourses: CatalogCourse[] = [];
 
-    constructor(cookieJar?: CookieJar, startTime?: number) {
+    private subjectFilter?: string;
+
+    constructor(cookieJar?: CookieJar, startTime?: number, subjectFilter?: string) {
         super(cookieJar, startTime);
+        this.subjectFilter = subjectFilter;
     }
 
     override async scrape(handler: StreamedResponseHandler<CatalogCourse> = () => {
@@ -46,11 +49,12 @@ export class CourseTermScraper extends Scraper<CatalogCourse> {
             if (!this.BLACKLISTED_CODES.includes(searchA) && !this.searchedTerms.includes(searchA)) {
                 this.searchedTerms.push(searchA);
 
-                const courses: CatalogCourse[] = await this.searchCourses(searchA, handler);
+                const result = await this.searchCourses(searchA, handler);
 
-                this.discoverCourses(courses);
+                this.discoverCourses(result.courses);
 
-                if (courses.length >= 300) {
+                // Use totalCount (before subject filtering) to decide if we need to recurse
+                if (result.totalCount >= 300) {
                     await this.searchByBracketedIncreases(searchA, handler);
                 }
             }
@@ -58,18 +62,19 @@ export class CourseTermScraper extends Scraper<CatalogCourse> {
             if (!this.BLACKLISTED_CODES.includes(searchB) && !this.searchedTerms.includes(searchB)) {
                 this.searchedTerms.push(searchB);
 
-                const courses: CatalogCourse[] = await this.searchCourses(searchB, handler);
+                const result = await this.searchCourses(searchB, handler);
 
-                this.discoverCourses(courses);
+                this.discoverCourses(result.courses);
 
-                if (courses.length >= 300) {
+                // Use totalCount (before subject filtering) to decide if we need to recurse
+                if (result.totalCount >= 300) {
                     await this.searchByBracketedIncreases(searchB, handler);
                 }
             }
         }
     }
 
-    private async searchCourses(keywords: string, handler: StreamedResponseHandler<CatalogCourse>): Promise<CatalogCourse[]> {
+    private async searchCourses(keywords: string, handler: StreamedResponseHandler<CatalogCourse>): Promise<{ courses: CatalogCourse[], totalCount: number }> {
         const url = `${YES_BASE_URL}/SearchCoursesExecute!search.action`;
 
         const response = await got(url, {
@@ -82,81 +87,104 @@ export class CourseTermScraper extends Scraper<CatalogCourse> {
         const $ = load(response.body);
 
         // Extract courseIds and subject codes from the search results
-        // The structure is:
-        // - Script tags define functions showCourseDetail_N with course IDs
-        // - Table rows have cells that call showCourseDetail_N()
-        // - First <td> in each row contains the subject code
+        // Strategy: Parse table rows and extract both subject code and course ID from each row
+        // - First <td> contains the subject code
+        // - onclick attribute references the function name (e.g., showCourseDetail_0)
+        // - Find the matching script to get the course ID
 
         interface CourseInfo {
             courseId: string;
             subjectCode: string;
+            courseNumber: string; // e.g., "1101", "1101L", "2000W"
         }
 
-        const courseMap = new Map<number, CourseInfo>();
-
-        // Extract courseIds from JavaScript functions (indexed by function number)
+        // First, build a map of function name -> course ID from all scripts
+        const functionToCourseId = new Map<string, string>();
         $('script').each(function(this: any) {
             const scriptContent = $(this).html();
             if (scriptContent && scriptContent.includes('showCourseDetail')) {
-                // Pattern: function showCourseDetail_0( ... ) { ... showCourseDetail('121926', '1', ...) }
-                const funcRegex = /function\s+showCourseDetail_(\d+)/;
+                // Extract function name: function showCourseDetail_0(...)
+                const funcRegex = /function\s+(showCourseDetail_\d+)/;
                 const funcMatch = scriptContent.match(funcRegex);
 
                 if (funcMatch) {
-                    const index = parseInt(funcMatch[1]);
+                    const functionName = funcMatch[1];
+                    // Extract course ID: showCourseDetail('121926', '1', ...)
                     const idRegex = /YAHOO\.mis\.student\.CourseDetailPanel\.showCourseDetail\('(\d+)',\s*'(\d+)'/;
                     const idMatch = scriptContent.match(idRegex);
 
                     if (idMatch) {
                         const courseId = idMatch[1];
-                        if (!courseMap.has(index)) {
-                            courseMap.set(index, { courseId, subjectCode: '' });
-                        } else {
-                            courseMap.get(index)!.courseId = courseId;
-                        }
+                        functionToCourseId.set(functionName, courseId);
                     }
                 }
             }
         });
 
-        // Extract subject codes from table rows (indexed by row position)
-        let rowIndex = 0;
-        $('#courseSearchResultTable tr.classRow').each(function(this: any) {
-            const firstCell = $(this).find('td').first();
-            const subjectCode = firstCell.text().trim();
+        // Now parse table rows to get subject codes and match with course IDs
+        const courseMap = new Map<string, CourseInfo>();
 
-            if (subjectCode) {
-                if (!courseMap.has(rowIndex)) {
-                    courseMap.set(rowIndex, { courseId: '', subjectCode });
-                } else {
-                    courseMap.get(rowIndex)!.subjectCode = subjectCode;
+        $('#courseSearchResultTable tr.classRow').each(function(this: any) {
+            const row = $(this);
+
+            // Get subject code from first cell
+            const subjectCode = row.find('td').eq(0).text().trim();
+
+            // Get course number from third cell (index 2)
+            const courseNumber = row.find('td').eq(2).text().trim();
+
+            // Get function name from onclick attribute
+            const onclick = row.find('td').first().attr('onclick');
+            if (onclick && subjectCode && courseNumber) {
+                // Extract function name from onclick="showCourseDetail_0()"
+                const funcMatch = onclick.match(/(showCourseDetail_\d+)/);
+                if (funcMatch) {
+                    const functionName = funcMatch[1];
+                    const courseId = functionToCourseId.get(functionName);
+
+                    if (courseId) {
+                        // Use courseId as key to automatically deduplicate
+                        courseMap.set(courseId, { courseId, subjectCode, courseNumber });
+                    }
                 }
             }
-            rowIndex++;
         });
 
-        // Filter to only complete entries and deduplicate by courseId
-        const seenCourseIds = new Set<string>();
-        const courseInfos: CourseInfo[] = [];
+        // Convert map values to array (already deduplicated by courseId within this search result)
+        let courseInfos: CourseInfo[] = Array.from(courseMap.values());
 
-        for (const info of courseMap.values()) {
-            if (info.courseId && info.subjectCode && !seenCourseIds.has(info.courseId)) {
-                courseInfos.push(info);
-                seenCourseIds.add(info.courseId);
-            }
+        // Store total count BEFORE filtering (for recursion threshold decision)
+        const totalCount = courseInfos.length;
+
+        // Filter by subject if a filter is provided
+        if (this.subjectFilter) {
+            courseInfos = courseInfos.filter(info => info.subjectCode === this.subjectFilter);
         }
 
-        // Fetch details for each course
-        const courses: CatalogCourse[] = [];
-        for (const { courseId, subjectCode } of courseInfos) {
+        // Filter to undergrad courses only (< 5000)
+        courseInfos = courseInfos.filter(info => {
+            // Extract numeric part from course number (e.g., "1000L" -> 1000, "2123" -> 2123)
+            const numMatch = info.courseNumber.match(/^(\d+)/);
+            if (!numMatch) return false;
+            const courseNum = parseInt(numMatch[1]);
+            return courseNum < 5000;
+        });
+
+        // Filter out courses that have already been discovered (deduplication across searches)
+        const existingIDs = this.discoveredCourses.map(c => c.id);
+        const newCourseInfos = courseInfos.filter(info => !existingIDs.includes(info.courseId));
+
+        // Fetch details for all new courses in parallel
+        const fetchPromises = newCourseInfos.map(async ({ courseId, subjectCode }) => {
             const scraper = new CourseQueryScraper(courseId, '1', subjectCode, this.cookieJar, this.startTime());
             const courseResults = await scraper.scrape(handler);
-            if (courseResults.length > 0) {
-                courses.push(courseResults[0]);
-            }
-        }
+            return courseResults.length > 0 ? courseResults[0] : null;
+        });
 
-        return courses;
+        const courseResults = await Promise.all(fetchPromises);
+        const courses: CatalogCourse[] = courseResults.filter((c): c is CatalogCourse => c !== null);
+
+        return { courses, totalCount };
     }
 
     private discoverCourses(courses: CatalogCourse[]) {

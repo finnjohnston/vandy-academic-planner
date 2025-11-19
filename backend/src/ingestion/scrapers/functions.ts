@@ -73,9 +73,10 @@ export async function searchCourses(courseId: CourseID, offerNumber: string = '1
 /**
  * Fetches all Courses from the catalog
  * @param handler Streamed Response Handler to incrementally process discovered Courses
+ * @param subjectFilter Optional subject code filter (e.g., "CS", "MATH") to only fetch courses from that subject
  */
-export async function getAllCourses(handler?: StreamedResponseHandler<CatalogCourse>): Promise<CatalogCourse[]> {
-    const scraper = new CourseTermScraper();
+export async function getAllCourses(handler?: StreamedResponseHandler<CatalogCourse>, subjectFilter?: string): Promise<CatalogCourse[]> {
+    const scraper = new CourseTermScraper(undefined, undefined, subjectFilter);
     return await scraper.scrape(handler);
 }
 

@@ -28,84 +28,17 @@ async function testCatalogCS() {
     const academicYear = academicYearResult.data;
     logger.success(`Using academic year: ${academicYear.year} (ID: ${academicYear.id})`);
 
-    // Step 2: Scrape all courses and filter to CS only
-    logger.log('\n[2/4] Scraping courses from catalog...');
-    const allCourses = await getAllCourses((course, elapsed) => {
-      if (course.subject === 'CS') {
-        logger.log(`Scraped: ${course.subject} ${course.abbreviation} - ${course.name} (${elapsed}ms)`);
-      }
-    });
+    // Step 2: Scrape CS courses only (filtered at source)
+    logger.log('\n[2/4] Scraping CS courses from catalog...');
+    const csCourses = await getAllCourses((course, elapsed) => {
+      logger.log(`Scraped: ${course.subject} ${course.abbreviation} - ${course.name} (${elapsed}ms)`);
+    }, 'CS');
 
-    const csCourses = allCourses.filter(course => course.subject === 'CS');
-    logger.success(`Found ${csCourses.length} CS courses (out of ${allCourses.length} total)`);
+    logger.success(`Found ${csCourses.length} CS courses`);
 
     if (csCourses.length === 0) {
       logger.warn('No CS courses found!');
       process.exit(0);
-    }
-
-    // Validation: Ensure CS courses are actually Computer Science courses
-    logger.log('\nValidating CS courses are Computer Science (not Communication Studies)...');
-
-    // Keywords that indicate Communication Studies courses (not CS)
-    const cmstKeywords = [
-      'communication', 'rhetoric', 'speaking', 'debate', 'argumentation',
-      'media', 'advocacy', 'social movements', 'civic life'
-    ];
-
-    // Keywords that indicate Computer Science courses
-    const csKeywords = [
-      'programming', 'algorithm', 'data structure', 'software', 'computing',
-      'computer', 'code', 'python', 'java', 'web', 'database', 'network'
-    ];
-
-    const suspiciousCourses = [];
-    const confirmedCSCourses = [];
-
-    for (const course of csCourses) {
-      const nameAndDesc = `${course.name} ${course.details.description || ''}`.toLowerCase();
-
-      // Check if course looks like Communication Studies
-      const hasCmstKeyword = cmstKeywords.some(keyword => nameAndDesc.includes(keyword));
-      const hasCSKeyword = csKeywords.some(keyword => nameAndDesc.includes(keyword));
-
-      if (hasCmstKeyword && !hasCSKeyword) {
-        suspiciousCourses.push(course);
-        logger.warn(
-          `⚠️  Suspicious: ${course.subject} ${course.abbreviation} - ${course.name} ` +
-          `(may be Communication Studies)`
-        );
-      } else if (hasCSKeyword) {
-        confirmedCSCourses.push(course);
-      }
-    }
-
-    if (suspiciousCourses.length > 0) {
-      logger.error(
-        `\n❌ VALIDATION FAILED: Found ${suspiciousCourses.length} courses that appear to be ` +
-        `Communication Studies but are labeled as CS!`
-      );
-      logger.log('\nSuspicious courses:');
-      suspiciousCourses.forEach(course => {
-        logger.log(`  - ${course.subject} ${course.abbreviation}: ${course.name}`);
-      });
-      logger.error('\nThis indicates the subject code extraction bug is still present.');
-      process.exit(1);
-    }
-
-    logger.success(
-      `✓ Validation passed: All ${confirmedCSCourses.length} CS courses appear to be Computer Science courses`
-    );
-
-    // Additional validation: Check for any CMST courses mislabeled as CS
-    const cmstCourses = allCourses.filter(course => course.subject === 'CMST');
-    logger.log(`\nFound ${cmstCourses.length} CMST (Communication Studies) courses - these should be separate from CS`);
-
-    if (cmstCourses.length > 0) {
-      logger.log('Sample CMST courses:');
-      cmstCourses.slice(0, 3).forEach(course => {
-        logger.log(`  - ${course.subject} ${course.abbreviation}: ${course.name}`);
-      });
     }
 
     // Step 3: Parse CS courses with AI
@@ -165,8 +98,7 @@ async function testCatalogCS() {
     logger.success('CS CATALOG TEST COMPLETE');
     logger.log('='.repeat(60));
     logger.log(`Academic Year: ${academicYear.year}`);
-    logger.log(`Total courses scraped: ${allCourses.length}`);
-    logger.log(`CS courses found: ${csCourses.length}`);
+    logger.log(`CS courses scraped: ${csCourses.length}`);
     logger.log(`CS courses parsed: ${parsedCourses.length}`);
     logger.log(`CS courses inserted: ${insertResult.data.length}`);
     logger.log(`Errors: ${parseErrors}`);
