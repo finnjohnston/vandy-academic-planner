@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ParsedRequirements } from "../../types/core/parsed.requirements.type.js";
+import { geminiSemaphore } from "../../../services/semaphore.service.js";
 
 const promptTemplate = `
 You are a meticulous data parsing expert specializing in university course catalogs. Your task is to analyze the provided description text for a specific course and convert it into a structured JSON object according to the rules below.
@@ -167,8 +168,10 @@ export async function parseRequirements(
         .replace('{description_text}', descriptionText);
 
     try {
-        // Generate response
-        const result = await model.generateContent(prompt);
+        // Generate response with semaphore control (limits concurrent API calls)
+        const result = await geminiSemaphore.execute(() =>
+            model.generateContent(prompt)
+        );
         const response = result.response;
         const text = response.text();
 
