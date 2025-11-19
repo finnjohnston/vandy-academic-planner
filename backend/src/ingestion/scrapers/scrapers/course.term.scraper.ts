@@ -80,28 +80,76 @@ export class CourseTermScraper extends Scraper<CatalogCourse> {
         });
 
         const $ = load(response.body);
-        const courseIds: string[] = [];
 
-        // Extract courseIds from JavaScript functions
-        // Pattern: YAHOO.mis.student.CourseDetailPanel.showCourseDetail('102715', '1', notificationString);
+        // Extract courseIds and subject codes from the search results
+        // The structure is:
+        // - Script tags define functions showCourseDetail_N with course IDs
+        // - Table rows have cells that call showCourseDetail_N()
+        // - First <td> in each row contains the subject code
+
+        interface CourseInfo {
+            courseId: string;
+            subjectCode: string;
+        }
+
+        const courseMap = new Map<number, CourseInfo>();
+
+        // Extract courseIds from JavaScript functions (indexed by function number)
         $('script').each(function(this: any) {
             const scriptContent = $(this).html();
             if (scriptContent && scriptContent.includes('showCourseDetail')) {
-                const regex = /YAHOO\.mis\.student\.CourseDetailPanel\.showCourseDetail\('(\d+)',\s*'(\d+)'/g;
-                let match;
-                while ((match = regex.exec(scriptContent)) !== null) {
-                    const courseId = match[1];
-                    if (!courseIds.includes(courseId)) {
-                        courseIds.push(courseId);
+                // Pattern: function showCourseDetail_0( ... ) { ... showCourseDetail('121926', '1', ...) }
+                const funcRegex = /function\s+showCourseDetail_(\d+)/;
+                const funcMatch = scriptContent.match(funcRegex);
+
+                if (funcMatch) {
+                    const index = parseInt(funcMatch[1]);
+                    const idRegex = /YAHOO\.mis\.student\.CourseDetailPanel\.showCourseDetail\('(\d+)',\s*'(\d+)'/;
+                    const idMatch = scriptContent.match(idRegex);
+
+                    if (idMatch) {
+                        const courseId = idMatch[1];
+                        if (!courseMap.has(index)) {
+                            courseMap.set(index, { courseId, subjectCode: '' });
+                        } else {
+                            courseMap.get(index)!.courseId = courseId;
+                        }
                     }
                 }
             }
         });
 
+        // Extract subject codes from table rows (indexed by row position)
+        let rowIndex = 0;
+        $('#courseSearchResultTable tr.classRow').each(function(this: any) {
+            const firstCell = $(this).find('td').first();
+            const subjectCode = firstCell.text().trim();
+
+            if (subjectCode) {
+                if (!courseMap.has(rowIndex)) {
+                    courseMap.set(rowIndex, { courseId: '', subjectCode });
+                } else {
+                    courseMap.get(rowIndex)!.subjectCode = subjectCode;
+                }
+            }
+            rowIndex++;
+        });
+
+        // Filter to only complete entries and deduplicate by courseId
+        const seenCourseIds = new Set<string>();
+        const courseInfos: CourseInfo[] = [];
+
+        for (const info of courseMap.values()) {
+            if (info.courseId && info.subjectCode && !seenCourseIds.has(info.courseId)) {
+                courseInfos.push(info);
+                seenCourseIds.add(info.courseId);
+            }
+        }
+
         // Fetch details for each course
         const courses: CatalogCourse[] = [];
-        for (const courseId of courseIds) {
-            const scraper = new CourseQueryScraper(courseId, '1', this.cookieJar, this.startTime());
+        for (const { courseId, subjectCode } of courseInfos) {
+            const scraper = new CourseQueryScraper(courseId, '1', subjectCode, this.cookieJar, this.startTime());
             const courseResults = await scraper.scrape(handler);
             if (courseResults.length > 0) {
                 courses.push(courseResults[0]);

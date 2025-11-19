@@ -15,6 +15,7 @@
     "prisma:studio": "prisma studio",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "test:catalog-cs": "tsx src/test-catalog-cs.ts",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
   },
