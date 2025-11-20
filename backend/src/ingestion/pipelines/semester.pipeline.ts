@@ -169,21 +169,19 @@ export async function ingestSemester(
     const parsedClasses = [];
     let classParseErrors = 0;
 
-    const classParsePromises = scrapedClasses.map((cls, index) =>
-      geminiSemaphore.execute(async () => {
-        try {
-          const parsed = await parseClass(cls);
-          logger.log(
-            `[${index + 1}/${scrapedClasses.length}] Parsed: ${parsed.subject} ${parsed.abbreviation}`
-          );
-          return parsed;
-        } catch (err) {
-          logger.error(`Failed to parse ${cls.subject} ${cls.abbreviation}`, err);
-          classParseErrors++;
-          return null;
-        }
-      })
-    );
+    const classParsePromises = scrapedClasses.map(async (cls, index) => {
+      try {
+        const parsed = await parseClass(cls);
+        logger.log(
+          `[${index + 1}/${scrapedClasses.length}] Parsed: ${parsed.subject} ${parsed.abbreviation}`
+        );
+        return parsed;
+      } catch (err) {
+        logger.error(`Failed to parse ${cls.subject} ${cls.abbreviation}`, err);
+        classParseErrors++;
+        return null;
+      }
+    });
 
     const classParseResults = await Promise.all(classParsePromises);
 

@@ -91,24 +91,22 @@ export async function ingestCatalog(
     let parseErrors = 0;
 
     // Parse courses with controlled concurrency
-    const parsePromises = scrapedCourses.map((course, index) =>
-      geminiSemaphore.execute(async () => {
-        try {
-          const parsed = await parseCourse(course);
-          logger.log(
-            `[${index + 1}/${scrapedCourses.length}] Parsed: ${parsed.subject} ${parsed.abbreviation}`
-          );
-          return parsed;
-        } catch (err) {
-          logger.error(
-            `Failed to parse ${course.subject} ${course.abbreviation}`,
-            err
-          );
-          parseErrors++;
-          return null;
-        }
-      })
-    );
+    const parsePromises = scrapedCourses.map(async (course, index) => {
+      try {
+        const parsed = await parseCourse(course);
+        logger.log(
+          `[${index + 1}/${scrapedCourses.length}] Parsed: ${parsed.subject} ${parsed.abbreviation}`
+        );
+        return parsed;
+      } catch (err) {
+        logger.error(
+          `Failed to parse ${course.subject} ${course.abbreviation}`,
+          err
+        );
+        parseErrors++;
+        return null;
+      }
+    });
 
     const parseResults = await Promise.all(parsePromises);
 

@@ -48,21 +48,19 @@ async function testCatalogCS() {
     const parsedCourses = [];
     let parseErrors = 0;
 
-    const parsePromises = csCourses.map((course, index) =>
-      geminiSemaphore.execute(async () => {
-        try {
-          const parsed = await parseCourse(course);
-          logger.log(
-            `[${index + 1}/${csCourses.length}] Parsed: ${parsed.subject} ${parsed.abbreviation} - ${parsed.name}`
-          );
-          return parsed;
-        } catch (err) {
-          logger.error(`Failed to parse ${course.subject} ${course.abbreviation}`, err);
-          parseErrors++;
-          return null;
-        }
-      })
-    );
+    const parsePromises = csCourses.map(async (course, index) => {
+      try {
+        const parsed = await parseCourse(course);
+        logger.log(
+          `[${index + 1}/${csCourses.length}] Parsed: ${parsed.subject} ${parsed.abbreviation} - ${parsed.name}`
+        );
+        return parsed;
+      } catch (err) {
+        logger.error(`Failed to parse ${course.subject} ${course.abbreviation}`, err);
+        parseErrors++;
+        return null;
+      }
+    });
 
     const parseResults = await Promise.all(parsePromises);
 
