@@ -7,11 +7,7 @@ import * as logger from './ingestion/services/logger.service.js';
  */
 async function runCatalogPipeline() {
   try {
-    logger.log('Starting full catalog ingestion...');
-    logger.log('This will scrape ALL undergraduate courses from ALL subjects');
-    logger.log('');
-
-    const result = await ingestCatalog('2024-2025', 2024, 2025);
+    const result = await ingestCatalog('2024-2025');
 
     if (!result.success) {
       logger.error('Catalog pipeline failed:', result.error);

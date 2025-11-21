@@ -118,8 +118,22 @@ describe('Semester Pipeline Integration Tests', () => {
 
     // Set up default mock implementations
     vi.mocked(getTerms).mockResolvedValue(mockTerms);
-    vi.mocked(getAllClasses).mockResolvedValue(mockClasses);
-    vi.mocked(getAllSections).mockResolvedValue(mockSections);
+
+    // Mock getAllClasses to return classes with the correct termId
+    vi.mocked(getAllClasses).mockImplementation(async (term) => {
+      return mockClasses.map(cls => ({
+        ...cls,
+        termId: term.id, // Use the term ID being processed
+      }));
+    });
+
+    // Mock getAllSections to return sections with the correct term
+    vi.mocked(getAllSections).mockImplementation(async (term) => {
+      return mockSections.map(sec => ({
+        ...sec,
+        term: term.id, // Use the term ID being processed
+      }));
+    });
 
     // Mock parsers
     vi.mocked(parseClass).mockImplementation(async (cls) => ({
@@ -132,8 +146,20 @@ describe('Semester Pipeline Integration Tests', () => {
         school: cls.details.school,
         credits: { min: 3, max: 3 },
         description: cls.details.description,
-        attributes: cls.details.attributes || [],
-        requirements: cls.details.requirements || null,
+        attributes: {
+          axle: cls.details.attributes || [],
+          core: [],
+        },
+        requirements: {
+          prerequisites: {
+            rawText: typeof cls.details.requirements === 'string' ? cls.details.requirements : null,
+            courses: null,
+          },
+          corequisites: {
+            rawText: null,
+            courses: null,
+          },
+        },
       },
     }));
 
@@ -364,8 +390,20 @@ describe('Semester Pipeline Integration Tests', () => {
             school: null,
             credits: { min: 3, max: 3 },
             description: null,
-            attributes: [],
-            requirements: null,
+            attributes: {
+              axle: [],
+              core: [],
+            },
+            requirements: {
+              prerequisites: {
+                rawText: null,
+                courses: null,
+              },
+              corequisites: {
+                rawText: null,
+                courses: null,
+              },
+            },
           },
         })
         .mockRejectedValueOnce(new Error('Parse failed'));

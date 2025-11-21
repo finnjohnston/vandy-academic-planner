@@ -15,12 +15,12 @@ describe('Term Insert Operations', () => {
 
   beforeEach(async () => {
     // Create academic years for testing
-    const year1Result = await createAcademicYear('2024-2025', 2024, 2025);
+    const year1Result = await createAcademicYear('2024-2025');
     if (year1Result.success) {
       academicYearId = year1Result.data.id;
     }
 
-    const year2Result = await createAcademicYear('2023-2024', 2023, 2024);
+    const year2Result = await createAcademicYear('2023-2024');
     if (year2Result.success) {
       academicYearId2 = year2Result.data.id;
     }
@@ -220,7 +220,7 @@ describe('Term Insert Operations', () => {
 
     it('should return empty array for academic year with no terms', async () => {
       // Create a new academic year with no terms
-      const year3Result = await createAcademicYear('2025-2026', 2025, 2026);
+      const year3Result = await createAcademicYear('2025-2026');
       expect(year3Result.success).toBe(true);
 
       if (year3Result.success) {
@@ -287,7 +287,7 @@ describe('Term Insert Operations', () => {
 
     it('should return 0 for academic year with no terms', async () => {
       // Create a new academic year with no terms
-      const year3Result = await createAcademicYear('2025-2026', 2025, 2026);
+      const year3Result = await createAcademicYear('2025-2026');
       expect(year3Result.success).toBe(true);
 
       if (year3Result.success) {

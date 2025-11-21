@@ -20,7 +20,7 @@ describe('Section Insert Operations', () => {
 
   beforeEach(async () => {
     // Create academic year
-    const yearResult = await createAcademicYear('2024-2025', 2024, 2025);
+    const yearResult = await createAcademicYear('2024-2025');
     if (yearResult.success) {
       academicYearId = yearResult.data.id;
     }

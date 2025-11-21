@@ -165,7 +165,7 @@ describe('Catalog Pipeline Integration Tests', () => {
       });
 
       // Run pipeline
-      const result = await ingestCatalog('2024-2025', 2024, 2025);
+      const result = await ingestCatalog('2024-2025');
 
       // Verify success
       expect(result.success).toBe(true);
@@ -226,7 +226,7 @@ describe('Catalog Pipeline Integration Tests', () => {
         return parsed;
       });
 
-      const firstRun = await ingestCatalog('2024-2025', 2024, 2025);
+      const firstRun = await ingestCatalog('2024-2025');
       expect(firstRun.success).toBe(true);
 
       // Get course IDs from first run
@@ -255,7 +255,7 @@ describe('Catalog Pipeline Integration Tests', () => {
         return parsed;
       });
 
-      const secondRun = await ingestCatalog('2024-2025', 2024, 2025);
+      const secondRun = await ingestCatalog('2024-2025');
       expect(secondRun.success).toBe(true);
 
       if (secondRun.success) {
@@ -295,7 +295,7 @@ describe('Catalog Pipeline Integration Tests', () => {
         return parsed;
       });
 
-      const firstRun = await ingestCatalog('2024-2025', 2024, 2025);
+      const firstRun = await ingestCatalog('2024-2025');
       expect(firstRun.success).toBe(true);
 
       // Second run with 4 courses (added CS 3250)
@@ -352,7 +352,7 @@ describe('Catalog Pipeline Integration Tests', () => {
         return parsed;
       });
 
-      const secondRun = await ingestCatalog('2024-2025', 2024, 2025);
+      const secondRun = await ingestCatalog('2024-2025');
       expect(secondRun.success).toBe(true);
 
       if (secondRun.success) {
@@ -385,7 +385,7 @@ describe('Catalog Pipeline Integration Tests', () => {
         return parsed;
       });
 
-      const firstRun = await ingestCatalog('2024-2025', 2024, 2025);
+      const firstRun = await ingestCatalog('2024-2025');
       expect(firstRun.success).toBe(true);
 
       // Verify 3 courses exist
@@ -409,7 +409,7 @@ describe('Catalog Pipeline Integration Tests', () => {
         return parsed;
       });
 
-      const secondRun = await ingestCatalog('2024-2025', 2024, 2025);
+      const secondRun = await ingestCatalog('2024-2025');
       expect(secondRun.success).toBe(true);
 
       if (secondRun.success) {
@@ -451,7 +451,7 @@ describe('Catalog Pipeline Integration Tests', () => {
         return parsed;
       });
 
-      const result = await ingestCatalog('2024-2025', 2024, 2025);
+      const result = await ingestCatalog('2024-2025');
 
       expect(result.success).toBe(true);
 
@@ -495,7 +495,7 @@ describe('Catalog Pipeline Integration Tests', () => {
       // Mock parser to fail for all courses
       vi.mocked(parseCourse).mockRejectedValue(new Error('All parsers failed'));
 
-      const result = await ingestCatalog('2024-2025', 2024, 2025);
+      const result = await ingestCatalog('2024-2025');
 
       // Pipeline should fail
       expect(result.success).toBe(false);
@@ -531,7 +531,7 @@ describe('Catalog Pipeline Integration Tests', () => {
         return parsed;
       });
 
-      const result = await ingestCatalog('2024-2025', 2024, 2025);
+      const result = await ingestCatalog('2024-2025');
 
       expect(result.success).toBe(true);
 
@@ -556,7 +556,7 @@ describe('Catalog Pipeline Integration Tests', () => {
     it('should handle empty catalog gracefully', async () => {
       vi.mocked(getAllCourses).mockResolvedValue([]);
 
-      const result = await ingestCatalog('2024-2025', 2024, 2025);
+      const result = await ingestCatalog('2024-2025');
 
       expect(result.success).toBe(true);
 
@@ -588,7 +588,7 @@ describe('Catalog Pipeline Integration Tests', () => {
         return parsed;
       });
 
-      const firstYear = await ingestCatalog('2024-2025', 2024, 2025);
+      const firstYear = await ingestCatalog('2024-2025');
       expect(firstYear.success).toBe(true);
 
       // Ingest catalog for 2025-2026 (with different courseIds)
@@ -608,7 +608,7 @@ describe('Catalog Pipeline Integration Tests', () => {
         };
       });
 
-      const secondYear = await ingestCatalog('2025-2026', 2025, 2026);
+      const secondYear = await ingestCatalog('2025-2026');
       expect(secondYear.success).toBe(true);
 
       if (firstYear.success && secondYear.success) {
@@ -638,7 +638,7 @@ describe('Catalog Pipeline Integration Tests', () => {
         return parsed;
       });
 
-      const firstYear = await ingestCatalog('2024-2025', 2024, 2025);
+      const firstYear = await ingestCatalog('2024-2025');
       expect(firstYear.success).toBe(true);
 
       // Create catalog for 2025-2026 with only 1 course (different courseId)
@@ -658,7 +658,7 @@ describe('Catalog Pipeline Integration Tests', () => {
         };
       });
 
-      const secondYear = await ingestCatalog('2025-2026', 2025, 2026);
+      const secondYear = await ingestCatalog('2025-2026');
       expect(secondYear.success).toBe(true);
 
       if (firstYear.success && secondYear.success) {

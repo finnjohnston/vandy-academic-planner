@@ -14,7 +14,7 @@ import {
 describe('Academic Year Service', () => {
   describe('createAcademicYear', () => {
     it('should create a new academic year as current', async () => {
-      const result = await createAcademicYear('2024-2025', 2024, 2025);
+      const result = await createAcademicYear('2024-2025');
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -27,10 +27,10 @@ describe('Academic Year Service', () => {
 
     it('should set all other years to not current when creating new year', async () => {
       // Create first year
-      await createAcademicYear('2024-2025', 2024, 2025);
+      await createAcademicYear('2024-2025');
 
       // Create second year
-      const result = await createAcademicYear('2025-2026', 2025, 2026);
+      const result = await createAcademicYear('2025-2026');
 
       expect(result.success).toBe(true);
 
@@ -51,10 +51,10 @@ describe('Academic Year Service', () => {
 
     it('should return existing year if already exists', async () => {
       // Create year
-      const first = await createAcademicYear('2024-2025', 2024, 2025);
+      const first = await createAcademicYear('2024-2025');
 
       // Try to create again
-      const second = await createAcademicYear('2024-2025', 2024, 2025);
+      const second = await createAcademicYear('2024-2025');
 
       expect(second.success).toBe(true);
       if (first.success && second.success) {
@@ -81,8 +81,8 @@ describe('Academic Year Service', () => {
 
     it('should return the current academic year', async () => {
       // Create two years
-      await createAcademicYear('2024-2025', 2024, 2025);
-      await createAcademicYear('2025-2026', 2025, 2026);
+      await createAcademicYear('2024-2025');
+      await createAcademicYear('2025-2026');
 
       const result = await getCurrentAcademicYear();
 
@@ -96,7 +96,7 @@ describe('Academic Year Service', () => {
 
   describe('getAcademicYearById', () => {
     it('should return academic year by ID', async () => {
-      const created = await createAcademicYear('2024-2025', 2024, 2025);
+      const created = await createAcademicYear('2024-2025');
 
       if (created.success) {
         const result = await getAcademicYearById(created.data.id);
@@ -121,7 +121,7 @@ describe('Academic Year Service', () => {
 
   describe('getAcademicYearByYear', () => {
     it('should return academic year by year string', async () => {
-      await createAcademicYear('2024-2025', 2024, 2025);
+      await createAcademicYear('2024-2025');
 
       const result = await getAcademicYearByYear('2024-2025');
 
@@ -146,8 +146,8 @@ describe('Academic Year Service', () => {
   describe('setCurrentAcademicYear', () => {
     it('should set a specific year as current', async () => {
       // Create two years
-      const first = await createAcademicYear('2024-2025', 2024, 2025);
-      const second = await createAcademicYear('2025-2026', 2025, 2026);
+      const first = await createAcademicYear('2024-2025');
+      const second = await createAcademicYear('2025-2026');
 
       // Second is now current, set first as current
       if (first.success) {
@@ -182,9 +182,9 @@ describe('Academic Year Service', () => {
 
     it('should ensure only one year is current at a time', async () => {
       // Create multiple years
-      await createAcademicYear('2023-2024', 2023, 2024);
-      await createAcademicYear('2024-2025', 2024, 2025);
-      const third = await createAcademicYear('2025-2026', 2025, 2026);
+      await createAcademicYear('2023-2024');
+      await createAcademicYear('2024-2025');
+      const third = await createAcademicYear('2025-2026');
 
       // Verify only one is current
       const currentCount = await prisma.academicYear.count({
@@ -214,9 +214,9 @@ describe('Academic Year Service', () => {
 
     it('should return all academic years ordered by start year descending', async () => {
       // Create years in random order
-      await createAcademicYear('2025-2026', 2025, 2026);
-      await createAcademicYear('2023-2024', 2023, 2024);
-      await createAcademicYear('2024-2025', 2024, 2025);
+      await createAcademicYear('2025-2026');
+      await createAcademicYear('2023-2024');
+      await createAcademicYear('2024-2025');
 
       const result = await getAllAcademicYears();
 
@@ -233,7 +233,7 @@ describe('Academic Year Service', () => {
 
   describe('getOrCreateAcademicYear', () => {
     it('should create new year if it does not exist', async () => {
-      const result = await getOrCreateAcademicYear('2024-2025', 2024, 2025);
+      const result = await getOrCreateAcademicYear('2024-2025');
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -250,10 +250,10 @@ describe('Academic Year Service', () => {
 
     it('should return existing year if it already exists', async () => {
       // Create year
-      const first = await createAcademicYear('2024-2025', 2024, 2025);
+      const first = await createAcademicYear('2024-2025');
 
       // Get or create
-      const second = await getOrCreateAcademicYear('2024-2025', 2024, 2025);
+      const second = await getOrCreateAcademicYear('2024-2025');
 
       expect(second.success).toBe(true);
       if (first.success && second.success) {
@@ -267,40 +267,21 @@ describe('Academic Year Service', () => {
       expect(count).toBe(1);
     });
 
-    it('should set existing year as current if requested', async () => {
-      // Create first year (will be current)
-      await createAcademicYear('2024-2025', 2024, 2025);
+    it('should preserve isCurrent flag when getting existing year', async () => {
+      // Create first year (current)
+      await createAcademicYear('2024-2025');
 
-      // Create second year (will become current)
-      await createAcademicYear('2025-2026', 2025, 2026);
+      // Create second year (becomes current, first becomes non-current)
+      await createAcademicYear('2025-2026');
 
-      // Get or create first year and set as current
-      const result = await getOrCreateAcademicYear('2024-2025', 2024, 2025, true);
+      // Get existing first year - should preserve its isCurrent=false status
+      const result = await getOrCreateAcademicYear('2024-2025');
 
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.year).toBe('2024-2025');
-        expect(result.data.isCurrent).toBe(true);
+        expect(result.data.isCurrent).toBe(false); // Should stay false
       }
-
-      // Verify second year is no longer current
-      const secondYear = await prisma.academicYear.findUnique({
-        where: { year: '2025-2026' },
-      });
-      expect(secondYear?.isCurrent).toBe(false);
-    });
-
-    it('should not change current if setCurrent is false', async () => {
-      // Create first year (current)
-      await createAcademicYear('2024-2025', 2024, 2025);
-
-      // Create second year (becomes current)
-      await createAcademicYear('2025-2026', 2025, 2026);
-
-      // Get or create first year WITHOUT setting as current
-      const result = await getOrCreateAcademicYear('2024-2025', 2024, 2025, false);
-
-      expect(result.success).toBe(true);
 
       // Verify second year is still current
       const current = await getCurrentAcademicYear();
@@ -312,7 +293,7 @@ describe('Academic Year Service', () => {
 
   describe('deleteAcademicYear', () => {
     it('should delete an academic year', async () => {
-      const created = await createAcademicYear('2024-2025', 2024, 2025);
+      const created = await createAcademicYear('2024-2025');
 
       if (created.success) {
         const result = await deleteAcademicYear(created.data.id);
@@ -338,7 +319,7 @@ describe('Academic Year Service', () => {
 
     it('should cascade delete courses', async () => {
       // Create academic year
-      const yearResult = await createAcademicYear('2024-2025', 2024, 2025);
+      const yearResult = await createAcademicYear('2024-2025');
 
       if (yearResult.success) {
         const academicYear = yearResult.data;

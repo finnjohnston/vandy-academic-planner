@@ -227,12 +227,7 @@ describe('Term Service - mapTermToAcademicYear', () => {
       expect(result.data).toEqual(mockAcademicYear);
     }
 
-    expect(getOrCreateAcademicYear).toHaveBeenCalledWith(
-      '2024-2025',
-      2024,
-      2025,
-      false
-    );
+    expect(getOrCreateAcademicYear).toHaveBeenCalledWith('2024-2025');
   });
 
   it('should map Spring 2025 to academic year 2024-2025', async () => {
@@ -258,12 +253,7 @@ describe('Term Service - mapTermToAcademicYear', () => {
       expect(result.data).toEqual(mockAcademicYear);
     }
 
-    expect(getOrCreateAcademicYear).toHaveBeenCalledWith(
-      '2024-2025',
-      2024,
-      2025,
-      false
-    );
+    expect(getOrCreateAcademicYear).toHaveBeenCalledWith('2024-2025');
   });
 
   it('should return failure for invalid term name', async () => {
@@ -295,7 +285,7 @@ describe('Term Service - mapTermToAcademicYear', () => {
     }
   });
 
-  it('should not set academic year as current', async () => {
+  it('should call getOrCreateAcademicYear with correct year string', async () => {
     const mockAcademicYear = {
       id: 1,
       year: '2023-2024',
@@ -313,12 +303,7 @@ describe('Term Service - mapTermToAcademicYear', () => {
 
     await mapTermToAcademicYear('1246', 'Fall 2023');
 
-    // Verify the 4th parameter (setCurrent) is false
-    expect(getOrCreateAcademicYear).toHaveBeenCalledWith(
-      '2023-2024',
-      2023,
-      2024,
-      false
-    );
+    // Verify it was called with the correct year string
+    expect(getOrCreateAcademicYear).toHaveBeenCalledWith('2023-2024');
   });
 });

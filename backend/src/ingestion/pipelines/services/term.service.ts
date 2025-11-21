@@ -98,7 +98,7 @@ export async function mapTermToAcademicYear(
   );
 
   // Get or create the academic year
-  const result = await getOrCreateAcademicYear(year, start, end, false);
+  const result = await getOrCreateAcademicYear(year);
 
   if (!result.success) {
     return failure(

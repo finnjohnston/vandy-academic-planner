@@ -117,7 +117,10 @@ export async function getSectionsForTerm(
   try {
     const sections = await prisma.section.findMany({
       where: { termId },
-      orderBy: { sectionNumber: 'asc' },
+      orderBy: [
+        { classId: 'asc' },
+        { sectionNumber: 'asc' },
+      ],
     });
 
     return success(sections);

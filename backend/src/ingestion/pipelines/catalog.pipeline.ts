@@ -32,14 +32,10 @@ export interface CatalogPipelineSummary {
  * 4. Deletes courses that exist in DB but not in the current catalog (hard delete)
  *
  * @param year Academic year string (e.g., "2024-2025")
- * @param start Starting year (e.g., 2024)
- * @param end Ending year (e.g., 2025)
  * @returns Pipeline result with summary of operations
  */
 export async function ingestCatalog(
-  year: string,
-  start: number,
-  end: number
+  year: string
 ): Promise<PipelineResult<CatalogPipelineSummary>> {
   const startTime = Date.now();
 
@@ -49,7 +45,7 @@ export async function ingestCatalog(
   try {
     // Step 1: Get or create academic year
     logger.log('\n[1/5] Getting or creating academic year...');
-    const academicYearResult = await getOrCreateAcademicYear(year, start, end);
+    const academicYearResult = await getOrCreateAcademicYear(year);
 
     if (!academicYearResult.success) {
       return failure(

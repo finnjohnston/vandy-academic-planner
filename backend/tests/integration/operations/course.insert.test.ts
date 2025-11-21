@@ -15,7 +15,7 @@ describe('Course Insert Operations', () => {
 
   beforeEach(async () => {
     // Create an academic year for testing
-    const yearResult = await createAcademicYear('2024-2025', 2024, 2025);
+    const yearResult = await createAcademicYear('2024-2025');
     if (yearResult.success) {
       academicYearId = yearResult.data.id;
     }
@@ -463,7 +463,7 @@ describe('Course Insert Operations', () => {
 
     it('should only return courses for specified academic year', async () => {
       // Create second academic year
-      const secondYearResult = await createAcademicYear('2025-2026', 2025, 2026);
+      const secondYearResult = await createAcademicYear('2025-2026');
       let secondYearId: number | undefined;
       if (secondYearResult.success) {
         secondYearId = secondYearResult.data.id;
@@ -573,7 +573,7 @@ describe('Course Insert Operations', () => {
 
     it('should only delete courses for specified year', async () => {
       // Create second academic year
-      const secondYearResult = await createAcademicYear('2025-2026', 2025, 2026);
+      const secondYearResult = await createAcademicYear('2025-2026');
       let secondYearId: number | undefined;
       if (secondYearResult.success) {
         secondYearId = secondYearResult.data.id;
@@ -648,7 +648,7 @@ describe('Course Insert Operations', () => {
   describe('academic year isolation', () => {
     it('should allow same course in different academic years', async () => {
       // Create second academic year
-      const secondYearResult = await createAcademicYear('2025-2026', 2025, 2026);
+      const secondYearResult = await createAcademicYear('2025-2026');
       let secondYearId: number | undefined;
       if (secondYearResult.success) {
         secondYearId = secondYearResult.data.id;
