@@ -15,7 +15,7 @@
     "prisma:studio": "prisma studio",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:catalog-cs": "tsx src/test-catalog-cs.ts",
+    "admin": "tsx src/cli/admin.ts",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
   },
@@ -31,6 +31,7 @@
     "argon2": "^0.44.0",
     "axios": "^1.13.1",
     "cheerio": "^1.1.2",
+    "commander": "^14.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
@@ -50,6 +51,7 @@
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.35",
+    "@types/commander": "^2.12.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/jsonwebtoken": "^9.0.10",
