@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { createCatalogCommand } from './commands/catalog.command.js';
+import { createSemesterCommand } from './commands/semester.command.js';
+import { createCleanupCommand } from './commands/cleanup.command.js';
 
 /**
  * Vanderbilt Academic Planner - Admin CLI
@@ -18,10 +20,10 @@ program
 
 // Register commands
 program.addCommand(createCatalogCommand());
+program.addCommand(createSemesterCommand());
+program.addCommand(createCleanupCommand());
 
 // Future commands can be added here:
-// program.addCommand(createSemesterCommand());
-// program.addCommand(createCleanupCommand());
 // program.addCommand(createMigrateCommand());
 
 // Parse command line arguments

@@ -12,19 +12,31 @@ export interface TermInfo {
 /**
  * Parse term title to extract semester and year information
  *
- * @param title Term title (e.g., "Fall 2024", "Spring 2025")
+ * @param title Term title (e.g., "Fall 2024", "Spring 2025", "2024 Fall", "2025 Spring")
  * @returns Parsed term information or null if parsing fails
  */
 export function parseTermInfo(title: string): TermInfo | null {
-  // Common patterns: "Fall 2024", "Spring 2025"
-  const match = title.match(/(Fall|Spring)\s+(\d{4})/i);
+  // Try pattern 1: "Fall 2024", "Spring 2025"
+  let match = title.match(/(Fall|Spring)\s+(\d{4})/i);
 
   if (!match) {
-    logger.warn(`Failed to parse term title: ${title}`);
-    return null;
+    // Try pattern 2: "2024 Fall", "2025 Spring"
+    match = title.match(/(\d{4})\s+(Fall|Spring)/i);
+
+    if (!match) {
+      logger.warn(`Failed to parse term title: ${title}`);
+      return null;
+    }
+
+    // For pattern 2, swap the groups so semester is in group 2 and year in group 1
+    const year = parseInt(match[1], 10);
+    const semesterRaw = match[2].toLowerCase();
+    const semester = (semesterRaw.charAt(0).toUpperCase() + semesterRaw.slice(1)) as 'Fall' | 'Spring';
+
+    return { semester, year };
   }
 
-  // Normalize semester to title case
+  // For pattern 1, semester is in group 1 and year in group 2
   const semesterRaw = match[1].toLowerCase();
   const semester = (semesterRaw.charAt(0).toUpperCase() + semesterRaw.slice(1)) as 'Fall' | 'Spring';
   const year = parseInt(match[2], 10);
