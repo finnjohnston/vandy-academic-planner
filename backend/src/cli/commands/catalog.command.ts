@@ -1,4 +1,7 @@
 import { Command } from 'commander';
+import { config } from 'dotenv';
+import { existsSync } from 'fs';
+import { resolve } from 'path';
 import { ingestCatalog } from '../../ingestion/pipelines/catalog.pipeline.js';
 import * as logger from '../../ingestion/services/logger.service.js';
 
@@ -8,6 +11,33 @@ import * as logger from '../../ingestion/services/logger.service.js';
 function validateYearFormat(year: string): boolean {
   const yearPattern = /^\d{4}-\d{4}$/;
   return yearPattern.test(year);
+}
+
+/**
+ * Load environment variables from the specified environment file
+ */
+function loadEnvironment(env: string): string {
+  const envFile = env === 'prod' ? '.env' : `.env.${env}`;
+  const envPath = resolve(process.cwd(), envFile);
+
+  if (!existsSync(envPath)) {
+    logger.error(`Environment file not found: ${envFile}`);
+    logger.error(`Expected path: ${envPath}`);
+    logger.log('');
+    logger.log('Available environments:');
+    logger.log('  - prod (uses .env)');
+    logger.log('  - test (uses .env.test)');
+    process.exit(1);
+  }
+
+  // Load the environment file
+  config({ path: envPath, override: true });
+
+  // Get the database URL to display to user
+  const dbUrl = process.env.DATABASE_URL || 'NOT SET';
+  const dbName = dbUrl.split('/').pop() || 'unknown';
+
+  return dbName;
 }
 
 /**
@@ -30,8 +60,16 @@ export function createCatalogCommand(): Command {
   command
     .description('Scrape and ingest the course catalog for a specific academic year')
     .argument('<year>', 'Academic year in format XXXX-YYYY (e.g., 2024-2025)')
-    .action(async (year: string) => {
+    .option(
+      '-e, --env <environment>',
+      'Environment to use (prod or test)',
+      'prod'
+    )
+    .action(async (year: string, options: { env: string }) => {
       try {
+        // Load the specified environment
+        const dbName = loadEnvironment(options.env);
+
         // Validate year format
         if (!validateYearFormat(year)) {
           logger.error(
@@ -42,6 +80,8 @@ export function createCatalogCommand(): Command {
 
         logger.log('='.repeat(60));
         logger.log(`Starting catalog ingestion for academic year: ${year}`);
+        logger.log(`Environment: ${options.env}`);
+        logger.log(`Database: ${dbName}`);
         logger.log('='.repeat(60));
         logger.log('');
 
