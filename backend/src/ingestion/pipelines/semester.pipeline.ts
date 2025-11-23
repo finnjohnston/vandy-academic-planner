@@ -242,10 +242,10 @@ export async function ingestSemester(
     const upsertedClasses = classInsertResult.data;
     logger.success(`Upserted ${upsertedClasses.length} classes to database`);
 
-    // Create mapping from (subject, courseNumber, termId) to classId
+    // Create mapping from (subject, courseNumber, title, termId) to classId
     const classIdMap = new Map<string, string>();
     for (const cls of upsertedClasses) {
-      const key = `${cls.termId}:${cls.subjectCode}:${cls.courseNumber}`;
+      const key = `${cls.termId}:${cls.subjectCode}:${cls.courseNumber}:${cls.title}`;
       classIdMap.set(key, cls.classId);
     }
 
@@ -259,12 +259,12 @@ export async function ingestSemester(
 
         // Find the corresponding class from the scraped section data
         const scrapedSection = scrapedSections[index];
-        const classKey = `${selectedTerm.id}:${scrapedSection.class.subject}:${scrapedSection.class.abbreviation}`;
+        const classKey = `${selectedTerm.id}:${scrapedSection.class.subject}:${scrapedSection.class.abbreviation}:${scrapedSection.class.name}`;
         const classId = classIdMap.get(classKey);
 
         if (!classId) {
           logger.warn(
-            `Could not find classId for section ${parsed.id} (class: ${scrapedSection.class.subject} ${scrapedSection.class.abbreviation})`
+            `Could not find classId for section ${parsed.id} (class: ${scrapedSection.class.subject} ${scrapedSection.class.abbreviation} - ${scrapedSection.class.name})`
           );
           sectionMappingErrors++;
           continue;

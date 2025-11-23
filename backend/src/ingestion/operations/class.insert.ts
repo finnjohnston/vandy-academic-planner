@@ -7,7 +7,7 @@ import { DbClassInput } from '../transformers/types/db.class.input.js';
 /**
  * Insert or update multiple classes
  * Uses upsert to handle both new and existing classes
- * Unique constraint: termId + subjectCode + courseNumber
+ * Unique constraint: termId + subjectCode + courseNumber + title
  *
  * @param classes Array of class data to insert
  * @returns Array of inserted/updated classes
@@ -35,10 +35,11 @@ export async function insertClasses(
           try {
             return await prisma.class.upsert({
               where: {
-                termId_subjectCode_courseNumber: {
+                termId_subjectCode_courseNumber_title: {
                   termId: classData.termId,
                   subjectCode: classData.subjectCode,
                   courseNumber: classData.courseNumber,
+                  title: classData.title,
                 },
               },
               update: {

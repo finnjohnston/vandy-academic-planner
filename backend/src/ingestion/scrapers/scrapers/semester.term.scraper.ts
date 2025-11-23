@@ -136,7 +136,7 @@ export class SemesterTermScraper extends Scraper<SemesterData> {
             const courseNum = parseInt(numMatch[1]);
             if (courseNum >= 5000) continue; // Skip graduate courses (5000+)
 
-            const key = `${section.class.subject}:${section.class.abbreviation}`;
+            const key = `${section.class.subject}:${section.class.abbreviation}:${section.class.name}`;
 
             // Store first section found for each class (to use its ID for details fetching)
             if (!classMap.has(key)) {

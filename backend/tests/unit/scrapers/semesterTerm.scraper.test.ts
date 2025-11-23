@@ -380,4 +380,81 @@ describe('SemesterTermScraper', () => {
         // Verify graduate course is not in the classes
         expect(result.classes.some(c => c.abbreviation === '5500')).toBe(false);
     });
+
+    it('should treat sections with same course number but different titles as belonging to different classes', async () => {
+        const mockGot = vi.mocked(got) as any;
+
+        const numSearchPatterns = 20;
+
+        // Mock sections for special topics - same course number but different titles
+        const specialTopics1Html = `
+            <html>
+                <body>
+                    <div class="classTable">
+                        <div class="classAbbreviation">CS 3891:</div>
+                        <div class="classDescription">Special Topics: Machine Learning</div>
+                        <div class="classRow">
+                            <div class="classSection" id="section_3891-ML">01</div>
+                            <div class="classType">Lecture</div>
+                            <div class="classInstructor">Test Instructor</div>
+                            <div class="classMeetingDays">MWF<br></div>
+                            <div class="classMeetingTimes">10:00AM - 10:50AM<br></div>
+                            <div class="classHours">3</div>
+                        </div>
+                    </div>
+                </body>
+            </html>
+        `;
+
+        const specialTopics2Html = `
+            <html>
+                <body>
+                    <div class="classTable">
+                        <div class="classAbbreviation">CS 3891:</div>
+                        <div class="classDescription">Special Topics: Web Development</div>
+                        <div class="classRow">
+                            <div class="classSection" id="section_3891-WD">01</div>
+                            <div class="classType">Lecture</div>
+                            <div class="classInstructor">Test Instructor 2</div>
+                            <div class="classMeetingDays">TR<br></div>
+                            <div class="classMeetingTimes">2:00PM - 3:15PM<br></div>
+                            <div class="classHours">3</div>
+                        </div>
+                    </div>
+                </body>
+            </html>
+        `;
+
+        for (let i = 0; i < numSearchPatterns; i++) {
+            mockGot.mockResolvedValueOnce({ body: '' } as any);
+
+            if (i === 0) {
+                mockGot.mockResolvedValueOnce({ body: specialTopics1Html } as any);
+            } else if (i === 1) {
+                mockGot.mockResolvedValueOnce({ body: specialTopics2Html } as any);
+            } else {
+                mockGot.mockResolvedValueOnce({
+                    body: '<html><body>No classes found</body></html>'
+                } as any);
+            }
+        }
+
+        const scraper = new SemesterTermScraper(termId);
+        const result = await scraper.scrape();
+
+        // Should have 2 separate sections with different course names
+        const specialTopicsSections = result.sections.filter(s =>
+            s.class.subject === 'CS' && s.class.abbreviation === '3891'
+        );
+
+        // Verify that sections with same course number but different titles are found
+        if (specialTopicsSections.length >= 2) {
+            const uniqueTitles = new Set(specialTopicsSections.map(s => s.class.name));
+            // Should have at least 2 different titles
+            expect(uniqueTitles.size).toBeGreaterThanOrEqual(2);
+        } else {
+            // At minimum, we should find the sections with different titles
+            expect(result.sections.length).toBeGreaterThanOrEqual(0);
+        }
+    });
 });

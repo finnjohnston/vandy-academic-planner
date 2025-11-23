@@ -89,7 +89,7 @@ model Class {
   term                  Term                  @relation(fields: [termId], references: [termId], onDelete: Cascade)
   sections              Section[]
 
-  @@unique([termId, subjectCode, courseNumber])
+  @@unique([termId, subjectCode, courseNumber, title])
   @@index([termId])
   @@map("classes")
 }

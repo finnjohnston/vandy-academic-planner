@@ -77,7 +77,7 @@ describe('Class Insert Operations', () => {
       expect(found?.title).toBe('Introduction to Computer Science');
     });
 
-    it('should upsert on unique constraint [termId, subjectCode, courseNumber]', async () => {
+    it('should upsert on unique constraint [termId, subjectCode, courseNumber, title]', async () => {
       const classData: DbClassInput = {
         classId: 'CLASS_001',
         termId,
@@ -96,13 +96,13 @@ describe('Class Insert Operations', () => {
       const result1 = await insertClass(classData);
       expect(result1.success).toBe(true);
 
-      // Insert again with same termId, subject, course number but different classId
+      // Insert again with same termId, subject, course number, and title but different classId and other fields
       const updatedData: DbClassInput = {
         classId: 'CLASS_001_UPDATED',
         termId,
         subjectCode: 'CS',
         courseNumber: '101',
-        title: 'Intro to CS - Updated',
+        title: 'Introduction to Computer Science', // Same title - will trigger upsert
         school: 'Engineering',
         creditsMin: 4,
         creditsMax: 4,
@@ -120,14 +120,16 @@ describe('Class Insert Operations', () => {
           termId,
           subjectCode: 'CS',
           courseNumber: '101',
+          title: 'Introduction to Computer Science',
         },
       });
 
       expect(allClasses).toHaveLength(1);
       // classId should NOT be updated - it's from upstream and should remain constant
       expect(allClasses[0].classId).toBe('CLASS_001');
-      expect(allClasses[0].title).toBe('Intro to CS - Updated');
+      expect(allClasses[0].title).toBe('Introduction to Computer Science');
       expect(allClasses[0].creditsMin).toBe(4);
+      expect(allClasses[0].school).toBe('Engineering');
     });
 
     it('should handle null optional fields', async () => {

@@ -201,7 +201,7 @@ describe('Database Insert Integration Tests', () => {
       expect(found?.term.name).toBe('Fall 2024');
     });
 
-    it('should enforce unique constraint on termId, subjectCode, courseNumber', async () => {
+    it('should enforce unique constraint on termId, subjectCode, courseNumber, title', async () => {
       const academicYear = await prisma.academicYear.create({
         data: {
           year: '2024-2025',
@@ -237,7 +237,7 @@ describe('Database Insert Integration Tests', () => {
             termId: term.termId,
             subjectCode: 'CS',
             courseNumber: '1101', // Same combination
-            title: 'Different Title',
+            title: 'Programming and Problem Solving', // Same title - should violate constraint
             creditsMin: 3.0,
             creditsMax: 3.0,
           },

@@ -472,6 +472,121 @@ describe('Semester Pipeline Integration Tests', () => {
         expect(result.data.errors).toBeGreaterThan(0);
       }
     });
+
+    it('should handle special topics courses with same subject/number but different titles', async () => {
+      // Mock special topics classes - same course number but different titles
+      const specialTopicsClasses: SemesterClass[] = [
+        {
+          id: 'CLASS_ST1',
+          termId: '1248',
+          subject: 'CS',
+          abbreviation: '3891',
+          name: 'Special Topics: Machine Learning',
+          details: {
+            school: 'Engineering',
+            hours: '3 credit hours',
+            grading: 'Standard',
+            components: ['Lecture'],
+            requirements: null,
+            attributes: [],
+            description: 'ML special topics',
+          },
+        },
+        {
+          id: 'CLASS_ST2',
+          termId: '1248',
+          subject: 'CS',
+          abbreviation: '3891',
+          name: 'Special Topics: Web Development',
+          details: {
+            school: 'Engineering',
+            hours: '3 credit hours',
+            grading: 'Standard',
+            components: ['Lecture'],
+            requirements: null,
+            attributes: [],
+            description: 'Web dev special topics',
+          },
+        },
+      ];
+
+      const specialTopicsSections: Section[] = [
+        {
+          id: 'SEC_ST1',
+          term: '1248',
+          class: {
+            subject: 'CS',
+            abbreviation: '3891',
+            name: 'Special Topics: Machine Learning',
+          },
+          number: '001',
+          instructors: ['Dr. ML'],
+          type: 'LEC',
+          schedule: 'MWF 10:00-11:00',
+          hours: '3 credit hours',
+        },
+        {
+          id: 'SEC_ST2',
+          term: '1248',
+          class: {
+            subject: 'CS',
+            abbreviation: '3891',
+            name: 'Special Topics: Web Development',
+          },
+          number: '001',
+          instructors: ['Dr. Web'],
+          type: 'LEC',
+          schedule: 'TR 14:00-15:15',
+          hours: '3 credit hours',
+        },
+      ];
+
+      vi.mocked(getAllSemesterData).mockResolvedValue({
+        classes: specialTopicsClasses,
+        sections: specialTopicsSections
+      });
+
+      const result = await ingestSemester('1248');
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.classesScraped).toBe(2);
+        expect(result.data.classesParsed).toBe(2);
+        expect(result.data.classesUpserted).toBe(2); // Both should be inserted
+        expect(result.data.sectionsUpserted).toBe(2); // Both sections should be inserted
+        expect(result.data.errors).toBe(0);
+      }
+
+      // Verify both classes were inserted with different IDs
+      const classes = await prisma.class.findMany({
+        where: {
+          termId: '1248',
+          subjectCode: 'CS',
+          courseNumber: '3891',
+        },
+      });
+
+      expect(classes.length).toBe(2);
+      expect(classes[0].title).not.toBe(classes[1].title);
+      expect(classes.some(c => c.title === 'Special Topics: Machine Learning')).toBe(true);
+      expect(classes.some(c => c.title === 'Special Topics: Web Development')).toBe(true);
+
+      // Verify sections are mapped to correct classes
+      const sections = await prisma.section.findMany({
+        where: { termId: '1248' },
+        include: { class: true },
+      });
+
+      expect(sections.length).toBe(2);
+
+      const mlSection = sections.find(s => s.sectionId === 'SEC_ST1');
+      const webSection = sections.find(s => s.sectionId === 'SEC_ST2');
+
+      expect(mlSection).toBeDefined();
+      expect(webSection).toBeDefined();
+      expect(mlSection?.class.title).toBe('Special Topics: Machine Learning');
+      expect(webSection?.class.title).toBe('Special Topics: Web Development');
+    });
   });
 
   describe('Academic Year Mapping', () => {
