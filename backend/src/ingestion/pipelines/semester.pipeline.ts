@@ -1,5 +1,5 @@
 import { Section } from '@prisma/client';
-import { getTerms, getAllClasses, getAllSections } from '../scrapers/functions.js';
+import { getTerms, getAllSemesterData } from '../scrapers/functions.js';
 import { parseClass } from '../parsers/parsers/main/class.parser.js';
 import { parseSection } from '../parsers/parsers/main/section.parser.js';
 import { transformClassForDb } from '../transformers/transformers/class.transformer.js';
@@ -123,28 +123,24 @@ export async function ingestSemester(
 
     logger.success(`Term record saved: ${termInsertResult.data.name}`);
 
-    // Step 4: Scrape classes and sections in parallel
-    logger.log('\n[4/8] Scraping classes and sections...');
+    // Step 4: Scrape semester data (classes derived from sections) in one pass
+    logger.log('\n[4/8] Scraping semester data (classes and sections)...');
 
-    const [scrapedClasses, scrapedSections] = await Promise.all([
-      (async () => {
-        const classes = await getAllClasses(selectedTerm, (cls, elapsed) => {
-          logger.log(`Scraped class: ${cls.subject} ${cls.abbreviation} (${elapsed}ms)`);
-        });
-        logger.success(`Scraped ${classes.length} classes`);
-        return classes;
-      })(),
-      (async () => {
-        const sections = await getAllSections(selectedTerm, (section, elapsed) => {
-          logger.log(`Scraped section: ${section.id} (${elapsed}ms)`);
-        });
-        logger.success(`Scraped ${sections.length} sections`);
-        return sections;
-      })(),
-    ]);
+    const { classes: scrapedClasses, sections: scrapedSections } = await getAllSemesterData(
+      selectedTerm,
+      (section, elapsed) => {
+        logger.log(`Scraped section: ${section.id} (${elapsed}ms)`);
+      },
+      (cls, elapsed) => {
+        logger.log(`Scraped class: ${cls.subject} ${cls.abbreviation} (${elapsed}ms)`);
+      }
+    );
 
-    if (scrapedClasses.length === 0) {
-      logger.warn('No classes found - stopping pipeline');
+    logger.success(`Scraped ${scrapedSections.length} sections`);
+    logger.success(`Derived ${scrapedClasses.length} unique classes from sections`);
+
+    if (scrapedSections.length === 0) {
+      logger.warn('No sections found - stopping pipeline');
       return success({
         academicYearId: academicYear.id,
         termId: selectedTerm.id,
@@ -153,7 +149,7 @@ export async function ingestSemester(
         classesParsed: 0,
         classesUpserted: 0,
         classesDeleted: 0,
-        sectionsScraped: scrapedSections.length,
+        sectionsScraped: 0,
         sectionsParsed: 0,
         sectionsUpserted: 0,
         sectionsDeleted: 0,

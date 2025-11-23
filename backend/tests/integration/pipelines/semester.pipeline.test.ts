@@ -5,8 +5,7 @@ import { ingestSemester } from '../../../src/ingestion/pipelines/semester.pipeli
 // Mock external dependencies
 vi.mock('../../../src/ingestion/scrapers/functions.js', () => ({
   getTerms: vi.fn(),
-  getAllClasses: vi.fn(),
-  getAllSections: vi.fn(),
+  getAllSemesterData: vi.fn(),
 }));
 
 vi.mock('../../../src/ingestion/parsers/parsers/main/class.parser.js', () => ({
@@ -17,7 +16,7 @@ vi.mock('../../../src/ingestion/parsers/parsers/main/section.parser.js', () => (
   parseSection: vi.fn(),
 }));
 
-import { getTerms, getAllClasses, getAllSections } from '../../../src/ingestion/scrapers/functions.js';
+import { getTerms, getAllSemesterData } from '../../../src/ingestion/scrapers/functions.js';
 import { parseClass } from '../../../src/ingestion/parsers/parsers/main/class.parser.js';
 import { parseSection } from '../../../src/ingestion/parsers/parsers/main/section.parser.js';
 import { Term } from '../../../src/ingestion/scrapers/types/term.type.js';
@@ -119,20 +118,18 @@ describe('Semester Pipeline Integration Tests', () => {
     // Set up default mock implementations
     vi.mocked(getTerms).mockResolvedValue(mockTerms);
 
-    // Mock getAllClasses to return classes with the correct termId
-    vi.mocked(getAllClasses).mockImplementation(async (term) => {
-      return mockClasses.map(cls => ({
-        ...cls,
-        termId: term.id, // Use the term ID being processed
-      }));
-    });
-
-    // Mock getAllSections to return sections with the correct term
-    vi.mocked(getAllSections).mockImplementation(async (term) => {
-      return mockSections.map(sec => ({
-        ...sec,
-        term: term.id, // Use the term ID being processed
-      }));
+    // Mock getAllSemesterData to return both classes and sections with the correct IDs
+    vi.mocked(getAllSemesterData).mockImplementation(async (term) => {
+      return {
+        classes: mockClasses.map(cls => ({
+          ...cls,
+          termId: term.id, // Use the term ID being processed
+        })),
+        sections: mockSections.map(sec => ({
+          ...sec,
+          term: term.id, // Use the term ID being processed
+        }))
+      };
     });
 
     // Mock parsers
@@ -302,8 +299,10 @@ describe('Semester Pipeline Integration Tests', () => {
       expect(initialClassCount).toBe(2);
 
       // Second run: mock with only one class
-      vi.mocked(getAllClasses).mockResolvedValue([mockClasses[0]]);
-      vi.mocked(getAllSections).mockResolvedValue([mockSections[0], mockSections[1]]);
+      vi.mocked(getAllSemesterData).mockResolvedValue({
+        classes: [mockClasses[0]],
+        sections: [mockSections[0], mockSections[1]]
+      });
 
       const result = await ingestSemester('1248');
 
@@ -330,7 +329,10 @@ describe('Semester Pipeline Integration Tests', () => {
       expect(initialSectionCount).toBe(3);
 
       // Second run: mock with only two sections
-      vi.mocked(getAllSections).mockResolvedValue([mockSections[0], mockSections[2]]);
+      vi.mocked(getAllSemesterData).mockResolvedValue({
+        classes: mockClasses,
+        sections: [mockSections[0], mockSections[2]]
+      });
 
       const result = await ingestSemester('1248');
 
@@ -423,8 +425,10 @@ describe('Semester Pipeline Integration Tests', () => {
     });
 
     it('should handle no classes found gracefully', async () => {
-      vi.mocked(getAllClasses).mockResolvedValue([]);
-      vi.mocked(getAllSections).mockResolvedValue([]);
+      vi.mocked(getAllSemesterData).mockResolvedValue({
+        classes: [],
+        sections: []
+      });
 
       const result = await ingestSemester('1248');
 
@@ -453,7 +457,10 @@ describe('Semester Pipeline Integration Tests', () => {
         hours: '3 credit hours',
       };
 
-      vi.mocked(getAllSections).mockResolvedValue([...mockSections, orphanSection]);
+      vi.mocked(getAllSemesterData).mockResolvedValue({
+        classes: mockClasses,
+        sections: [...mockSections, orphanSection]
+      });
 
       const result = await ingestSemester('1248');
 
@@ -505,23 +512,19 @@ describe('Semester Pipeline Integration Tests', () => {
     });
   });
 
-  describe('Parallel Scraping', () => {
-    it('should scrape classes and sections in parallel', async () => {
+  describe('Unified Scraping', () => {
+    it('should scrape classes and sections together in one pass', async () => {
       const result = await ingestSemester('1248');
 
       expect(result.success).toBe(true);
 
-      // Verify both scrapers were called
-      expect(getAllClasses).toHaveBeenCalledTimes(1);
-      expect(getAllSections).toHaveBeenCalledTimes(1);
+      // Verify unified scraper was called once
+      expect(getAllSemesterData).toHaveBeenCalledTimes(1);
 
-      // Verify they were called with the term object
-      expect(getAllClasses).toHaveBeenCalledWith(
+      // Verify it was called with the term object and handlers
+      expect(getAllSemesterData).toHaveBeenCalledWith(
         expect.objectContaining({ id: '1248', title: 'Fall 2024' }),
-        expect.any(Function)
-      );
-      expect(getAllSections).toHaveBeenCalledWith(
-        expect.objectContaining({ id: '1248', title: 'Fall 2024' }),
+        expect.any(Function),
         expect.any(Function)
       );
     });

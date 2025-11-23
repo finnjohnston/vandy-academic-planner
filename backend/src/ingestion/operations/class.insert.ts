@@ -42,7 +42,7 @@ export async function insertClasses(
                 },
               },
               update: {
-                classId: classData.classId,
+                // Note: classId is NOT updated - it's from upstream and should remain constant
                 title: classData.title,
                 school: classData.school,
                 creditsMin: classData.creditsMin,

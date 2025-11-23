@@ -87,7 +87,7 @@ export function createCleanupCommand(): Command {
         logger.log('');
 
         // Warning message
-        logger.warn('⚠️  WARNING: This will delete ALL data from the database!');
+        logger.warn('This will delete ALL data from the database!');
         logger.log('');
         logger.log('The following tables will be cleared:');
         logger.log('  - Sections');

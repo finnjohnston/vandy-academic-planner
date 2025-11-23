@@ -69,7 +69,7 @@ model Course {
 
 model Class {
   id                    Int                   @id @default(autoincrement())
-  classId               String                @unique @map("class_id") @db.VarChar(50)
+  classId               String                @unique @map("class_id") @db.VarChar(255)
   termId                String                @map("term_id") @db.VarChar(20)
 
   subjectCode           String                @map("subject_code") @db.VarChar(10)
@@ -96,9 +96,9 @@ model Class {
 
 model Section {
   id                    Int                   @id @default(autoincrement())
-  sectionId             String                @unique @map("section_id") @db.VarChar(50)
+  sectionId             String                @unique @map("section_id") @db.VarChar(255)
   termId                String                @map("term_id") @db.VarChar(20)
-  classId               String                @map("class_id") @db.VarChar(50)
+  classId               String                @map("class_id") @db.VarChar(255)
   
   sectionNumber         String                @map("section_number") @db.VarChar(10)
   sectionType           String                @map("section_type") @db.VarChar(10)

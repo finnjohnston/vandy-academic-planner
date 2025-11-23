@@ -124,7 +124,8 @@ describe('Class Insert Operations', () => {
       });
 
       expect(allClasses).toHaveLength(1);
-      expect(allClasses[0].classId).toBe('CLASS_001_UPDATED');
+      // classId should NOT be updated - it's from upstream and should remain constant
+      expect(allClasses[0].classId).toBe('CLASS_001');
       expect(allClasses[0].title).toBe('Intro to CS - Updated');
       expect(allClasses[0].creditsMin).toBe(4);
     });
