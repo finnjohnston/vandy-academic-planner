@@ -14,7 +14,7 @@ export interface DbSectionWithClass extends DbSectionInput {
 /**
  * Insert or update multiple sections
  * Uses upsert to handle both new and existing sections
- * Unique constraint: sectionId
+ * Unique constraint: [termId, sectionId]
  *
  * @param sections Array of section data with classId to insert
  * @returns Array of inserted/updated sections
@@ -42,7 +42,10 @@ export async function insertSections(
           try {
             return await prisma.section.upsert({
               where: {
-                sectionId: section.sectionId,
+                termId_sectionId: {
+                  termId: section.termId,
+                  sectionId: section.sectionId,
+                },
               },
               update: {
                 termId: section.termId,

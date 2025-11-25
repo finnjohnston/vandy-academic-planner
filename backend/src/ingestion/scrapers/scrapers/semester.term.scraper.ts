@@ -111,11 +111,25 @@ export class SemesterTermScraper extends Scraper<SemesterData> {
 
     /**
      * Add sections to discovered list, avoiding duplicates
+     * Filters out graduate course sections (>= 5000)
      */
     private discoverSections(sections: Section[]) {
         const existingIDs = this.discoveredSections.map(s => s.id);
 
-        const toAdd = sections.filter(s => !existingIDs.includes(s.id));
+        const toAdd = sections.filter(s => {
+            // Skip duplicates
+            if (existingIDs.includes(s.id)) return false;
+
+            // Filter out graduate courses (>= 5000)
+            const numMatch = s.class.abbreviation.match(/^(\d+)/);
+            if (!numMatch) return false;
+
+            const courseNum = parseInt(numMatch[1]);
+            if (courseNum >= 5000) return false;
+
+            return true;
+        });
+
         this.discoveredSections.push(...toAdd);
     }
 
@@ -165,7 +179,7 @@ export class SemesterTermScraper extends Scraper<SemesterData> {
 
                 // Create SemesterClass object
                 const semesterClass: SemesterClass = {
-                    id: section.id, // Use section ID as class ID
+                    id: `${this.term}-${section.id}`, // Globally unique: term + section ID
                     termId: this.term,
                     subject: section.class.subject,
                     abbreviation: section.class.abbreviation,

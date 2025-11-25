@@ -3,6 +3,7 @@ import { prisma } from '../services/db.service.js';
 import * as logger from '../services/logger.service.js';
 import { PipelineResult, success, failure } from '../pipelines/types/pipeline.types.js';
 import { DbClassInput } from '../transformers/types/db.class.input.js';
+import { findCourseForClass } from './course.matcher.js';
 
 /**
  * Insert or update multiple classes
@@ -19,6 +20,8 @@ export async function insertClasses(
 
   try {
     const results: Class[] = [];
+    let linkedCount = 0;
+    let unlinkedCount = 0;
 
     // Process classes in batches to avoid overwhelming the database
     const batchSize = 50;
@@ -29,10 +32,41 @@ export async function insertClasses(
         `Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(classes.length / batchSize)} (${batch.length} classes)`
       );
 
+      // Attempt to link each class to its course (if not already provided)
+      const batchWithCourseIds = await Promise.all(
+        batch.map(async (classData) => {
+          // If courseId already provided, use it
+          if (classData.courseId !== undefined) {
+            return classData;
+          }
+
+          // Try to find matching course
+          const courseId = await findCourseForClass(
+            {
+              subjectCode: classData.subjectCode,
+              courseNumber: classData.courseNumber,
+            },
+            classData.termId
+          );
+
+          return {
+            ...classData,
+            courseId,
+          };
+        })
+      );
+
       // Use Promise.all for parallel upserts within batch
       const batchResults = await Promise.all(
-        batch.map(async (classData) => {
+        batchWithCourseIds.map(async (classData) => {
           try {
+            // Track linking stats
+            if (classData.courseId) {
+              linkedCount++;
+            } else {
+              unlinkedCount++;
+            }
+
             return await prisma.class.upsert({
               where: {
                 termId_subjectCode_courseNumber_title: {
@@ -45,6 +79,7 @@ export async function insertClasses(
               update: {
                 // Note: classId is NOT updated - it's from upstream and should remain constant
                 title: classData.title,
+                courseId: classData.courseId,
                 school: classData.school,
                 creditsMin: classData.creditsMin,
                 creditsMax: classData.creditsMax,
@@ -55,6 +90,7 @@ export async function insertClasses(
               create: {
                 classId: classData.classId,
                 termId: classData.termId,
+                courseId: classData.courseId,
                 subjectCode: classData.subjectCode,
                 courseNumber: classData.courseNumber,
                 title: classData.title,
@@ -80,6 +116,7 @@ export async function insertClasses(
     }
 
     logger.success(`Successfully inserted ${results.length} classes`);
+    logger.log(`Course linking: ${linkedCount} linked, ${unlinkedCount} unlinked`);
     return success(results);
   } catch (err) {
     logger.error(`Failed to insert classes`, err);

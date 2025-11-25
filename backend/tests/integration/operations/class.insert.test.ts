@@ -9,6 +9,7 @@ import {
 } from '../../../src/ingestion/operations/class.insert.js';
 import { createAcademicYear } from '../../../src/ingestion/pipelines/services/academicYear.service.js';
 import { insertTerm } from '../../../src/ingestion/operations/term.insert.js';
+import { insertCourse } from '../../../src/ingestion/operations/course.insert.js';
 import { DbClassInput } from '../../../src/ingestion/transformers/types/db.class.input.js';
 
 describe('Class Insert Operations', () => {
@@ -525,15 +526,233 @@ describe('Class Insert Operations', () => {
 
       // Verify section for CLASS_002 was deleted
       const section002 = await prisma.section.findUnique({
-        where: { sectionId: 'SEC_002' },
+        where: { termId_sectionId: { termId, sectionId: 'SEC_002' } },
       });
       expect(section002).toBeNull();
 
       // Verify section for CLASS_001 still exists
       const section001 = await prisma.section.findUnique({
-        where: { sectionId: 'SEC_001' },
+        where: { termId_sectionId: { termId, sectionId: 'SEC_001' } },
       });
       expect(section001).toBeDefined();
+    });
+  });
+
+  describe('Course Linking During Insertion', () => {
+    it('should automatically link class to course when catalog scraped first', async () => {
+      // Create course first (catalog scraped)
+      await insertCourse({
+        courseId: 'COURSE_CS_1101',
+        academicYearId,
+        subjectCode: 'CS',
+        courseNumber: '1101',
+        title: 'Programming and Problem Solving',
+        school: null,
+        creditsMin: 3,
+        creditsMax: 3,
+        typicallyOffered: null,
+        description: null,
+        attributes: null,
+        requirements: null,
+        isCatalogCourse: true,
+      });
+
+      // Insert class (should auto-link)
+      const classData: DbClassInput = {
+        classId: 'CLASS_CS_1101',
+        termId,
+        subjectCode: 'CS',
+        courseNumber: '1101',
+        title: 'Programming and Problem Solving',
+        school: null,
+        creditsMin: 3,
+        creditsMax: 3,
+        description: null,
+        attributes: null,
+        requirements: null,
+      };
+
+      const result = await insertClass(classData);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.courseId).toBe('COURSE_CS_1101');
+      }
+
+      // Verify in database
+      const found = await prisma.class.findUnique({
+        where: { classId: 'CLASS_CS_1101' },
+      });
+
+      expect(found?.courseId).toBe('COURSE_CS_1101');
+    });
+
+    it('should insert class with null courseId when catalog not scraped', async () => {
+      // Don't create any course
+
+      const classData: DbClassInput = {
+        classId: 'CLASS_ORPHAN',
+        termId,
+        subjectCode: 'CS',
+        courseNumber: '9999',
+        title: 'Experimental Course',
+        school: null,
+        creditsMin: 3,
+        creditsMax: 3,
+        description: null,
+        attributes: null,
+        requirements: null,
+      };
+
+      const result = await insertClass(classData);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.courseId).toBeNull();
+      }
+
+      // Verify in database
+      const found = await prisma.class.findUnique({
+        where: { classId: 'CLASS_ORPHAN' },
+      });
+
+      expect(found?.courseId).toBeNull();
+    });
+
+    it('should update courseId when re-inserting class after catalog scraped', async () => {
+      // Insert class first (no course yet)
+      const classData: DbClassInput = {
+        classId: 'CLASS_CS_1101',
+        termId,
+        subjectCode: 'CS',
+        courseNumber: '1101',
+        title: 'Programming',
+        school: null,
+        creditsMin: 3,
+        creditsMax: 3,
+        description: null,
+        attributes: null,
+        requirements: null,
+      };
+
+      const result1 = await insertClass(classData);
+      expect(result1.success).toBe(true);
+      if (result1.success) {
+        expect(result1.data.courseId).toBeNull();
+      }
+
+      // Create course (catalog scraped)
+      await insertCourse({
+        courseId: 'COURSE_CS_1101',
+        academicYearId,
+        subjectCode: 'CS',
+        courseNumber: '1101',
+        title: 'Programming and Problem Solving',
+        school: null,
+        creditsMin: 3,
+        creditsMax: 3,
+        typicallyOffered: null,
+        description: null,
+        attributes: null,
+        requirements: null,
+        isCatalogCourse: true,
+      });
+
+      // Re-insert class (should update with courseId)
+      const result2 = await insertClass(classData);
+      expect(result2.success).toBe(true);
+      if (result2.success) {
+        expect(result2.data.courseId).toBe('COURSE_CS_1101');
+      }
+
+      // Verify in database
+      const found = await prisma.class.findUnique({
+        where: { classId: 'CLASS_CS_1101' },
+      });
+
+      expect(found?.courseId).toBe('COURSE_CS_1101');
+    });
+
+    it('should link multiple classes with different titles to same course (CS 3891)', async () => {
+      // Create CS 3891 catalog course
+      await insertCourse({
+        courseId: 'COURSE_CS_3891',
+        academicYearId,
+        subjectCode: 'CS',
+        courseNumber: '3891',
+        title: 'Special Topics in Computer Science',
+        school: null,
+        creditsMin: 1,
+        creditsMax: 3,
+        typicallyOffered: null,
+        description: null,
+        attributes: null,
+        requirements: null,
+        isCatalogCourse: true,
+      });
+
+      // Insert multiple classes with different titles
+      const classes: DbClassInput[] = [
+        {
+          classId: 'CLASS_CS_3891_ML',
+          termId,
+          subjectCode: 'CS',
+          courseNumber: '3891',
+          title: 'Machine Learning',
+          school: null,
+          creditsMin: 3,
+          creditsMax: 3,
+          description: null,
+          attributes: null,
+          requirements: null,
+        },
+        {
+          classId: 'CLASS_CS_3891_WEB',
+          termId,
+          subjectCode: 'CS',
+          courseNumber: '3891',
+          title: 'Web Development',
+          school: null,
+          creditsMin: 3,
+          creditsMax: 3,
+          description: null,
+          attributes: null,
+          requirements: null,
+        },
+        {
+          classId: 'CLASS_CS_3891_BLOCKCHAIN',
+          termId,
+          subjectCode: 'CS',
+          courseNumber: '3891',
+          title: 'Blockchain Technologies',
+          school: null,
+          creditsMin: 3,
+          creditsMax: 3,
+          description: null,
+          attributes: null,
+          requirements: null,
+        },
+      ];
+
+      const result = await insertClasses(classes);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // All should be linked to same course
+        expect(result.data.every((c) => c.courseId === 'COURSE_CS_3891')).toBe(true);
+      }
+
+      // Verify in database
+      const foundClasses = await prisma.class.findMany({
+        where: {
+          subjectCode: 'CS',
+          courseNumber: '3891',
+          termId,
+        },
+      });
+
+      expect(foundClasses).toHaveLength(3);
+      expect(foundClasses.every((c) => c.courseId === 'COURSE_CS_3891')).toBe(true);
     });
   });
 });

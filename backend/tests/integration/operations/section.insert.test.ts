@@ -96,14 +96,19 @@ describe('Section Insert Operations', () => {
 
       // Verify in database
       const found = await prisma.section.findUnique({
-        where: { sectionId: 'SEC_001' },
+        where: {
+          termId_sectionId: {
+            termId,
+            sectionId: 'SEC_001',
+          },
+        },
       });
 
       expect(found).toBeDefined();
       expect(found?.classId).toBe(classId1);
     });
 
-    it('should upsert on unique constraint sectionId', async () => {
+    it('should upsert on unique constraint [termId, sectionId]', async () => {
       const sectionData: DbSectionWithClass = {
         sectionId: 'SEC_001',
         termId,
@@ -186,7 +191,12 @@ describe('Section Insert Operations', () => {
 
       // Verify relationships
       const section = await prisma.section.findUnique({
-        where: { sectionId: 'SEC_003' },
+        where: {
+          termId_sectionId: {
+            termId,
+            sectionId: 'SEC_003',
+          },
+        },
         include: {
           term: true,
           class: true,
@@ -196,6 +206,112 @@ describe('Section Insert Operations', () => {
       expect(section).toBeDefined();
       expect(section?.term.termId).toBe(termId);
       expect(section?.class.classId).toBe(classId1);
+    });
+
+    it('should allow same sectionId across different terms', async () => {
+      // Create a second term
+      const term2Result = await insertTerm({
+        termId: '1249',
+        academicYearId,
+        name: 'Spring 2025',
+      });
+
+      expect(term2Result.success).toBe(true);
+      if (!term2Result.success) return;
+
+      const term2Id = term2Result.data.termId;
+
+      // Create a class for the second term
+      const class3Result = await insertClass({
+        classId: 'CLASS_003',
+        termId: term2Id,
+        subjectCode: 'MATH',
+        courseNumber: '201',
+        title: 'Advanced Calculus',
+        school: null,
+        creditsMin: 3,
+        creditsMax: 3,
+        description: null,
+        attributes: null,
+        requirements: null,
+      });
+
+      expect(class3Result.success).toBe(true);
+      if (!class3Result.success) return;
+
+      const class3Id = class3Result.data.classId;
+
+      // Insert section with sectionId 'SHARED_001' in first term
+      const section1Data: DbSectionWithClass = {
+        sectionId: 'SHARED_001',
+        termId,
+        classId: classId1,
+        sectionNumber: '001',
+        sectionType: 'LEC',
+        instructors: [{ name: 'Dr. Smith' }],
+        schedule: { days: ['M', 'W', 'F'], time: '10:00-11:00' },
+        creditsMin: 3,
+        creditsMax: 3,
+      };
+
+      const result1 = await insertSection(section1Data);
+      expect(result1.success).toBe(true);
+
+      // Insert section with SAME sectionId 'SHARED_001' in second term (different class)
+      const section2Data: DbSectionWithClass = {
+        sectionId: 'SHARED_001', // Same sectionId
+        termId: term2Id,
+        classId: class3Id,
+        sectionNumber: '002',
+        sectionType: 'LAB',
+        instructors: [{ name: 'Dr. Jones' }],
+        schedule: { days: ['T', 'TH'], time: '14:00-15:00' },
+        creditsMin: 4,
+        creditsMax: 4,
+      };
+
+      const result2 = await insertSection(section2Data);
+      expect(result2.success).toBe(true);
+
+      // Verify both sections exist independently
+      const allSections = await prisma.section.findMany({
+        where: { sectionId: 'SHARED_001' },
+        orderBy: { termId: 'asc' },
+      });
+
+      expect(allSections).toHaveLength(2);
+
+      // Verify first term's section is unchanged
+      const term1Section = await prisma.section.findUnique({
+        where: {
+          termId_sectionId: {
+            termId,
+            sectionId: 'SHARED_001',
+          },
+        },
+      });
+
+      expect(term1Section).toBeDefined();
+      expect(term1Section?.classId).toBe(classId1);
+      expect(term1Section?.sectionNumber).toBe('001');
+      expect(term1Section?.sectionType).toBe('LEC');
+      expect(term1Section?.creditsMin).toBe(3);
+
+      // Verify second term's section is correct
+      const term2Section = await prisma.section.findUnique({
+        where: {
+          termId_sectionId: {
+            termId: term2Id,
+            sectionId: 'SHARED_001',
+          },
+        },
+      });
+
+      expect(term2Section).toBeDefined();
+      expect(term2Section?.classId).toBe(class3Id);
+      expect(term2Section?.sectionNumber).toBe('002');
+      expect(term2Section?.sectionType).toBe('LAB');
+      expect(term2Section?.creditsMin).toBe(4);
     });
   });
 
