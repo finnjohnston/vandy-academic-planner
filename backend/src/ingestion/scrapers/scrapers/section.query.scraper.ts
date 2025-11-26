@@ -135,9 +135,9 @@ export class SectionQueryScraper extends Scraper<Section> {
                 const sectionNumber = classSectionNode.text().trim();
                 let instructors = row.children('.classInstructor').text().trim().split('|').map(i => i.trim());
                 const daysHtml = row.children('.classMeetingDays').html();
-                const days = daysHtml ? daysHtml.trim().split('<br>') : [];
+                const days = daysHtml ? daysHtml.trim().split('<br>').filter(d => d.trim()) : [];
                 const timesHtml = row.children('.classMeetingTimes').html();
-                const times = timesHtml ? timesHtml.trim().split('<br>').map(i => (i.split(' ').join(''))) : [];
+                const times = timesHtml ? timesHtml.trim().split('<br>').filter(t => t.trim()) : [];
                 const hours = row.children('.classHours').text().trim();
                 // const location = row.children('.classBuilding').text().trim();
 
@@ -148,8 +148,10 @@ export class SectionQueryScraper extends Scraper<Section> {
 
                 // Combine days and times
                 let combinedSchedule = [];
-                for (let i = 0; i < days.length - 1; i++) {
-                    combinedSchedule.push(`${days[i]};${times[i].replace(' ', '')}`);
+                for (let i = 0; i < days.length; i++) {
+                    if (days[i] && times[i]) {
+                        combinedSchedule.push(`${days[i]} ${times[i]}`);
+                    }
                 }
 
                 const trimmedAbbrev = abbreviation.slice(0, abbreviation.length - 1);

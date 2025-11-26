@@ -4,6 +4,7 @@ import { createCatalogCommand } from './commands/catalog.command.js';
 import { createSemesterCommand } from './commands/semester.command.js';
 import { createCleanupCommand } from './commands/cleanup.command.js';
 import { createLinkCommand } from './commands/link.command.js';
+import { createValidateCommand } from './commands/validate.command.js';
 
 /**
  * Vanderbilt Academic Planner - Admin CLI
@@ -23,10 +24,8 @@ program
 program.addCommand(createCatalogCommand());
 program.addCommand(createSemesterCommand());
 program.addCommand(createLinkCommand());
+program.addCommand(createValidateCommand());
 program.addCommand(createCleanupCommand());
-
-// Future commands can be added here:
-// program.addCommand(createMigrateCommand());
 
 // Parse command line arguments
 program.parse(process.argv);

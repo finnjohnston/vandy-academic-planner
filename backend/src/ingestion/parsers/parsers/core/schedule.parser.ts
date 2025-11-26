@@ -8,7 +8,7 @@ import {ParsedSchedule} from "../../types/core/parsed.schedule.type.js";
 export function parseSchedule(scheduleStr: string): ParsedSchedule {
     const cleaned = scheduleStr.replace(/<br\s*\/?>/gi, ' ').trim();
 
-    const schedulePattern = /^([MTWRF]+)\s+(\d{1,2}:\d{2}[AP]M)\s*-\s*(\d{1,2}:\d{2}[AP]M)$/i;
+    const schedulePattern = /^([MTWRF]+)\s+(\d{1,2}:\d{2}[AP]M?)\s*-\s*(\d{1,2}:\d{2}[AP]M?)$/i;
     const match = cleaned.match(schedulePattern);
 
     if (!match) {
@@ -57,7 +57,7 @@ function parseDays(daysStr: string): string[] {
 }
 
 function convertTo24Hour(time12: string): string {
-    const timePattern = /^(\d{1,2}):(\d{2})([AP]M)$/i;
+    const timePattern = /^(\d{1,2}):(\d{2})([AP]M?)$/i;
     const match = time12.match(timePattern);
 
     if (!match) {
@@ -68,9 +68,13 @@ function convertTo24Hour(time12: string): string {
     const minutes = match[2];
     const period = match[3].toUpperCase();
 
-    if (period === 'PM' && hours !== 12) {
+    // Handle both 'P'/'PM' and 'A'/'AM'
+    const isPM = period.startsWith('P');
+    const isAM = period.startsWith('A');
+
+    if (isPM && hours !== 12) {
         hours += 12;
-    } else if (period === 'AM' && hours === 12) {
+    } else if (isAM && hours === 12) {
         hours = 0;
     }
 
