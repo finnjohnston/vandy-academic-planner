@@ -25,11 +25,36 @@ You are a meticulous data parsing expert specializing in university course catal
     * An \`"$and"\` key holds a list where **all** items must be satisfied.
     * An \`"$or"\` key holds a list where **only one** of the items must be satisfied.
     * Items in these lists can be either a course code string (e.g., \`"CS 1101"\`) or another nested \`"$and"\`/\`"$or"\` object.
-    * If a course number is mentioned without a subject (e.g., "1101"), use the provided \`course_code\`'s subject code to complete it.
+    * Even if there is only ONE course in a requirement, it MUST still be wrapped in a \`$and\` or \`$or\` key. Never return a bare course code string.
 
-4.  **Use Best Judgment:** The keywords and rules are guidelines. Your primary goal is to accurately reflect the true meaning of the text. If the phrasing is unusual but clearly implies a prerequisite, classify it correctly. If the subject of a course number is not mentioned but is clearly not represented by the provided 'course_code''s subject code, use the subject code you know is correct. You are the expert; make the correct classification based on your language understanding.
+4.   **Subject Code Determination (This is a common error):**
+      * If a course number appears without a subject code (e.g., "1101"):
+        1. Check if a different subject code was mentioned earlier in the SAME SENTENCE for a previous course
+        2. If yes, use that subject code for this course number
+        3. If no, use the input \`course_code\`'s subject code
+      * NEVER guess or hallucinate subject codes - always use one of the above rules
+      * Example: In "Prerequisite: MATH 1200 and 1300", both courses are MATH
+      * Example: In "Prerequisite: 1101 and 1102" for course "CS 2201", both are CS
+      * 
+5.  **Use Best Judgment:** The keywords and rules are guidelines. Your primary goal is to accurately reflect the true meaning of the text. If the phrasing is unusual but clearly implies a prerequisite, classify it correctly. If the subject of a course number is not mentioned but is clearly not represented by the provided 'course_code''s subject code, use the subject code you know is correct. You are the expert; make the correct classification based on your language understanding.
 
-5.  **Handling Nulls:** If a requirement type is not mentioned, its corresponding JSON object must have \`null\` values for both \`"rawText"\` and \`"courses"\`.
+6.  **Handling Nulls:** If a requirement type is not mentioned, its corresponding JSON object must have \`null\` values for both \`"rawText"\` and \`"courses"\`.
+
+# CRITICAL ERRORS TO AVOID
+
+**Subject Code Errors**:
+1. WRONG: Using a random or hallucinated subject code
+2. WRONG: Guessing what subject code "makes sense"
+3. CORRECT: When you see a bare number like "1101", look earlier in the SAME SENTENCE for a subject code
+4. CORRECT: If no subject was mentioned earlier in the sentence, use the input course's subject code
+5. CORRECT: If these rules clearly do not work for the input, reason and use your judgement to make the correct classification.
+6. Example: "Prerequisite: CS 1101 and 2201" → Both are CS courses
+7. Example: "Prerequisite: 1101 or MATH 1200" for course "CS 2201" → First is CS 1101, second is MATH 1200
+
+**Single Requirement Structure:**
+- Even a single course MUST use $and or $or wrapper
+- WRONG: \`"courses": "CS 1101"\`
+- CORRECT: \`"courses": {"$and": ["CS 1101"]}\`
 
 # IMPORTANT: All JSON keys must use camelCase format (e.g., "rawText" not "raw_text")
 
@@ -159,7 +184,7 @@ export async function parseRequirements(
     // Initialize Gemini API
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.5-pro",
     });
 
     // Fill in the prompt template

@@ -7,21 +7,36 @@ import {
 
 /**
  * Extract all courseIds from a requirements courses object
- * Handles structures like: null, { $and: [...] }, { $or: [...] }
+ * Handles recursive structures: null, strings, { $and: [...] }, { $or: [...] }
+ * Supports nested operators like: { $and: [{ $or: [...] }, { $or: [...] }] }
  */
 function extractCourseIds(coursesObj: any): string[] {
   if (!coursesObj) return [];
 
-  const ids: string[] = [];
-
-  // Handle $and operator
-  if (coursesObj.$and && Array.isArray(coursesObj.$and)) {
-    ids.push(...coursesObj.$and);
+  // Base case: if it's a string, return it
+  if (typeof coursesObj === 'string') {
+    return [coursesObj];
   }
 
-  // Handle $or operator
+  // Base case: if it's not an object, return empty
+  if (typeof coursesObj !== 'object') {
+    return [];
+  }
+
+  const ids: string[] = [];
+
+  // Recursive case: process $and operator
+  if (coursesObj.$and && Array.isArray(coursesObj.$and)) {
+    for (const item of coursesObj.$and) {
+      ids.push(...extractCourseIds(item)); // Recursive call
+    }
+  }
+
+  // Recursive case: process $or operator
   if (coursesObj.$or && Array.isArray(coursesObj.$or)) {
-    ids.push(...coursesObj.$or);
+    for (const item of coursesObj.$or) {
+      ids.push(...extractCourseIds(item)); // Recursive call
+    }
   }
 
   return ids;
@@ -29,26 +44,43 @@ function extractCourseIds(coursesObj: any): string[] {
 
 /**
  * Filter out invalid courseIds from requirements courses object
- * Keeps the structure but removes non-existent course references
+ * Keeps the structure but recursively removes non-existent course references
+ * Supports nested operators like: { $and: [{ $or: [...] }, { $or: [...] }] }
  */
 function filterValidCourseIds(coursesObj: any, validCourseIds: Set<string>): any {
   if (!coursesObj) return null;
 
+  // Base case: if it's a string, check if it's valid
+  if (typeof coursesObj === 'string') {
+    return validCourseIds.has(coursesObj) ? coursesObj : null;
+  }
+
+  // Base case: if it's not an object, return null
+  if (typeof coursesObj !== 'object') {
+    return null;
+  }
+
   const filtered: any = {};
 
-  // Filter $and operator
+  // Recursive case: filter $and operator
   if (coursesObj.$and && Array.isArray(coursesObj.$and)) {
-    const validIds = coursesObj.$and.filter((id: string) => validCourseIds.has(id));
-    if (validIds.length > 0) {
-      filtered.$and = validIds;
+    const validItems = coursesObj.$and
+      .map((item: any) => filterValidCourseIds(item, validCourseIds)) // Recursive call
+      .filter((item: any) => item !== null); // Remove nulls
+
+    if (validItems.length > 0) {
+      filtered.$and = validItems;
     }
   }
 
-  // Filter $or operator
+  // Recursive case: filter $or operator
   if (coursesObj.$or && Array.isArray(coursesObj.$or)) {
-    const validIds = coursesObj.$or.filter((id: string) => validCourseIds.has(id));
-    if (validIds.length > 0) {
-      filtered.$or = validIds;
+    const validItems = coursesObj.$or
+      .map((item: any) => filterValidCourseIds(item, validCourseIds)) // Recursive call
+      .filter((item: any) => item !== null); // Remove nulls
+
+    if (validItems.length > 0) {
+      filtered.$or = validItems;
     }
   }
 
