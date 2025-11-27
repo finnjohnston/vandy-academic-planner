@@ -2,6 +2,7 @@ import * as academicYearChecks from './checks/academicYear.checks.js';
 import * as classChecks from './checks/class.checks.js';
 import * as courseChecks from './checks/course.checks.js';
 import * as orphanChecks from './checks/orphan.checks.js';
+import * as requirementsChecks from './checks/requirements.checks.js';
 import * as sectionChecks from './checks/section.checks.js';
 import * as logger from '../services/logger.service.js';
 import {
@@ -17,8 +18,9 @@ import {
  * 1. Fix references (course/class/section relationships)
  * 2. Remove duplicates
  * 3. Fix data quality (credit ranges, term consistency)
- * 4. Enforce constraints (single current year, section uniqueness)
- * 5. Detect orphans (reporting only)
+ * 4. Enforce constraints (single current year)
+ * 5. Fix requirements referential integrity
+ * 6. Detect orphans (reporting only)
  *
  * @param dryRun If true, previews changes without applying them
  * @param environment Environment name for reporting
@@ -84,8 +86,13 @@ export async function runValidation(
     results.push(await academicYearChecks.checkSingleCurrentYear(dryRun));
     logger.log('');
 
-    // Check #10: Orphaned data detection (classes without courses)
-    logger.log('Running Check #10: Orphaned Data Detection...');
+    // Check #10: Requirements referential integrity
+    logger.log('Running Check #10: Requirements Referential Integrity...');
+    results.push(await requirementsChecks.checkRequirementsReferentialIntegrity(dryRun));
+    logger.log('');
+
+    // Check #11: Orphaned data detection (classes without courses)
+    logger.log('Running Check #11: Orphaned Data Detection...');
     results.push(await orphanChecks.detectOrphanedData(dryRun));
     logger.log('');
   } catch (error) {

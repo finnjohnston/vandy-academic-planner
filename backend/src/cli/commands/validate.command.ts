@@ -43,13 +43,14 @@ export function createValidateCommand(): Command {
     .description('Run database integrity validation checks')
     .option('-d, --dry-run', 'Preview changes without applying them', false)
     .option('-e, --env <environment>', 'Environment to use (prod or test)', 'prod')
+    .option('-f, --force', 'Allow running on production without dry-run', false)
     .action(async (options) => {
       try {
         // Load environment
         const dbName = loadEnvironment(options.env);
 
-        // Confirm with user if not in dry-run mode and using prod
-        if (!options.dryRun && options.env === 'prod') {
+        // Confirm with user if not in dry-run mode and using prod (unless --force is used)
+        if (!options.dryRun && options.env === 'prod' && !options.force) {
           logger.warn('WARNING: You are about to modify the PRODUCTION database');
           logger.warn(`Database: ${dbName}`);
           logger.log('');
@@ -59,6 +60,7 @@ export function createValidateCommand(): Command {
           logger.log('  - Update credit ranges');
           logger.log('');
           logger.log('Run with --dry-run first to preview changes.');
+          logger.log('Or use --force to run without dry-run.');
           logger.log('');
           logger.error('Aborting. Use --dry-run to preview changes safely.');
           process.exit(1);
