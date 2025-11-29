@@ -13,9 +13,9 @@ export async function parseClass(semesterClass: SemesterClass): Promise<ParsedSe
     const credits = parseCredits(semesterClass.details.hours || '');
     const attributes = parseAttributes(semesterClass.details.attributes);
 
-    // Parse requirements using AI - needs class ID and description
+    // Parse requirements using AI - needs course code (subject + number) and description
     const requirements = await parseRequirements(
-        semesterClass.id,
+        `${semesterClass.subject} ${semesterClass.abbreviation}`,
         semesterClass.details.description || ''
     );
 
