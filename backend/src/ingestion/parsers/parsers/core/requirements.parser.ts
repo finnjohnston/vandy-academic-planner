@@ -2,6 +2,37 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ParsedRequirements } from "../../types/core/parsed.requirements.type.js";
 import { geminiSemaphore } from "../../../services/semaphore.service.js";
 
+// Retry configuration for handling rate limits
+const MAX_RETRIES = 5;
+const INITIAL_RETRY_DELAY = 1000; // 1 second
+
+/**
+ * Sleep for a specified number of milliseconds
+ */
+function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Extract retry delay from Google API error response
+ */
+function extractRetryDelay(error: any): number | null {
+    // Try to extract retryDelay from error.errorDetails
+    const retryInfo = error.errorDetails?.find(
+        (detail: any) => detail['@type'] === 'type.googleapis.com/google.rpc.RetryInfo'
+    );
+
+    if (retryInfo?.retryDelay) {
+        // Parse duration like "32s" or "32.5s" to milliseconds
+        const match = retryInfo.retryDelay.match(/^(\d+(?:\.\d+)?)s$/);
+        if (match) {
+            return parseFloat(match[1]) * 1000;
+        }
+    }
+
+    return null;
+}
+
 const promptTemplate = `
 You are a meticulous data parsing expert specializing in university course catalogs. Your task is to analyze the provided description text for a specific course and convert it into a structured JSON object according to the rules below.
 
@@ -192,34 +223,59 @@ export async function parseRequirements(
         .replace('{course_code}', courseCode)
         .replace('{description_text}', descriptionText);
 
-    try {
-        // Generate response with semaphore control (limits concurrent API calls)
-        const result = await geminiSemaphore.execute(() =>
-            model.generateContent(prompt)
-        );
-        const response = result.response;
-        const text = response.text();
+    // Retry loop with exponential backoff for handling rate limits
+    let lastError: any;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+            // Generate response with semaphore control (limits concurrent API calls)
+            const result = await geminiSemaphore.execute(() =>
+                model.generateContent(prompt)
+            );
+            const response = result.response;
+            const text = response.text();
 
-        // Extract JSON from response (remove markdown code blocks if present)
-        const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/```\s*([\s\S]*?)\s*```/);
-        const jsonText = jsonMatch ? jsonMatch[1] : text;
+            // Extract JSON from response (remove markdown code blocks if present)
+            const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/```\s*([\s\S]*?)\s*```/);
+            const jsonText = jsonMatch ? jsonMatch[1] : text;
 
-        // Parse and validate the response
-        const parsed = JSON.parse(jsonText.trim()) as ParsedRequirements;
+            // Parse and validate the response
+            const parsed = JSON.parse(jsonText.trim()) as ParsedRequirements;
 
-        // Validate structure
-        if (!parsed.prerequisites || !parsed.corequisites) {
-            throw new Error('Invalid response structure: missing prerequisites or corequisites');
+            // Validate structure
+            if (!parsed.prerequisites || !parsed.corequisites) {
+                throw new Error('Invalid response structure: missing prerequisites or corequisites');
+            }
+
+            return parsed;
+        } catch (error: any) {
+            lastError = error;
+
+            // Check if it's a rate limit error (429)
+            if (error.status === 429 || error.message?.includes('429')) {
+                // Extract retry delay from error response, or use exponential backoff
+                const retryDelay = extractRetryDelay(error) ||
+                                  INITIAL_RETRY_DELAY * Math.pow(2, attempt);
+
+                console.warn(
+                    `Rate limit hit for ${courseCode}, retrying in ${retryDelay}ms ` +
+                    `(attempt ${attempt + 1}/${MAX_RETRIES})`
+                );
+
+                await sleep(retryDelay);
+                continue; // Retry
+            }
+
+            // If not a rate limit error, fail immediately
+            break;
         }
-
-        return parsed;
-    } catch (error) {
-        console.error('Error parsing requirements with Gemini:', error);
-        // Return empty structure on error rather than throwing
-        // This makes the parser more resilient
-        return {
-            prerequisites: { rawText: null, courses: null },
-            corequisites: { rawText: null, courses: null }
-        };
     }
+
+    // All retries exhausted or non-retryable error occurred
+    console.error('Error parsing requirements with Gemini:', lastError);
+    // Return empty structure on error rather than throwing
+    // This makes the parser more resilient
+    return {
+        prerequisites: { rawText: null, courses: null },
+        corequisites: { rawText: null, courses: null }
+    };
 }

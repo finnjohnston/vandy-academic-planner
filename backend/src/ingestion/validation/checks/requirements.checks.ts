@@ -1,4 +1,5 @@
 import { prisma } from '../../services/db.service.js';
+import { Prisma } from '@prisma/client';
 import * as logger from '../../services/logger.service.js';
 import {
   ValidationResult,
@@ -118,7 +119,7 @@ export async function checkRequirementsReferentialIntegrity(
     // Check courses with requirements
     const coursesWithReqs = await prisma.course.findMany({
       where: {
-        requirements: { not: null },
+        requirements: { not: Prisma.JsonNull },
       },
     });
 
@@ -194,7 +195,7 @@ export async function checkRequirementsReferentialIntegrity(
     // Check classes with requirements
     const classesWithReqs = await prisma.class.findMany({
       where: {
-        requirements: { not: null },
+        requirements: { not: Prisma.JsonNull },
       },
       include: {
         term: true,

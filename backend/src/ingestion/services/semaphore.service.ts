@@ -84,7 +84,7 @@ export class Semaphore {
  */
 class GeminiSemaphoreService {
   private static instance: Semaphore | null = null;
-  private static readonly DEFAULT_LIMIT = 20;
+  private static readonly DEFAULT_LIMIT = 10;
 
   /**
    * Get the Gemini semaphore instance

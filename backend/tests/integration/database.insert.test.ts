@@ -96,7 +96,6 @@ describe('Database Insert Integration Tests', () => {
               courses: null,
             },
           },
-          isCatalogCourse: true,
         },
       });
 

@@ -59,7 +59,6 @@ describe('Course Matcher Operations', () => {
         description: 'Introduction to programming',
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       expect(courseResult.success).toBe(true);
@@ -91,7 +90,6 @@ describe('Course Matcher Operations', () => {
         description: 'Advanced topics in CS',
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       expect(courseResult.success).toBe(true);
@@ -137,7 +135,6 @@ describe('Course Matcher Operations', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       expect(courseResult.success).toBe(true);
@@ -148,7 +145,7 @@ describe('Course Matcher Operations', () => {
 
       const term3Result = await insertTerm({
         termId: '1250',
-        academicYearId: yearResult2.data.id,
+        academicYearId: yearResult2.success ? yearResult2.data.id : 0,
         name: 'Fall 2025',
       });
       expect(term3Result.success).toBe(true);
@@ -183,7 +180,6 @@ describe('Course Matcher Operations', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       // Create multiple classes with different titles
@@ -241,7 +237,6 @@ describe('Course Matcher Operations', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       // Create two classes - one matching, one orphan
@@ -303,7 +298,6 @@ describe('Course Matcher Operations', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       // Create classes in both terms
@@ -362,7 +356,6 @@ describe('Course Matcher Operations', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       // Create classes without courseId
@@ -419,7 +412,6 @@ describe('Course Matcher Operations', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       // Create class with that courseId
@@ -475,7 +467,6 @@ describe('Course Matcher Operations', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       await insertCourse({
@@ -491,7 +482,6 @@ describe('Course Matcher Operations', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       // Create classes - some linked, some not

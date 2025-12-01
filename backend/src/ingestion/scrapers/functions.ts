@@ -63,7 +63,7 @@ export async function getAllSemesterData(
     classHandler?: StreamedResponseHandler<SemesterClass>
 ): Promise<SemesterData> {
     const scraper = new SemesterTermScraper(term.id);
-    return await scraper.scrape(sectionHandler, classHandler);
+    return await scraper.scrapeSemester(sectionHandler, classHandler);
 }
 
 /**

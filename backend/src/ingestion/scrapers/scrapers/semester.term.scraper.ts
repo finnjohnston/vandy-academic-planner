@@ -41,7 +41,19 @@ export class SemesterTermScraper extends Scraper<SemesterData> {
         this.term = term;
     }
 
-    override async scrape(
+    // Override with custom signature - base class scrape() is not used for this scraper
+    override async scrape(_handler?: StreamedResponseHandler<SemesterData>): Promise<SemesterData[]> {
+        // This method is not used - use scrapeSemester() instead
+        throw new Error('Use scrapeSemester() method instead of scrape() for SemesterTermScraper');
+    }
+
+    /**
+     * Scrape semester data with separate handlers for sections and classes
+     * @param sectionHandler Handler called for each discovered section
+     * @param classHandler Handler called for each fetched class
+     * @returns SemesterData object containing classes and sections
+     */
+    async scrapeSemester(
         sectionHandler: StreamedResponseHandler<Section> = () => {},
         classHandler: StreamedResponseHandler<SemesterClass> = () => {}
     ): Promise<SemesterData> {

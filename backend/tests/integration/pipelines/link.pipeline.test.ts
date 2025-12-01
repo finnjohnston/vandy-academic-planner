@@ -54,7 +54,6 @@ describe('Link Pipeline', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       await insertCourse({
@@ -70,7 +69,6 @@ describe('Link Pipeline', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       // Create classes without courseId
@@ -145,7 +143,6 @@ describe('Link Pipeline', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       // Create classes in both terms
@@ -219,7 +216,6 @@ describe('Link Pipeline', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       // Create two classes - one matching, one orphan
@@ -292,7 +288,6 @@ describe('Link Pipeline', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       await insertCourse({
@@ -308,7 +303,6 @@ describe('Link Pipeline', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       // Create 3 classes - 2 matching, 1 orphan
@@ -387,7 +381,6 @@ describe('Link Pipeline', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       // Create a wrong course that the class is initially linked to

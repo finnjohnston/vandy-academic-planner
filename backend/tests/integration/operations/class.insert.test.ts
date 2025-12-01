@@ -554,7 +554,6 @@ describe('Class Insert Operations', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       // Insert class (should auto-link)
@@ -655,7 +654,6 @@ describe('Class Insert Operations', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       // Re-insert class (should update with courseId)
@@ -688,7 +686,6 @@ describe('Class Insert Operations', () => {
         description: null,
         attributes: null,
         requirements: null,
-        isCatalogCourse: true,
       });
 
       // Insert multiple classes with different titles

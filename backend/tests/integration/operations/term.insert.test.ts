@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { prisma } from '../../setup.js';
+import { Prisma } from '@prisma/client';
 import {
   insertTerm,
   insertTerms,
@@ -313,8 +314,8 @@ describe('Term Insert Operations', () => {
           creditsMin: 3,
           creditsMax: 3,
           description: null,
-          attributes: null,
-          requirements: null,
+          attributes: Prisma.JsonNull,
+          requirements: Prisma.JsonNull,
         },
       });
 
@@ -327,7 +328,7 @@ describe('Term Insert Operations', () => {
           sectionNumber: '001',
           sectionType: 'LEC',
           instructors: [],
-          schedule: null,
+          schedule: Prisma.JsonNull,
           creditsMin: 3,
           creditsMax: 3,
         },

@@ -93,7 +93,7 @@ describe('SemesterTermScraper', () => {
         mockGot.mockResolvedValueOnce({ body: createMockClassDetailsHtml('1101') } as any);
 
         const scraper = new SemesterTermScraper(termId);
-        const result = await scraper.scrape();
+        const result = await scraper.scrapeSemester();
 
         // Verify structure
         expect(result).toHaveProperty('classes');
@@ -153,7 +153,7 @@ describe('SemesterTermScraper', () => {
         mockGot.mockResolvedValueOnce({ body: createMockClassDetailsHtml('2101') } as any);
 
         const scraper = new SemesterTermScraper(termId);
-        const result = await scraper.scrape();
+        const result = await scraper.scrapeSemester();
 
         // Should have 4 sections but only 3 unique classes
         expect(result.sections.length).toBeGreaterThanOrEqual(0);
@@ -194,7 +194,7 @@ describe('SemesterTermScraper', () => {
         const sectionHandler = vi.fn();
         const classHandler = vi.fn();
 
-        await scraper.scrape(sectionHandler, classHandler);
+        await scraper.scrapeSemester(sectionHandler, classHandler);
 
         // Verify handlers were called if data was found
         if (sectionHandler.mock.calls.length > 0) {
@@ -228,7 +228,7 @@ describe('SemesterTermScraper', () => {
         }
 
         const scraper = new SemesterTermScraper(termId);
-        await scraper.scrape();
+        await scraper.scrapeSemester();
 
         // Verify blacklisted codes are not searched
         const allCalls = mockGot.mock.calls;
@@ -268,7 +268,7 @@ describe('SemesterTermScraper', () => {
         mockGot.mockRejectedValueOnce(new Error('Network error') as any);
 
         const scraper = new SemesterTermScraper(termId);
-        const result = await scraper.scrape();
+        const result = await scraper.scrapeSemester();
 
         // Should complete without throwing
         expect(result).toBeDefined();
@@ -304,7 +304,7 @@ describe('SemesterTermScraper', () => {
         mockGot.mockResolvedValueOnce({ body: createMockClassDetailsHtml('1101') } as any);
 
         const scraper = new SemesterTermScraper(termId);
-        const result = await scraper.scrape();
+        const result = await scraper.scrapeSemester();
 
         // Verify no duplicate section IDs
         const sectionIds = result.sections.map(s => s.id);
@@ -325,7 +325,7 @@ describe('SemesterTermScraper', () => {
         }
 
         const scraper = new SemesterTermScraper(termId);
-        const result = await scraper.scrape();
+        const result = await scraper.scrapeSemester();
 
         // Should complete without errors
         expect(result).toBeDefined();
@@ -366,7 +366,7 @@ describe('SemesterTermScraper', () => {
         mockGot.mockResolvedValueOnce({ body: createMockClassDetailsHtml('2500W') } as any);
 
         const scraper = new SemesterTermScraper(termId);
-        const result = await scraper.scrape();
+        const result = await scraper.scrapeSemester();
 
         // Should not include graduate courses (5500) if any classes were extracted
         if (result.classes.length > 0) {
@@ -440,7 +440,7 @@ describe('SemesterTermScraper', () => {
         }
 
         const scraper = new SemesterTermScraper(termId);
-        const result = await scraper.scrape();
+        const result = await scraper.scrapeSemester();
 
         // Should have 2 separate sections with different course names
         const specialTopicsSections = result.sections.filter(s =>
