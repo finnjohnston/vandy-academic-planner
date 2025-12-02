@@ -44,49 +44,70 @@ function extractCourseIds(coursesObj: any): string[] {
 }
 
 /**
+ * Normalize a group after filtering - simplify structure when possible
+ * - Empty array -> null
+ * - Single item -> unwrap (return item directly)
+ * - Multiple items -> keep structure
+ */
+export function normalizeGroup(operator: '$and' | '$or', items: any[]): any {
+  // Empty array -> null
+  if (items.length === 0) {
+    return null;
+  }
+
+  // Single item -> unwrap (return the item directly)
+  if (items.length === 1) {
+    return items[0];
+  }
+
+  // Multiple items -> keep the structure
+  return { [operator]: items };
+}
+
+/**
  * Filter out invalid courseIds from requirements courses object
- * Keeps the structure but recursively removes non-existent course references
+ * Recursively removes non-existent course references while preserving structure
+ * Automatically simplifies groups (unwraps single items, returns null for empty)
  * Supports nested operators like: { $and: [{ $or: [...] }, { $or: [...] }] }
  */
-function filterValidCourseIds(coursesObj: any, validCourseIds: Set<string>): any {
-  if (!coursesObj) return null;
+export function filterInvalidCourses(
+  coursesObj: any,
+  validCourseIds: Set<string>
+): any {
+  // Base case: null
+  if (coursesObj === null) {
+    return null;
+  }
 
-  // Base case: if it's a string, check if it's valid
+  // Base case: string (course code)
   if (typeof coursesObj === 'string') {
     return validCourseIds.has(coursesObj) ? coursesObj : null;
   }
 
-  // Base case: if it's not an object, return null
+  // Base case: not an object
   if (typeof coursesObj !== 'object') {
     return null;
   }
 
-  const filtered: any = {};
-
-  // Recursive case: filter $and operator
+  // Recursive case: $and operator
   if (coursesObj.$and && Array.isArray(coursesObj.$and)) {
-    const validItems = coursesObj.$and
-      .map((item: any) => filterValidCourseIds(item, validCourseIds)) // Recursive call
-      .filter((item: any) => item !== null); // Remove nulls
+    const filtered = coursesObj.$and
+      .map((item: any) => filterInvalidCourses(item, validCourseIds))
+      .filter((item: any) => item !== null);
 
-    if (validItems.length > 0) {
-      filtered.$and = validItems;
-    }
+    return normalizeGroup('$and', filtered);
   }
 
-  // Recursive case: filter $or operator
+  // Recursive case: $or operator
   if (coursesObj.$or && Array.isArray(coursesObj.$or)) {
-    const validItems = coursesObj.$or
-      .map((item: any) => filterValidCourseIds(item, validCourseIds)) // Recursive call
-      .filter((item: any) => item !== null); // Remove nulls
+    const filtered = coursesObj.$or
+      .map((item: any) => filterInvalidCourses(item, validCourseIds))
+      .filter((item: any) => item !== null);
 
-    if (validItems.length > 0) {
-      filtered.$or = validItems;
-    }
+    return normalizeGroup('$or', filtered);
   }
 
-  // Return null if no valid courses remain
-  return Object.keys(filtered).length > 0 ? filtered : null;
+  return null;
 }
 
 /**
@@ -171,16 +192,50 @@ export async function checkRequirementsReferentialIntegrity(
 
         const courseDisplay = `${course.subjectCode} ${course.courseNumber} "${course.title}" (${course.courseId})`;
 
-        // Requirements check: Always report, never auto-fix (even without --dry-run)
-        // This allows previewing issues before manually fixing them
-        logger.warn(
-          `Found ${invalidCourseIds.length} non-existent course reference(s) in ${courseDisplay} requirements: ${invalidCourseIds.join(', ')}`
-        );
+        // Filter out invalid course references
+        const updatedReqs = { ...reqs };
+
+        if (reqs.prerequisites?.courses) {
+          updatedReqs.prerequisites = {
+            ...reqs.prerequisites,
+            courses: filterInvalidCourses(
+              reqs.prerequisites.courses,
+              validCourseIds
+            ),
+          };
+        }
+
+        if (reqs.corequisites?.courses) {
+          updatedReqs.corequisites = {
+            ...reqs.corequisites,
+            courses: filterInvalidCourses(
+              reqs.corequisites.courses,
+              validCourseIds
+            ),
+          };
+        }
+
+        // Follow established auto-fix pattern
+        if (!dryRun) {
+          await prisma.course.update({
+            where: { id: course.id },
+            data: { requirements: updatedReqs },
+          });
+          logger.success(
+            `Fixed ${invalidCourseIds.length} invalid course reference(s) in ${courseDisplay}`
+          );
+          result.fixed++;
+        } else {
+          logger.log(
+            `[DRY RUN] Would fix ${invalidCourseIds.length} invalid course reference(s) in ${courseDisplay}: ${invalidCourseIds.join(', ')}`
+          );
+          result.fixed++;
+        }
 
         result.warnings.push({
           id: `course-${course.id}`,
-          message: `Found ${invalidCourseIds.length} non-existent course reference(s) in ${courseDisplay} requirements`,
-          action: 'reported',
+          message: `${dryRun ? 'Would fix' : 'Fixed'} ${invalidCourseIds.length} invalid course reference(s) in ${courseDisplay}`,
+          action: dryRun ? 'reported' : 'fixed',
           details: {
             courseId: course.courseId,
             subjectCode: course.subjectCode,
@@ -248,16 +303,50 @@ export async function checkRequirementsReferentialIntegrity(
 
         const classDisplay = `${cls.subjectCode} ${cls.courseNumber} "${cls.title}" in ${cls.term.name} (${cls.classId})`;
 
-        // Requirements check: Always report, never auto-fix (even without --dry-run)
-        // This allows previewing issues before manually fixing them
-        logger.warn(
-          `Found ${invalidCourseIds.length} non-existent course reference(s) in ${classDisplay} requirements: ${invalidCourseIds.join(', ')}`
-        );
+        // Filter out invalid course references
+        const updatedReqs = { ...reqs };
+
+        if (reqs.prerequisites?.courses) {
+          updatedReqs.prerequisites = {
+            ...reqs.prerequisites,
+            courses: filterInvalidCourses(
+              reqs.prerequisites.courses,
+              validCourseIds
+            ),
+          };
+        }
+
+        if (reqs.corequisites?.courses) {
+          updatedReqs.corequisites = {
+            ...reqs.corequisites,
+            courses: filterInvalidCourses(
+              reqs.corequisites.courses,
+              validCourseIds
+            ),
+          };
+        }
+
+        // Follow established auto-fix pattern
+        if (!dryRun) {
+          await prisma.class.update({
+            where: { id: cls.id },
+            data: { requirements: updatedReqs },
+          });
+          logger.success(
+            `Fixed ${invalidCourseIds.length} invalid course reference(s) in ${classDisplay}`
+          );
+          result.fixed++;
+        } else {
+          logger.log(
+            `[DRY RUN] Would fix ${invalidCourseIds.length} invalid course reference(s) in ${classDisplay}: ${invalidCourseIds.join(', ')}`
+          );
+          result.fixed++;
+        }
 
         result.warnings.push({
           id: `class-${cls.id}`,
-          message: `Found ${invalidCourseIds.length} non-existent course reference(s) in ${classDisplay} requirements`,
-          action: 'reported',
+          message: `${dryRun ? 'Would fix' : 'Fixed'} ${invalidCourseIds.length} invalid course reference(s) in ${classDisplay}`,
+          action: dryRun ? 'reported' : 'fixed',
           details: {
             classId: cls.classId,
             subjectCode: cls.subjectCode,
