@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import * as logger from './logger.js';
+import * as logger from './logger.service.js';
 
 /**
  * Singleton database service for the ingestion pipeline

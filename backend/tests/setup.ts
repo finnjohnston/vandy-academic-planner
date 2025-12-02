@@ -13,7 +13,7 @@ export const prisma = new PrismaClient();
 beforeAll(async () => {
   // Push schema to test database (using db push since no migrations yet)
   try {
-    execSync('npx prisma db push --skip-generate', {
+    execSync('npx prisma db push --skip-generate --accept-data-loss', {
       stdio: 'inherit',
       env: process.env,
     });

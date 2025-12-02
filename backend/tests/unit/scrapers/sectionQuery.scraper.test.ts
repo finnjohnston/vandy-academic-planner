@@ -78,7 +78,7 @@ describe('searchSections', () => {
             number: '01',
             type: 'Lecture',
             instructors: ['John Doe'],
-            schedule: 'MWF;10:00AM-10:50AM',
+            schedule: 'MWF 10:00AM - 10:50AM',
             hours: '3.0 hrs'
         });
 
@@ -93,7 +93,7 @@ describe('searchSections', () => {
             number: '02',
             type: 'Lecture',
             instructors: ['Jane Smith'],
-            schedule: 'TR;2:00PM-3:15PM',
+            schedule: 'TR 2:00PM - 3:15PM',
             hours: '3.0 hrs'
         });
 

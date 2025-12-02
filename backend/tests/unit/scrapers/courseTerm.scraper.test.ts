@@ -6,26 +6,36 @@ vi.mock('got');
 
 describe('CourseTermScraper', () => {
 
-    // Mock HTML with course search results
-    const createMockHtml = (courseId: string, courseNum: string, subject: string) => `
+    // Mock HTML with course search results matching actual Vanderbilt catalog structure
+    const createMockHtml = (courseId: string, courseNum: string, subject: string, index: number = 0) => `
         <html>
             <body>
                 <div class="courseSearchResult">
                     <table id="courseSearchResultTable" class="courseTable">
                         <tr>
                             <th class="courseHeader">Code</th>
+                            <th class="courseHeader">Subject Area</th>
+                            <th class="courseHeader">Num</th>
                             <th class="courseHeader">Title</th>
                         </tr>
                         <script>
-                        function showCourseDetail_0( courseKeyId, offerNumber, notificationString )
+                        function showCourseDetail_${index}( courseKeyId, offerNumber, notificationString )
                         {
                             var notificationString = '${subject}-${courseNum}';
                             YAHOO.mis.student.CourseDetailPanel.showCourseDetail('${courseId}', '1', notificationString);
                         }
                         </script>
                         <tr class="odd classRow">
-                            <td onclick="showCourseDetail_0()">${subject}</td>
-                            <td onclick="showCourseDetail_0()"><strong>Test Course</strong></td>
+                            <td width="75px;" onclick="showCourseDetail_${index}()">${subject}</td>
+                            <td width="170px;" onclick="showCourseDetail_${index}()" class="subject">
+                                <strong>Test Subject</strong>
+                            </td>
+                            <td width="75px;" onclick="showCourseDetail_${index}()">
+                                <div class="catalogNumberContainer">${courseNum}</div>
+                            </td>
+                            <td width="300px;" onclick="showCourseDetail_${index}()">
+                                <strong>Test Course</strong>
+                            </td>
                         </tr>
                     </table>
                 </div>
@@ -214,18 +224,26 @@ describe('CourseTermScraper', () => {
         const multiCourseHtml = `
             <html>
                 <body>
-                    <script>
-                    function showCourseDetail_0()
-                    {
-                        YAHOO.mis.student.CourseDetailPanel.showCourseDetail('101', '1', 'CS-1101');
-                    }
-                    </script>
-                    <script>
-                    function showCourseDetail_1()
-                    {
-                        YAHOO.mis.student.CourseDetailPanel.showCourseDetail('102', '1', 'CS-1102');
-                    }
-                    </script>
+                    <table id="courseSearchResultTable">
+                        <script>
+                        function showCourseDetail_0()
+                        {
+                            YAHOO.mis.student.CourseDetailPanel.showCourseDetail('101', '1', 'CS-1101');
+                        }
+                        </script>
+                        <script>
+                        function showCourseDetail_1()
+                        {
+                            YAHOO.mis.student.CourseDetailPanel.showCourseDetail('102', '1', 'CS-1102');
+                        }
+                        </script>
+                        <tr class="classRow">
+                            <td>CS</td>
+                        </tr>
+                        <tr class="classRow">
+                            <td>CS</td>
+                        </tr>
+                    </table>
                 </body>
             </html>
         `;

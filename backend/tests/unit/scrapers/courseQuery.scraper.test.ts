@@ -204,4 +204,87 @@ describe('CourseQueryScraper', () => {
             })
         );
     });
+
+    it('should use provided subject code instead of deriving from title', async () => {
+        const mockGot = vi.mocked(got) as any;
+
+        // HTML says "Communication Studies" which would derive to "CS"
+        // But we're providing "CMST" as the subject code
+        const cmstHtml = `
+            <div id="courseDetailDialog">
+                <h1>Communication Studies 2200 - Introduction to Communication Studies</h1>
+                <div id="mainSection">
+                    <div class="detailPanel">
+                        <table class="nameValueTable">
+                            <tr>
+                                <td class="label"><strong>School:</strong></td>
+                                <td>College of Arts and Science</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div id="rightSection"></div>
+            </div>
+        `;
+
+        mockGot.mockResolvedValueOnce({ body: cmstHtml } as any);
+
+        // Provide "CMST" as the subject code
+        const scraper = new CourseQueryScraper(courseId, '1', 'CMST');
+        const courses = await scraper.scrape();
+
+        // Should use provided "CMST" instead of deriving "CS" from title
+        expect(courses[0].subject).toBe('CMST');
+        expect(courses[0].abbreviation).toBe('2200');
+        expect(courses[0].name).toBe('Introduction to Communication Studies');
+    });
+
+    it('should fall back to deriving subject code when not provided', async () => {
+        const mockGot = vi.mocked(got) as any;
+        mockGot.mockResolvedValueOnce({
+            body: mockCourseDetailHtml
+        } as any);
+
+        // Don't provide subject code (backward compatibility)
+        const scraper = new CourseQueryScraper(courseId, '1');
+        const courses = await scraper.scrape();
+
+        // Should derive "CS" from "Computer Science" in title
+        expect(courses[0].subject).toBe('CS');
+        expect(courses[0].abbreviation).toBe('1101');
+    });
+
+    it('should correctly handle CMST vs CS subject codes', async () => {
+        const mockGot = vi.mocked(got) as any;
+
+        // Test Communication Studies with CMST code
+        const cmstHtml = `
+            <div id="courseDetailDialog">
+                <h1>Communication Studies 1500 - Fundamentals of Public Speaking</h1>
+                <div id="mainSection"><div class="detailPanel"><table class="nameValueTable"></table></div></div>
+                <div id="rightSection"></div>
+            </div>
+        `;
+        mockGot.mockResolvedValueOnce({ body: cmstHtml } as any);
+
+        const cmstScraper = new CourseQueryScraper('111111', '1', 'CMST');
+        const cmstCourses = await cmstScraper.scrape();
+
+        expect(cmstCourses[0].subject).toBe('CMST');
+        expect(cmstCourses[0].name).toBe('Fundamentals of Public Speaking');
+
+        // Test Computer Science with CS code
+        mockGot.mockResolvedValueOnce({
+            body: mockCourseDetailHtml
+        } as any);
+
+        const csScraper = new CourseQueryScraper('222222', '1', 'CS');
+        const csCourses = await csScraper.scrape();
+
+        expect(csCourses[0].subject).toBe('CS');
+        expect(csCourses[0].name).toBe('Programming and Problem Solving');
+
+        // Verify they're different
+        expect(cmstCourses[0].subject).not.toBe(csCourses[0].subject);
+    });
 });

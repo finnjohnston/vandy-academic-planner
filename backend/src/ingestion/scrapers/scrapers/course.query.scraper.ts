@@ -9,11 +9,13 @@ export class CourseQueryScraper extends Scraper<CatalogCourse> {
 
     private courseId: CourseID;
     private offerNumber: string;
+    private subjectCode: string;
 
-    constructor(courseId: CourseID, offerNumber: string = '1', cookieJar?: CookieJar, startTime?: number) {
+    constructor(courseId: CourseID, offerNumber: string = '1', subjectCode: string = '', cookieJar?: CookieJar, startTime?: number) {
         super(cookieJar, startTime);
         this.courseId = courseId;
         this.offerNumber = offerNumber;
+        this.subjectCode = subjectCode;
     }
 
     override async scrape(handler: StreamedResponseHandler<CatalogCourse> = () => {}): Promise<CatalogCourse[]> {
@@ -43,7 +45,7 @@ export class CourseQueryScraper extends Scraper<CatalogCourse> {
         // or could be: "Mathematics 1300 - Accelerated Single-Variable Calculus I"
         const h1Text = $('#courseDetailDialog h1').text().trim();
 
-        let subject = '';
+        let subject = this.subjectCode; // Use the provided subject code from search results
         let abbreviation = '';
         let name = '';
 
@@ -53,19 +55,21 @@ export class CourseQueryScraper extends Scraper<CatalogCourse> {
             const courseIdentifier = parts[0].trim(); // "Computer Science 1101"
             name = parts.slice(1).join(' - ').trim(); // "Programming and Problem Solving"
 
-            // Extract subject name and number
-            // Match: words followed by numbers
-            const match = courseIdentifier.match(/^(.+?)\s+(\d+)$/);
+            // Extract course number (with optional letter suffixes like L, W, etc.)
+            // Match: words followed by numbers and optional letters
+            const match = courseIdentifier.match(/^(.+?)\s+(\d+[A-Z]*)$/);
             if (match) {
-                const fullSubjectName = match[1].trim(); // "Computer Science"
-                const courseNumber = match[2].trim(); // "1101"
+                const courseNumber = match[2].trim(); // "1101", "1101L", "2000W", etc.
+                abbreviation = courseNumber;
 
-                // Create subject from first letters of each word
-                subject = fullSubjectName.split(' ')
-                    .map(word => word.charAt(0).toUpperCase())
-                    .join(''); // "CS"
-
-                abbreviation = courseNumber; // "1101"
+                // If no subject code was provided, fall back to deriving it from the title
+                // This maintains backward compatibility for cases where subject code isn't available
+                if (!subject) {
+                    const fullSubjectName = match[1].trim(); // "Computer Science"
+                    subject = fullSubjectName.split(' ')
+                        .map(word => word.charAt(0).toUpperCase())
+                        .join(''); // "CS"
+                }
             }
         }
 

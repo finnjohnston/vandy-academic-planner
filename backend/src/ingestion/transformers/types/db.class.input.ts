@@ -1,6 +1,7 @@
 export interface DbClassInput {
   classId: string;
   termId: string;
+  courseId?: string | null;
 
   subjectCode: string;
   courseNumber: string;

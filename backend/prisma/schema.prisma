@@ -61,59 +61,90 @@ model Course {
   updatedAt             DateTime              @updatedAt @map("updated_at")
 
   academicYear          AcademicYear          @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  classes               Class[]
 
   @@unique([academicYearId, subjectCode, courseNumber])
   @@index([academicYearId, subjectCode, courseNumber])
   @@map("courses")
 }
 
+/// Represents a specific course offering in a term (e.g., "CS 1101 - Programming" in Fall 2024).
+///
+/// Uniqueness Strategy:
+/// - classId is globally unique across all terms (format: "termId-sectionId", e.g., "1248-12345")
+/// - This differs from the upstream Vanderbilt data format, where section IDs are reused across terms
+/// - Rationale: Classes are domain aggregates that need global uniqueness for:
+///   1. Simplified foreign key relationships (Section -> Class uses single field)
+///   2. Clean lookups without requiring term context
+///   3. Better query performance with single-field indexes
+///
+/// Also has a composite unique constraint (termId, subjectCode, courseNumber, title) to:
+/// - Prevent duplicate course offerings in the same term
+/// - Allow same course number with different titles (e.g., CS 3891 "Machine Learning" vs "Web Development")
 model Class {
   id                    Int                   @id @default(autoincrement())
-  classId               String                @unique @map("class_id") @db.VarChar(50)
+  classId               String                @unique @map("class_id") @db.VarChar(255)
   termId                String                @map("term_id") @db.VarChar(20)
+  courseId              String?               @map("course_id") @db.VarChar(50)
 
   subjectCode           String                @map("subject_code") @db.VarChar(10)
   courseNumber          String                @map("course_number") @db.VarChar(10)
   title                 String                @db.VarChar(255)
-  
+
   school                String?               @db.VarChar(255)
   creditsMin            Float                 @map("credits_min")
   creditsMax            Float                 @map("credits_max")
   description           String?               @db.Text
   attributes            Json?                 @db.JsonB
   requirements          Json?                 @db.JsonB
-  
+
   createdAt             DateTime              @default(now()) @map("created_at")
   updatedAt             DateTime              @updatedAt @map("updated_at")
 
   term                  Term                  @relation(fields: [termId], references: [termId], onDelete: Cascade)
+  course                Course?               @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
   sections              Section[]
 
-  @@unique([termId, subjectCode, courseNumber])
+  @@unique([termId, subjectCode, courseNumber, title])
   @@index([termId])
+  @@index([courseId])
   @@map("classes")
 }
 
+/// Represents a specific section of a class (e.g., "CS 1101-001 LEC" taught by Dr. Smith on MWF).
+///
+/// Uniqueness Strategy:
+/// - sectionId uses a composite key with termId: @@unique([termId, sectionId])
+/// - sectionId alone is NOT unique - it matches the upstream Vanderbilt format
+/// - Section IDs are reused across different terms (e.g., "12345" appears in Fall and Spring)
+/// - Rationale: Sections are child entities that exist within the context of a term:
+///   1. Semantically correct - sections belong to a term
+///   2. Matches upstream data format (no artificial ID construction)
+///   3. Always queried in the context of a term or class
+///
+/// Note: This differs from the Class model, which uses globally unique classId.
+/// This is intentional - Classes are domain aggregates while Sections are child entities.
 model Section {
   id                    Int                   @id @default(autoincrement())
-  sectionId             String                @unique @map("section_id") @db.VarChar(50)
+  sectionId             String                @map("section_id") @db.VarChar(255)
   termId                String                @map("term_id") @db.VarChar(20)
-  classId               String                @map("class_id") @db.VarChar(50)
-  
-  sectionNumber         String                @map("section_number") @db.VarChar(10)
-  sectionType           String                @map("section_type") @db.VarChar(10)
-  
+  classId               String                @map("class_id") @db.VarChar(255)
+
+  sectionNumber         String                @map("section_number") @db.VarChar(20)
+  sectionType           String                @map("section_type") @db.VarChar(50)
+
   instructors           Json                  @db.JsonB
   schedule              Json?                 @db.JsonB
   creditsMin            Float                 @map("credits_min")
   creditsMax            Float                 @map("credits_max")
-  
+
   createdAt             DateTime              @default(now()) @map("created_at")
   updatedAt             DateTime              @updatedAt @map("updated_at")
 
   term                  Term                  @relation(fields: [termId], references: [termId], onDelete: Cascade)
   class                 Class                 @relation(fields: [classId], references: [classId], onDelete: Cascade)
 
+  @@unique([termId, sectionId])
   @@index([classId])
   @@index([termId])
   @@map("sections")
