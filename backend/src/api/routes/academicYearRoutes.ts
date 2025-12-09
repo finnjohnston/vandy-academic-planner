@@ -1,8 +1,3 @@
-/**
- * Academic Year Routes
- * Defines all routes for academic year CRUD operations
- */
-
 import { Router } from 'express';
 import { z } from 'zod';
 import {
@@ -11,7 +6,6 @@ import {
   getAcademicYearById,
   createAcademicYear,
   setCurrentAcademicYear,
-  deleteAcademicYear,
 } from '../controllers/academicYearController.js';
 import { validate } from '../middleware/validate.middleware.js';
 
@@ -67,16 +61,6 @@ router.patch(
   '/:id/set-current',
   validate({ params: idParamSchema }),
   setCurrentAcademicYear
-);
-
-/**
- * DELETE /api/academic-years/:id
- * Delete academic year by ID
- */
-router.delete(
-  '/:id',
-  validate({ params: idParamSchema }),
-  deleteAcademicYear
 );
 
 export default router;

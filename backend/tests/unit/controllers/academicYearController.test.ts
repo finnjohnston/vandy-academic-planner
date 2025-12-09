@@ -1,6 +1,6 @@
 /**
  * Unit tests for Academic Year Controller
- * Tests all 6 CRUD operations with mocked service layer
+ * Tests all 5 CRUD operations with mocked service layer
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -12,7 +12,6 @@ import {
   getAcademicYearById,
   createAcademicYear,
   setCurrentAcademicYear,
-  deleteAcademicYear,
 } from '../../../src/api/controllers/academicYearController.js';
 import * as academicYearService from '../../../src/ingestion/pipelines/services/academicYear.service.js';
 
@@ -436,82 +435,6 @@ describe('Academic Year Controller', () => {
 
       // Act
       await setCurrentAcademicYear(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext
-      );
-
-      // Assert
-      expect(mockNext).toHaveBeenCalledWith(
-        expect.objectContaining({
-          statusCode: 500,
-        })
-      );
-    });
-  });
-
-  describe('deleteAcademicYear', () => {
-    it('should delete academic year and return 204 status', async () => {
-      // Arrange
-      mockRequest.params = { id: '2' };
-      vi.mocked(academicYearService.deleteAcademicYear).mockResolvedValue({
-        success: true,
-        data: undefined,
-      });
-
-      // Act
-      await deleteAcademicYear(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext
-      );
-
-      // Assert
-      expect(academicYearService.deleteAcademicYear).toHaveBeenCalledWith(2);
-      expect(mockResponse.status).toHaveBeenCalledWith(204);
-      expect(mockResponse.send).toHaveBeenCalled();
-      expect(mockNext).not.toHaveBeenCalled();
-    });
-
-    it('should call next with error when academic year not found', async () => {
-      // Arrange
-      mockRequest.params = { id: '999' };
-      vi.mocked(academicYearService.deleteAcademicYear).mockResolvedValue({
-        success: false,
-        error: {
-          message: 'Academic year not found',
-          code: 'ACADEMIC_YEAR_NOT_FOUND',
-        },
-      });
-
-      // Act
-      await deleteAcademicYear(
-        mockRequest as Request,
-        mockResponse as Response,
-        mockNext
-      );
-
-      // Assert
-      expect(mockNext).toHaveBeenCalledWith(
-        expect.objectContaining({
-          statusCode: 500,
-        })
-      );
-    });
-
-    it('should call next with error on service failure', async () => {
-      // Arrange
-      mockRequest.params = { id: '1' };
-      vi.mocked(academicYearService.deleteAcademicYear).mockResolvedValue({
-        success: false,
-        error: {
-          message: 'Cannot delete academic year with associated courses',
-          code: 'ACADEMIC_YEAR_DELETE_FAILED',
-        },
-      });
-
-      // Act
-      await deleteAcademicYear(
         mockRequest as Request,
         mockResponse as Response,
         mockNext

@@ -1,8 +1,4 @@
 /**
- * Standard API response types for consistent HTTP responses
- */
-
-/**
  * Success response wrapper
  * Returns data wrapped in a 'data' property
  */

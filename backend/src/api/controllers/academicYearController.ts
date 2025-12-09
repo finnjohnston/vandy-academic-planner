@@ -1,8 +1,3 @@
-/**
- * Academic Year Controller
- * Handles HTTP requests for academic year CRUD operations
- */
-
 import { Request, Response, NextFunction } from 'express';
 import {
   getAllAcademicYears,
@@ -10,7 +5,6 @@ import {
   getAcademicYearById as getYearById,
   createAcademicYear as createYear,
   setCurrentAcademicYear as setCurrentYear,
-  deleteAcademicYear as deleteYear,
 } from '../../ingestion/pipelines/services/academicYear.service.js';
 import { sendSuccess } from '../utils/response.utils.js';
 import { InternalError, NotFoundError } from '../types/error.types.js';
@@ -215,35 +209,6 @@ export async function setCurrentAcademicYear(
     };
 
     sendSuccess(res, academicYear);
-  } catch (err) {
-    next(err);
-  }
-}
-
-/**
- * DELETE /api/academic-years/:id
- * Delete academic year by ID
- */
-export async function deleteAcademicYear(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
-  try {
-    const { id } = req.params;
-    logger.http(`DELETE /api/academic-years/${id}`);
-
-    const result = await deleteYear(Number(id));
-
-    if (!result.success) {
-      throw new InternalError(result.error.message, {
-        code: result.error.code,
-        details: result.error.details,
-      });
-    }
-
-    // Return 204 No Content (no body)
-    res.status(204).send();
   } catch (err) {
     next(err);
   }

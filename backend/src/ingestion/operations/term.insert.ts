@@ -140,3 +140,86 @@ export async function deleteTermsForYear(
     return failure('Failed to delete terms', 'TERM_DELETE_FAILED', err);
   }
 }
+
+/**
+ * Get all terms, optionally filtered by academic year
+ *
+ * @param academicYearId Optional academic year ID filter
+ * @returns Array of terms ordered by name
+ */
+export async function getAllTerms(
+  academicYearId?: number
+): Promise<PipelineResult<Term[]>> {
+  try {
+    const terms = await prisma.term.findMany({
+      where: academicYearId ? { academicYearId } : undefined,
+      orderBy: { name: 'asc' },
+    });
+
+    logger.log(
+      `Retrieved ${terms.length} terms${academicYearId ? ` for academic year ${academicYearId}` : ''}`
+    );
+    return success(terms);
+  } catch (err) {
+    logger.error('Failed to get terms', err);
+    return failure('Failed to get terms', 'TERM_GET_FAILED', err);
+  }
+}
+
+/**
+ * Get specific term by ID
+ *
+ * @param id Term database ID
+ * @returns Term or null if not found
+ */
+export async function getTermById(
+  id: number
+): Promise<PipelineResult<Term | null>> {
+  try {
+    const term = await prisma.term.findUnique({
+      where: { id },
+    });
+
+    if (term) {
+      logger.log(`Retrieved term ${id}: ${term.name}`);
+    } else {
+      logger.warn(`Term ${id} not found`);
+    }
+
+    return success(term);
+  } catch (err) {
+    logger.error(`Failed to get term ${id}`, err);
+    return failure('Failed to get term', 'TERM_GET_FAILED', err);
+  }
+}
+
+/**
+ * Update term details
+ *
+ * @param id Term database ID
+ * @param data Updated term data (name, academicYearId)
+ * @returns Updated term
+ */
+export async function updateTerm(
+  id: number,
+  data: { name?: string; academicYearId?: number }
+): Promise<PipelineResult<Term>> {
+  try {
+    const term = await prisma.term.update({
+      where: { id },
+      data,
+    });
+
+    logger.success(`Updated term ${id}`);
+    return success(term);
+  } catch (err: any) {
+    // Handle P2025 (record not found)
+    if (err?.code === 'P2025') {
+      logger.warn(`Term ${id} not found`);
+      return failure('Term not found', 'TERM_NOT_FOUND', err);
+    }
+
+    logger.error(`Failed to update term ${id}`, err);
+    return failure('Failed to update term', 'TERM_UPDATE_FAILED', err);
+  }
+}

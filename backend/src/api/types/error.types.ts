@@ -1,8 +1,4 @@
 /**
- * Custom error classes for API error handling
- */
-
-/**
  * Base class for all application errors
  * Provides consistent structure for error handling
  */
