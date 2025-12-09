@@ -2,13 +2,18 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { prisma } from './config/prisma.js';
 import logger from './utils/logger.js';
+import apiRouter from './api/routes/index.js';
+import { httpLogger } from './api/middleware/httpLogger.middleware.js';
+import { errorHandler } from './api/middleware/errorHandler.middleware.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware
 app.use(express.json());
+app.use(httpLogger);
 
 app.get('/health', async (_req, res) => {
   try {
@@ -28,6 +33,12 @@ app.get('/health', async (_req, res) => {
     });
   }
 });
+
+// API routes
+app.use('/api', apiRouter);
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 // Start server
 app.listen(PORT, async () => {
