@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import {
-  getCourses,
-  getCourseById,
-  createCourse,
-  updateCourse,
-} from '../controllers/courseController.js';
+  getClasses,
+  getClassById,
+  createClass,
+  updateClass,
+} from '../controllers/classController.js';
 import { validate } from '../middleware/validate.middleware.js';
 
 const router = Router();
@@ -15,15 +15,16 @@ const idParamSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
-const courseSearchSchema = z.object({
-  academicYearId: z.coerce.number().int().positive(),
+const classSearchSchema = z.object({
+  termId: z.string().min(1).max(50),
   q: z.string().min(1).max(200).optional(),
 });
 
-const createCourseSchema = z
+const createClassSchema = z
   .object({
-    courseId: z.string().min(1).max(50),
-    academicYearId: z.coerce.number().int().positive(),
+    classId: z.string().min(1).max(255).optional(),
+    termId: z.string().min(1).max(50),
+    courseId: z.string().min(1).max(50).optional(),
     subjectCode: z
       .string()
       .min(2)
@@ -34,7 +35,6 @@ const createCourseSchema = z
     school: z.string().max(255).optional(),
     creditsMin: z.coerce.number().min(0).max(20),
     creditsMax: z.coerce.number().min(0).max(20),
-    typicallyOffered: z.string().optional(),
     description: z.string().optional(),
     attributes: z.record(z.string(), z.any()).optional(),
     requirements: z.record(z.string(), z.any()).optional(),
@@ -43,13 +43,12 @@ const createCourseSchema = z
     message: 'creditsMin must be <= creditsMax',
   });
 
-const updateCourseSchema = z
+const updateClassSchema = z
   .object({
     title: z.string().min(1).max(255).optional(),
     school: z.string().max(255).optional(),
     creditsMin: z.coerce.number().min(0).max(20).optional(),
     creditsMax: z.coerce.number().min(0).max(20).optional(),
-    typicallyOffered: z.string().optional(),
     description: z.string().optional(),
     attributes: z.record(z.string(), z.any()).optional(),
     requirements: z.record(z.string(), z.any()).optional(),
@@ -68,31 +67,31 @@ const updateCourseSchema = z
   });
 
 /**
- * GET /api/courses
- * Search/list courses by academic year with optional query
+ * GET /api/classes
+ * Search/list classes by term with optional query
  */
-router.get('/', validate({ query: courseSearchSchema }), getCourses);
+router.get('/', validate({ query: classSearchSchema }), getClasses);
 
 /**
- * GET /api/courses/:id
- * Get specific course by ID
+ * GET /api/classes/:id
+ * Get specific class by ID
  */
-router.get('/:id', validate({ params: idParamSchema }), getCourseById);
+router.get('/:id', validate({ params: idParamSchema }), getClassById);
 
 /**
- * POST /api/courses
- * Create new course
+ * POST /api/classes
+ * Create new class
  */
-router.post('/', validate({ body: createCourseSchema }), createCourse);
+router.post('/', validate({ body: createClassSchema }), createClass);
 
 /**
- * PUT /api/courses/:id
- * Update course
+ * PUT /api/classes/:id
+ * Update class
  */
 router.put(
   '/:id',
-  validate({ params: idParamSchema, body: updateCourseSchema }),
-  updateCourse
+  validate({ params: idParamSchema, body: updateClassSchema }),
+  updateClass
 );
 
 export default router;
