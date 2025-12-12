@@ -10,41 +10,6 @@
   padding: 10px 12.5px;
 }
 
-.search-bar-container {
-  width: 350px;
-  height: 30px;
-  margin: 0 auto;
-  background-color: var(--color-drpdwn-bg);
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  gap: 12px;
-  box-sizing: border-box;
-}
-
-.search-icon {
-  width: 12px;
-  height: 12px;
-  filter: brightness(0) invert(1);
-  flex-shrink: 0;
-}
-
-.search-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--color-text-light);
-  font-size: 14px;
-  font-family: inherit;
-  font-weight: 500;
-}
-
-.search-input::placeholder {
-  color: var(--color-text-light);
-}
-
 .course-search > * + * {
   margin-top: 5px;
 }

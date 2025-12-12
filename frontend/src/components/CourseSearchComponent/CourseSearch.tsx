@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './CourseSearch.css';
-import searchIcon from '../../assets/search_icon.svg';
+import SearchBar from '../SearchBarComponent/SearchBar';
 import Dropdown from '../DropdownComponent/Dropdown';
+import Course from '../CourseComponent/Course';
 
 interface AcademicYear {
   id: number;
@@ -25,6 +26,26 @@ interface Term {
 const API_BASE_URL = 'http://localhost:3000';
 
 const CourseSearch: React.FC = () => {
+  // Example course data for PSY-PC 3850
+  const exampleCourse = {
+    id: 1,
+    courseId: 'PSY-PC-3850',
+    subjectCode: 'CS',
+    courseNumber: '1101',
+    title: 'Programming and Problem Solving',
+    creditsMin: 3,
+    creditsMax: 3,
+    academicYearId: 869,
+    school: 'College of Arts and Science',
+    typicallyOffered: 'Fall, Spring',
+    description: 'Introduction to cognitive neuroscience.',
+    createdAt: '2025-01-01T00:00:00.000Z',
+    updatedAt: '2025-01-01T00:00:00.000Z',
+  };
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
   // Data states
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [terms, setTerms] = useState<Term[]>([]);
@@ -124,14 +145,11 @@ const CourseSearch: React.FC = () => {
 
   return (
     <div className="course-search">
-      <div className="search-bar-container">
-        <img src={searchIcon} alt="Search" className="search-icon" />
-        <input
-          type="text"
-          className="search-input"
-          placeholder="Search courses..."
-        />
-      </div>
+      <SearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        placeholder="Search courses..."
+      />
 
       {error && <div className="error-message">{error}</div>}
 
@@ -154,6 +172,8 @@ const CourseSearch: React.FC = () => {
           className="term-dropdown"
         />
       </div>
+
+      <Course course={exampleCourse} />
     </div>
   );
 };
