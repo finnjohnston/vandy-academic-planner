@@ -32,12 +32,14 @@ export function validate(schemas: ValidationSchemas) {
     try {
       // Validate params if schema provided
       if (schemas.params) {
-        req.params = await schemas.params.parseAsync(req.params) as any;
+        const validatedParams = await schemas.params.parseAsync(req.params);
+        Object.assign(req.params, validatedParams);
       }
 
       // Validate query if schema provided
       if (schemas.query) {
-        req.query = await schemas.query.parseAsync(req.query) as any;
+        const validatedQuery = await schemas.query.parseAsync(req.query);
+        Object.assign(req.query, validatedQuery);
       }
 
       // Validate body if schema provided
