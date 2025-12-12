@@ -12,6 +12,6 @@ export interface Course {
   description?: string;
   createdAt: string;
   updatedAt: string;
-  attributes?: Record<string, any>;
-  requirements?: Record<string, any>;
+  attributes?: Record<string, unknown>;
+  requirements?: Record<string, unknown>;
 }

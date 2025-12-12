@@ -1,5 +1,5 @@
 import React from 'react';
-import './Course.css';
+import './CourseCard.css';
 import type { Course } from '../../types/Course';
 
 interface CourseProps {
@@ -7,7 +7,7 @@ interface CourseProps {
   onClick?: (course: Course) => void;
 }
 
-const Course: React.FC<CourseProps> = ({ course, onClick }) => {
+const CourseCardComponent: React.FC<CourseProps> = ({ course, onClick }) => {
   const truncateTitle = (title: string, maxLength: number = 40): string => {
     if (title.length <= maxLength) return title;
     return title.substring(0, maxLength) + '...';
@@ -41,4 +41,4 @@ const Course: React.FC<CourseProps> = ({ course, onClick }) => {
   );
 };
 
-export default Course;
+export default CourseCardComponent;

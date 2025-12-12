@@ -1,7 +1,7 @@
 import React from 'react';
 import './CourseList.css';
 import type { Course as CourseType } from '../../types/Course';
-import Course from '../CourseComponent/Course';
+import CourseCardComponent from '../CourseCardComponent/CourseCard';
 
 interface CourseListProps {
   courses: CourseType[];
@@ -12,7 +12,7 @@ const CourseList: React.FC<CourseListProps> = ({ courses, onCourseClick }) => {
   return (
     <div className="course-list">
       {courses.map((course) => (
-        <Course key={course.id} course={course} onClick={onCourseClick} />
+        <CourseCardComponent key={course.id} course={course} onClick={onCourseClick} />
       ))}
     </div>
   );

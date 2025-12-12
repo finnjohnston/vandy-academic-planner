@@ -4,6 +4,7 @@
   flex: 1;
   overflow-y: scroll;
   min-height: 0;
+  width: 100%;
 
   /* Hide scrollbar for all browsers */
   scrollbar-width: none;

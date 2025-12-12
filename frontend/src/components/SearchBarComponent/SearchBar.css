@@ -1,5 +1,5 @@
 .search-bar-container {
-  width: 362.5px;
+  width: 320px;
   height: 30px;
   margin: 0 auto;
   background-color: var(--color-drpdwn-bg);
@@ -12,8 +12,8 @@
 }
 
 .search-icon {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   filter: brightness(0) invert(1);
   flex-shrink: 0;
 }
@@ -24,7 +24,7 @@
   border: none;
   outline: none;
   color: var(--color-text-light);
-  font-size: 14px;
+  font-size: 13px;
   font-family: inherit;
   font-weight: 500;
 }
