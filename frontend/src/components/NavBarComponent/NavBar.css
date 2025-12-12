@@ -25,6 +25,7 @@
 .navbar-logotype {
   height: 30px;
   width: auto;
+  filter: brightness(125%) saturate(50%);
 }
 
 .navbar-logotype:hover {
