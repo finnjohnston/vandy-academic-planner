@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './CourseSearch.css';
 import SearchBar from '../SearchBarComponent/SearchBar';
 import Dropdown from '../DropdownComponent/Dropdown';
-import Course from '../CourseComponent/Course';
+import CourseList from '../CourseListComponent/CourseList';
+import type { Course } from '../../types/Course';
 
 interface AcademicYear {
   id: number;
@@ -26,25 +27,10 @@ interface Term {
 const API_BASE_URL = 'http://localhost:3000';
 
 const CourseSearch: React.FC = () => {
-  // Example course data for PSY-PC 3850
-  const exampleCourse = {
-    id: 1,
-    courseId: 'PSY-PC-3850',
-    subjectCode: 'CS',
-    courseNumber: '1101',
-    title: 'Programming and Problem Solving',
-    creditsMin: 3,
-    creditsMax: 3,
-    academicYearId: 869,
-    school: 'College of Arts and Science',
-    typicallyOffered: 'Fall, Spring',
-    description: 'Introduction to cognitive neuroscience.',
-    createdAt: '2025-01-01T00:00:00.000Z',
-    updatedAt: '2025-01-01T00:00:00.000Z',
-  };
-
   // Search state
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState<boolean>(false);
 
   // Data states
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
@@ -143,37 +129,97 @@ const CourseSearch: React.FC = () => {
     }
   };
 
+  const handleSearch = useCallback(async () => {
+    // Don't search if no academic year selected or query is empty
+    if (!selectedAcademicYear || !searchQuery.trim()) {
+      setCourses([]);
+      return;
+    }
+
+    setIsLoadingCourses(true);
+
+    try {
+      let url: string;
+      let params: URLSearchParams;
+
+      if (selectedTerm === 'Year') {
+        // Search courses by academic year
+        params = new URLSearchParams({
+          academicYearId: selectedAcademicYear.id.toString(),
+          q: searchQuery.trim()
+        });
+        url = `${API_BASE_URL}/api/courses?${params}`;
+      } else {
+        // Search classes by term
+        const selectedTermObj = terms.find(t => t.name === selectedTerm);
+        if (!selectedTermObj) return;
+
+        params = new URLSearchParams({
+          termId: selectedTermObj.termId,
+          q: searchQuery.trim()
+        });
+        url = `${API_BASE_URL}/api/classes?${params}`;
+      }
+
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch');
+
+      const data = await response.json();
+      setCourses(data.data || []);
+    } catch (err) {
+      console.error('Error fetching courses/classes:', err);
+      setCourses([]);
+    } finally {
+      setIsLoadingCourses(false);
+    }
+  }, [selectedAcademicYear, searchQuery, selectedTerm, terms]);
+
+  // Re-run search when academic year or term changes (if user has searched)
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      handleSearch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAcademicYear, selectedTerm]);
+
   return (
     <div className="course-search">
-      <SearchBar
-        value={searchQuery}
-        onChange={setSearchQuery}
-        placeholder="Search courses..."
-      />
-
-      {error && <div className="error-message">{error}</div>}
-
-      <div className="dropdowns-container">
-        <Dropdown
-          label="Academic Year"
-          value={selectedAcademicYear?.year || 'Loading...'}
-          options={academicYears.map((year) => year.year)}
-          onChange={handleAcademicYearChange}
-          disabled={isLoadingYears || academicYears.length === 0}
-          className="year-dropdown"
+      <div className="course-search-header">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          onSearch={handleSearch}
+          placeholder="Search courses..."
         />
 
-        <Dropdown
-          label="Term"
-          value={selectedTerm}
-          options={['Year', ...terms.map((term) => term.name)]}
-          onChange={setSelectedTerm}
-          disabled={isLoadingTerms || !selectedAcademicYear}
-          className="term-dropdown"
-        />
+        {error && <div className="error-message">{error}</div>}
+
+        <div className="dropdowns-container">
+          <Dropdown
+            label="Academic Year"
+            value={selectedAcademicYear?.year || 'Loading...'}
+            options={academicYears.map((year) => year.year)}
+            onChange={handleAcademicYearChange}
+            disabled={isLoadingYears || academicYears.length === 0}
+            className="year-dropdown"
+          />
+
+          <Dropdown
+            label="Term"
+            value={selectedTerm}
+            options={['Year', ...terms.map((term) => term.name)]}
+            onChange={setSelectedTerm}
+            disabled={isLoadingTerms || !selectedAcademicYear}
+            className="term-dropdown"
+          />
+        </div>
       </div>
 
-      <Course course={exampleCourse} />
+      {isLoadingCourses ? (
+        <div className="loading-message">Loading...</div>
+      ) : (
+        <CourseList courses={courses} />
+      )}
     </div>
   );
 };

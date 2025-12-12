@@ -6,8 +6,24 @@
   position: fixed;
   left: 0;
   top: 70px;
-  overflow-y: auto;
-  padding: 10px 12.5px;
+  overflow-y: hidden;
+  padding: 0 12.5px;
+  display: flex;
+  flex-direction: column;
+
+  /* Hide scrollbar for all browsers */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.course-search::-webkit-scrollbar {
+  display: none;
+}
+
+.course-search-header {
+  flex-shrink: 0;
+  padding-top: 10px;
+  background-color: var(--color-bg);
 }
 
 .course-search > * + * {
@@ -18,7 +34,7 @@
 .dropdowns-container {
   display: flex;
   gap: 5px;
-  width: 350px;
+  width: 362.5px;
   margin: 7px auto 0;
 }
 
@@ -33,4 +49,12 @@
 .term-dropdown {
   flex: 1;
   min-width: 0;
+}
+
+.loading-message {
+  color: var(--color-text-dark);
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;
+  margin-top: 10px;
 }

@@ -1,0 +1,15 @@
+.course-list {
+  margin-top: 10px;
+  padding-bottom: 10px;
+  flex: 1;
+  overflow-y: scroll;
+  min-height: 0;
+
+  /* Hide scrollbar for all browsers */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.course-list::-webkit-scrollbar {
+  display: none;
+}

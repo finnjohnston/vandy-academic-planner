@@ -1,21 +1,6 @@
 import React from 'react';
 import './Course.css';
-
-interface Course {
-  id: number;
-  courseId: string;
-  subjectCode: string;
-  courseNumber: string;
-  title: string;
-  creditsMin: number;
-  creditsMax: number;
-  academicYearId: number;
-  school: string | null;
-  typicallyOffered: string | null;
-  description: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Course } from '../../types/Course';
 
 interface CourseProps {
   course: Course;
@@ -23,7 +8,7 @@ interface CourseProps {
 }
 
 const Course: React.FC<CourseProps> = ({ course, onClick }) => {
-  const truncateTitle = (title: string, maxLength: number = 25): string => {
+  const truncateTitle = (title: string, maxLength: number = 40): string => {
     if (title.length <= maxLength) return title;
     return title.substring(0, maxLength) + '...';
   };

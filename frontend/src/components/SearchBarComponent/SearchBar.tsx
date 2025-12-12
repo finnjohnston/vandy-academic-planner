@@ -5,16 +5,24 @@ import searchIcon from '../../assets/search_icon.svg';
 interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
+  onSearch: () => void;
   placeholder?: string;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChange,
+  onSearch,
   placeholder = 'Search courses...'
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      onSearch();
+    }
   };
 
   return (
@@ -26,6 +34,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         placeholder={placeholder}
         value={value}
         onChange={handleChange}
+        onKeyDown={handleKeyDown}
       />
     </div>
   );
