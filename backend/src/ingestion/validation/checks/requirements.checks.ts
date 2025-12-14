@@ -400,3 +400,181 @@ export async function checkRequirementsReferentialIntegrity(
     return result;
   }
 }
+
+/**
+ * Check: Sync Requirements Between Courses and Classes
+ *
+ * Bidirectionally syncs requirements data:
+ * - Course has requirements but class doesn't → Copy to class
+ * - Class has requirements but course doesn't → Copy to course
+ *
+ * This fixes missing requirements data caused by scraper failures.
+ */
+export async function checkRequirementsSync(
+  dryRun: boolean = false
+): Promise<ValidationResult> {
+  const result = createValidationResult('Requirements Sync (Courses ↔ Classes)');
+
+  try {
+    let coursesUpdated = 0;
+    let classesUpdated = 0;
+
+    // Get current academic year
+    const currentYear = await prisma.academicYear.findFirst({
+      where: { isCurrent: true }
+    });
+
+    if (!currentYear) {
+      logger.warn('No current academic year set, skipping requirements sync');
+      result.passed = 1;
+      return result;
+    }
+
+    logger.log(`Syncing requirements for academic year: ${currentYear.year}`);
+
+    // Fetch all courses with their related classes
+    const courses = await prisma.course.findMany({
+      where: {
+        academicYearId: currentYear.id
+      },
+      include: {
+        classes: {
+          include: {
+            term: true  // Need term to check academic year
+          }
+        }
+      }
+    });
+
+    logger.log(`Analyzing ${courses.length} courses in ${currentYear.year} and their classes...`);
+
+    // PHASE 1: Course → Class sync (course has requirements, classes don't)
+    for (const course of courses) {
+      // Skip if course has no requirements
+      if (!course.requirements || course.requirements === Prisma.JsonNull) {
+        continue;
+      }
+
+      // Find classes without requirements (only in same academic year)
+      const classesNeedingSync = course.classes.filter(
+        cls =>
+          cls.term.academicYearId === currentYear.id &&
+          (!cls.requirements || cls.requirements === Prisma.JsonNull)
+      );
+
+      if (classesNeedingSync.length > 0) {
+        result.failed += classesNeedingSync.length;
+
+        const courseDisplay = `${course.subjectCode} ${course.courseNumber}`;
+
+        if (!dryRun) {
+          // Update all classes that need requirements
+          await prisma.class.updateMany({
+            where: { id: { in: classesNeedingSync.map(c => c.id) } },
+            data: { requirements: course.requirements }
+          });
+
+          logger.success(
+            `Synced requirements from course ${courseDisplay} → ${classesNeedingSync.length} class(es)`
+          );
+          result.fixed += classesNeedingSync.length;
+        } else {
+          logger.log(
+            `[DRY RUN] Would sync requirements from course ${courseDisplay} → ${classesNeedingSync.length} class(es)`
+          );
+          result.fixed += classesNeedingSync.length;
+        }
+
+        classesUpdated += classesNeedingSync.length;
+
+        result.warnings.push({
+          id: `course-to-class-${course.id}`,
+          message: `${dryRun ? 'Would sync' : 'Synced'} requirements from course ${courseDisplay} to ${classesNeedingSync.length} class(es)`,
+          action: dryRun ? 'reported' : 'fixed',
+          details: {
+            courseId: course.courseId,
+            subjectCode: course.subjectCode,
+            courseNumber: course.courseNumber,
+            classCount: classesNeedingSync.length,
+            direction: 'course-to-class'
+          }
+        });
+      }
+    }
+
+    // PHASE 2: Class → Course sync (course lacks requirements, but class has them)
+    for (const course of courses) {
+      // Skip if course already has requirements
+      if (course.requirements && course.requirements !== Prisma.JsonNull) {
+        continue;
+      }
+
+      // Find first class with requirements (only in same academic year)
+      const classWithReqs = course.classes.find(
+        cls =>
+          cls.term.academicYearId === currentYear.id &&
+          cls.requirements &&
+          cls.requirements !== Prisma.JsonNull
+      );
+
+      if (classWithReqs) {
+        result.failed++;
+
+        const courseDisplay = `${course.subjectCode} ${course.courseNumber}`;
+
+        if (!dryRun) {
+          await prisma.course.update({
+            where: { id: course.id },
+            data: { requirements: classWithReqs.requirements }
+          });
+
+          logger.success(
+            `Synced requirements from class ${classWithReqs.classId} → course ${courseDisplay}`
+          );
+          result.fixed++;
+        } else {
+          logger.log(
+            `[DRY RUN] Would sync requirements from class ${classWithReqs.classId} → course ${courseDisplay}`
+          );
+          result.fixed++;
+        }
+
+        coursesUpdated++;
+
+        result.warnings.push({
+          id: `class-to-course-${course.id}`,
+          message: `${dryRun ? 'Would sync' : 'Synced'} requirements from class to course ${courseDisplay}`,
+          action: dryRun ? 'reported' : 'fixed',
+          details: {
+            courseId: course.courseId,
+            subjectCode: course.subjectCode,
+            courseNumber: course.courseNumber,
+            sourceClassId: classWithReqs.classId,
+            direction: 'class-to-course'
+          }
+        });
+      }
+    }
+
+    // Summary logging
+    logger.log('\nRequirements Sync Summary:');
+    logger.log(`  Courses updated: ${coursesUpdated}`);
+    logger.log(`  Classes updated: ${classesUpdated}`);
+    logger.log(`  Total synced: ${coursesUpdated + classesUpdated}`);
+
+    if (result.failed === 0) {
+      result.passed = 1;
+      logger.log('✓ No requirements sync needed');
+    }
+
+    return result;
+  } catch (error) {
+    logger.error('Failed to sync requirements', error);
+    result.errors.push({
+      id: 'check-failed',
+      message: `Check failed: ${error instanceof Error ? error.message : String(error)}`,
+      action: 'none',
+    });
+    return result;
+  }
+}

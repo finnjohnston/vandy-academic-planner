@@ -170,3 +170,32 @@ export function getLatestTerm(terms: Term[]): Term | null {
   logger.log(`Latest term: ${latestTerm.title} (ID: ${latestTerm.id})`);
   return latestTerm;
 }
+
+/**
+ * Normalize term name to consistent format: "YYYY Season"
+ * Converts both "Fall 2024" and "2024 Fall" to "2024 Fall"
+ *
+ * @param title Term title to normalize
+ * @returns Normalized term name in "YYYY Season" format
+ */
+export function normalizeTermName(title: string): string {
+  // Pattern 1: "2024 Fall", "2025 Spring" (already correct - year first)
+  if (/^\d{4}\s+(Fall|Spring)$/i.test(title)) {
+    // Just capitalize the season properly
+    const parts = title.split(' ');
+    const season = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+    return `${parts[0]} ${season}`;
+  }
+
+  // Pattern 2: "Fall 2024", "Spring 2025" (needs reversal - season first)
+  const match = title.match(/^(Fall|Spring)\s+(\d{4})$/i);
+  if (match) {
+    // Capitalize first letter of season and reverse to year first
+    const season = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
+    return `${match[2]} ${season}`;
+  }
+
+  // Return original if no pattern matches
+  logger.warn(`Term name "${title}" does not match expected format`);
+  return title;
+}

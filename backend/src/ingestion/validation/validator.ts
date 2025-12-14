@@ -20,7 +20,8 @@ import {
  * 3. Fix data quality (credit ranges, term consistency)
  * 4. Enforce constraints (single current year)
  * 5. Fix requirements referential integrity
- * 6. Detect orphans (reporting only)
+ * 6. Sync requirements between courses and classes
+ * 7. Detect orphans (reporting only)
  *
  * @param dryRun If true, previews changes without applying them
  * @param environment Environment name for reporting
@@ -91,8 +92,13 @@ export async function runValidation(
     results.push(await requirementsChecks.checkRequirementsReferentialIntegrity(dryRun));
     logger.log('');
 
-    // Check #11: Orphaned data detection (classes without courses)
-    logger.log('Running Check #11: Orphaned Data Detection...');
+    // Check #11: Sync requirements between courses and classes
+    logger.log('Running Check #11: Requirements Sync (Courses ↔ Classes)...');
+    results.push(await requirementsChecks.checkRequirementsSync(dryRun));
+    logger.log('');
+
+    // Check #12: Orphaned data detection (classes without courses)
+    logger.log('Running Check #12: Orphaned Data Detection...');
     results.push(await orphanChecks.detectOrphanedData(dryRun));
     logger.log('');
   } catch (error) {

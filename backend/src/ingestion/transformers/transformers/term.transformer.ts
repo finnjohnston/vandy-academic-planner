@@ -1,5 +1,6 @@
 import { Term } from '../../scrapers/types/term.type.js';
 import { DbTermInput } from '../types/db.term.input.js';
+import { normalizeTermName } from '../../pipelines/services/term.service.js';
 
 /**
  * Transform a scraped term into database input format
@@ -15,6 +16,6 @@ export function transformTermForDb(
   return {
     termId: term.id,
     academicYearId,
-    name: term.title,
+    name: normalizeTermName(term.title),
   };
 }
