@@ -9,6 +9,7 @@ import {
   deletePlan,
   duplicatePlan,
 } from '../controllers/planController.js';
+import plannedCourseRoutes from './plannedCourseRoutes.js';
 
 // Validation schemas
 const idParamSchema = z.object({
@@ -55,5 +56,8 @@ router.put(
   updatePlan
 );
 router.delete('/:id', validate({ params: idParamSchema }), deletePlan);
+
+// Mount nested routes
+router.use('/:planId/courses', plannedCourseRoutes);
 
 export default router;
