@@ -3,9 +3,13 @@ import './NavBar.css';
 import vanderbiltLogo from '../../assets/vanderbilt_logo.png';
 import vanderbiltLogotype from '../../assets/vanderbilt_logotype.png';
 
-const NavBar: React.FC = () => {
+interface NavBarProps {
+  isBlurred?: boolean;
+}
+
+const NavBar: React.FC<NavBarProps> = ({ isBlurred = false }) => {
   return (
-    <nav className="navbar">
+    <nav className={`navbar${isBlurred ? ' navbar-blurred' : ''}`}>
       <div className="navbar-left">
         <img
           src={vanderbiltLogo}

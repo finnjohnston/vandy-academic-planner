@@ -3,6 +3,7 @@ import './CourseSearch.css';
 import SearchBar from '../SearchBarComponent/SearchBar';
 import Dropdown from '../DropdownComponent/Dropdown';
 import CourseList from '../CourseListComponent/CourseList';
+import CourseDetail from '../CourseDetailComponent/CourseDetail';
 import type { Course } from '../../types/Course';
 
 interface AcademicYear {
@@ -26,7 +27,12 @@ interface Term {
 
 const API_BASE_URL = 'http://localhost:3000';
 
-const CourseSearch: React.FC = () => {
+interface CourseSearchProps {
+  onPopupOpen?: () => void;
+  onPopupClose?: () => void;
+}
+
+const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose }) => {
   // Search state
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [courses, setCourses] = useState<Course[]>([]);
@@ -44,6 +50,9 @@ const CourseSearch: React.FC = () => {
   const [isLoadingYears, setIsLoadingYears] = useState<boolean>(true);
   const [isLoadingTerms, setIsLoadingTerms] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Popup state
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
   // Fetch academic years on component mount
   useEffect(() => {
@@ -182,6 +191,16 @@ const CourseSearch: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAcademicYear, selectedTerm]);
 
+  const handleCourseClick = (course: Course) => {
+    setSelectedCourse(course);
+    onPopupOpen?.();
+  };
+
+  const handleClosePopup = () => {
+    setSelectedCourse(null);
+    onPopupClose?.();
+  };
+
   return (
     <div className="course-search">
       <div className="course-search-header">
@@ -218,7 +237,17 @@ const CourseSearch: React.FC = () => {
       {isLoadingCourses ? (
         <div className="loading-message">Loading...</div>
       ) : (
-        <CourseList courses={courses} />
+        <CourseList
+          courses={courses}
+          onCourseClick={handleCourseClick}
+        />
+      )}
+
+      {selectedCourse && (
+        <CourseDetail
+          course={selectedCourse}
+          onClose={handleClosePopup}
+        />
       )}
     </div>
   );
