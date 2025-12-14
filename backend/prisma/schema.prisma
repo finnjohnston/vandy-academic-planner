@@ -10,31 +10,31 @@ datasource db {
 }
 
 model AcademicYear {
-  id        Int      @id @default(autoincrement())
-  year      String   @unique @db.VarChar(10)
-  start     Int
-  end       Int
-  isCurrent Boolean  @default(false) @map("is_current")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                    Int                 @id @default(autoincrement())
+  year                  String              @unique @db.VarChar(10)
+  start                 Int
+  end                   Int
+  isCurrent             Boolean             @default(false) @map("is_current")
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime            @updatedAt @map("updated_at")
 
-  courses   Course[]
-  terms     Term[]
+  courses               Course[]
+  terms                 Term[]
 
   @@map("academic_years")
 }
 
 model Term {
-  id             Int          @id @default(autoincrement())
-  termId         String       @unique @map("term_id") @db.VarChar(20)
-  academicYearId Int          @map("academic_year_id")
-  name           String       @db.VarChar(100)
-  createdAt      DateTime     @default(now()) @map("created_at")
-  updatedAt      DateTime     @updatedAt @map("updated_at")
+  id                    Int                   @id @default(autoincrement())
+  termId                String                @unique @map("term_id") @db.VarChar(20)
+  academicYearId        Int                   @map("academic_year_id")
+  name                  String                @db.VarChar(100)
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
 
-  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
-  classes        Class[]
-  sections       Section[]
+  academicYear          AcademicYear          @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  classes               Class[]
+  sections              Section[]
 
   @@map("terms")
 }
@@ -62,25 +62,13 @@ model Course {
 
   academicYear          AcademicYear          @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
   classes               Class[]
+  plannedCourses        PlannedCourse[]
 
   @@unique([academicYearId, subjectCode, courseNumber])
   @@index([academicYearId, subjectCode, courseNumber])
   @@map("courses")
 }
 
-/// Represents a specific course offering in a term (e.g., "CS 1101 - Programming" in Fall 2024).
-///
-/// Uniqueness Strategy:
-/// - classId is globally unique across all terms (format: "termId-sectionId", e.g., "1248-12345")
-/// - This differs from the upstream Vanderbilt data format, where section IDs are reused across terms
-/// - Rationale: Classes are domain aggregates that need global uniqueness for:
-///   1. Simplified foreign key relationships (Section -> Class uses single field)
-///   2. Clean lookups without requiring term context
-///   3. Better query performance with single-field indexes
-///
-/// Also has a composite unique constraint (termId, subjectCode, courseNumber, title) to:
-/// - Prevent duplicate course offerings in the same term
-/// - Allow same course number with different titles (e.g., CS 3891 "Machine Learning" vs "Web Development")
 model Class {
   id                    Int                   @id @default(autoincrement())
   classId               String                @unique @map("class_id") @db.VarChar(255)
@@ -104,6 +92,7 @@ model Class {
   term                  Term                  @relation(fields: [termId], references: [termId], onDelete: Cascade)
   course                Course?               @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
   sections              Section[]
+  plannedCourses        PlannedCourse[]
 
   @@unique([termId, subjectCode, courseNumber, title])
   @@index([termId])
@@ -111,19 +100,6 @@ model Class {
   @@map("classes")
 }
 
-/// Represents a specific section of a class (e.g., "CS 1101-001 LEC" taught by Dr. Smith on MWF).
-///
-/// Uniqueness Strategy:
-/// - sectionId uses a composite key with termId: @@unique([termId, sectionId])
-/// - sectionId alone is NOT unique - it matches the upstream Vanderbilt format
-/// - Section IDs are reused across different terms (e.g., "12345" appears in Fall and Spring)
-/// - Rationale: Sections are child entities that exist within the context of a term:
-///   1. Semantically correct - sections belong to a term
-///   2. Matches upstream data format (no artificial ID construction)
-///   3. Always queried in the context of a term or class
-///
-/// Note: This differs from the Class model, which uses globally unique classId.
-/// This is intentional - Classes are domain aggregates while Sections are child entities.
 model Section {
   id                    Int                   @id @default(autoincrement())
   sectionId             String                @map("section_id") @db.VarChar(255)
@@ -148,4 +124,54 @@ model Section {
   @@index([classId])
   @@index([termId])
   @@map("sections")
+}
+
+model School {
+  id                    Int                   @id @default(autoincrement())
+  code                  String                @unique @db.VarChar(50)
+  name                  String                @db.VarChar(255)
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+
+  plans                 Plan[]
+
+  @@map("schools")
+}
+
+model Plan {
+  id                    Int                   @id @default(autoincrement())
+  name                  String                @db.VarChar(255)
+  schoolId              Int?                  @map("school_id")
+  startingYear          Int                   @map("starting_year")
+  currentSemester       Int                   @default(0) @map("current_semester")
+  isActive              Boolean               @default(true) @map("is_active")
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+
+  school                School?               @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  plannedCourses        PlannedCourse[]
+
+  @@index([schoolId])
+  @@map("plans")
+}
+
+model PlannedCourse {
+  id                    Int                   @id @default(autoincrement())
+  planId                Int                   @map("plan_id")
+  courseId              String?               @map("course_id") @db.VarChar(50)
+  classId               String?               @map("class_id") @db.VarChar(255)
+  semesterNumber        Int                   @map("semester_number")
+  credits               Float
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+
+  plan                  Plan                  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  course                Course?               @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
+  class                 Class?                @relation(fields: [classId], references: [classId], onDelete: Cascade)
+
+  @@unique([planId, courseId, classId])
+  @@index([planId])
+  @@index([courseId])
+  @@index([classId])
+  @@map("planned_courses")
 }
