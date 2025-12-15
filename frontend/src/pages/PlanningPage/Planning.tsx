@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import NavBar from '../../components/NavBarComponent/NavBar';
 import CourseSearch from '../../components/CourseSearchComponent/CourseSearch';
+import Plan from '../../components/PlanComponent/Plan';
 import './Planning.css';
 
 const Planning: React.FC = () => {
@@ -13,6 +14,7 @@ const Planning: React.FC = () => {
         onPopupOpen={() => setIsPopupOpen(true)}
         onPopupClose={() => setIsPopupOpen(false)}
       />
+      <Plan planId={1} planName="My Plan" startingYear={2025} />
     </div>
   );
 };
