@@ -13,8 +13,9 @@ const Planning: React.FC = () => {
       <CourseSearch
         onPopupOpen={() => setIsPopupOpen(true)}
         onPopupClose={() => setIsPopupOpen(false)}
+        isBlurred={isPopupOpen}
       />
-      <Plan planId={1} planName="My Plan" startingYear={2025} />
+      <Plan planId={1} planName="My Plan" startingYear={2025} isBlurred={isPopupOpen} />
     </div>
   );
 };

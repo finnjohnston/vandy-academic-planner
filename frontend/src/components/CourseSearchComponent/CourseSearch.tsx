@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import './CourseSearch.css';
 import SearchBar from '../SearchBarComponent/SearchBar';
 import Dropdown from '../DropdownComponent/Dropdown';
@@ -30,9 +31,10 @@ const API_BASE_URL = 'http://localhost:3000';
 interface CourseSearchProps {
   onPopupOpen?: () => void;
   onPopupClose?: () => void;
+  isBlurred?: boolean;
 }
 
-const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose }) => {
+const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose, isBlurred = false }) => {
   // Search state
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [courses, setCourses] = useState<Course[]>([]);
@@ -202,7 +204,7 @@ const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose }
   };
 
   return (
-    <div className="course-search">
+    <div className={`course-search${isBlurred ? ' course-search-blurred' : ''}`}>
       <div className="course-search-header">
         <SearchBar
           value={searchQuery}
@@ -243,11 +245,12 @@ const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose }
         />
       )}
 
-      {selectedCourse && (
+      {selectedCourse && ReactDOM.createPortal(
         <CourseDetail
           course={selectedCourse}
           onClose={handleClosePopup}
-        />
+        />,
+        document.body
       )}
     </div>
   );

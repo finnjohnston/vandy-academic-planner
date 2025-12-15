@@ -6,13 +6,14 @@ interface PlanProps {
   planId: number;
   planName: string;
   startingYear: number;
+  isBlurred?: boolean;
 }
 
-const Plan: React.FC<PlanProps> = ({ planId, planName, startingYear }) => {
+const Plan: React.FC<PlanProps> = ({ planId, planName, startingYear, isBlurred = false }) => {
   const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
 
   return (
-    <div className="plan-container">
+    <div className={`plan-container${isBlurred ? ' plan-blurred' : ''}`}>
       <div className="plan-content">
         <h1 className="plan-header">{planName}</h1>
         <div className="plan-grid">

@@ -16,6 +16,11 @@
   -ms-overflow-style: none;
 }
 
+.course-search-blurred {
+  filter: blur(2px);
+  -webkit-filter: blur(2px);
+}
+
 .course-search::-webkit-scrollbar {
   display: none;
 }
