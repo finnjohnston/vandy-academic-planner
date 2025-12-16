@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   getCourses,
   getCourseById,
+  getCourseByStringId,
   createCourse,
   updateCourse,
 } from '../controllers/courseController.js';
@@ -13,6 +14,10 @@ const router = Router();
 // Validation schemas
 const idParamSchema = z.object({
   id: z.coerce.number().int().positive(),
+});
+
+const courseIdParamSchema = z.object({
+  courseId: z.string().min(1).max(50),
 });
 
 const courseSearchSchema = z.object({
@@ -72,6 +77,16 @@ const updateCourseSchema = z
  * Search/list courses by academic year with optional query
  */
 router.get('/', validate({ query: courseSearchSchema }), getCourses);
+
+/**
+ * GET /api/courses/by-course-id/:courseId
+ * Get course by courseId string (must be before /:id to avoid route conflict)
+ */
+router.get(
+  '/by-course-id/:courseId',
+  validate({ params: courseIdParamSchema }),
+  getCourseByStringId
+);
 
 /**
  * GET /api/courses/:id

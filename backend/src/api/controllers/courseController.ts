@@ -115,6 +115,52 @@ export async function getCourseById(
 }
 
 /**
+ * GET /api/courses/by-course-id/:courseId
+ * Get specific course by courseId string (e.g., "122857")
+ */
+export async function getCourseByStringId(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { courseId } = req.params;
+    logger.http(`GET /api/courses/by-course-id/${courseId}`);
+
+    const course = await prisma.course.findUnique({
+      where: { courseId: courseId },
+    });
+
+    if (!course) {
+      throw new NotFoundError('Course not found');
+    }
+
+    // Transform data - return relevant fields
+    const transformedCourse = {
+      id: course.id,
+      courseId: course.courseId,
+      academicYearId: course.academicYearId,
+      subjectCode: course.subjectCode,
+      courseNumber: course.courseNumber,
+      title: course.title,
+      school: course.school,
+      creditsMin: course.creditsMin,
+      creditsMax: course.creditsMax,
+      typicallyOffered: course.typicallyOffered,
+      description: course.description,
+      attributes: course.attributes,
+      requirements: course.requirements,
+      createdAt: course.createdAt,
+      updatedAt: course.updatedAt,
+    };
+
+    sendSuccess(res, transformedCourse);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * POST /api/courses
  * Create new course using existing ingestion function
  */
