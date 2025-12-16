@@ -1,5 +1,6 @@
 import React from 'react';
 import NavBar from '../../components/NavBarComponent/NavBar';
+import PlansTableHeader from '../../components/PlansTableHeaderComponent/PlansTableHeader';
 import './Plans.css';
 
 const Plans: React.FC = () => {
@@ -8,6 +9,7 @@ const Plans: React.FC = () => {
       <NavBar />
       <div className="plans-content">
         <h1>Plans</h1>
+        <PlansTableHeader />
       </div>
     </div>
   );
