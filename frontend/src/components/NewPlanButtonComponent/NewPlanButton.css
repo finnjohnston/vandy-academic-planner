@@ -1,0 +1,44 @@
+.new-plan-button {
+  width: 100px;
+  height: 35px;
+  background-color: var(--color-btn-bg);
+  border: 1px solid var(--color-btn-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  box-shadow: none;
+}
+
+.new-plan-button:hover {
+  outline: none;
+  box-shadow: none;
+  background-color: var(--color-btn-border);
+}
+
+.new-plan-button:active {
+  outline: none;
+  box-shadow: none;
+}
+
+.new-plan-text {
+  position: absolute;
+  left: 57%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-white);
+  white-space: nowrap;
+}
+
+.new-plan-icon {
+  position: absolute;
+  left: 17%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  filter: brightness(0) invert(1);
+}

@@ -18,10 +18,18 @@
   margin-right: 175px;
 }
 
+.plans-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
 .plans-content h1 {
   color: var(--color-gold-light);
   font-size: 30px;
   font-weight: 500;
-  margin-bottom: 2rem;
+  margin: 0;
   text-align: left;
+  line-height: 1;
 }
