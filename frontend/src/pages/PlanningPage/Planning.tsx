@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import NavBar from '../../components/NavBarComponent/NavBar';
-import CourseSearch from '../../components/CourseSearchComponent/CourseSearch';
-import Plan from '../../components/PlanComponent/Plan';
-import CourseDetail from '../../components/CourseDetailComponent/CourseDetail';
+import NavBar from '../../components/common/NavBarComponent/NavBar';
+import CourseSearch from '../../components/course/CourseSearchComponent/CourseSearch';
+import Plan from '../../components/plan/PlanComponent/Plan';
+import CourseDetail from '../../components/course/CourseDetailComponent/CourseDetail';
 import type { Course } from '../../types/Course';
 import './Planning.css';
 

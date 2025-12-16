@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PlanListItem from '../PlanListItemComponent/PlanListItem';
-import type { Plan } from '../../types/Plan';
+import type { Plan } from '../../../types/Plan';
 import './PlansList.css';
 
 const API_BASE_URL = 'http://localhost:3000';

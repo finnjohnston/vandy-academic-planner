@@ -1,7 +1,7 @@
 import React from 'react';
 import { format } from 'date-fns';
-import type { Plan } from '../../types/Plan';
-import threeDotsIcon from '../../assets/three_dots_icon.svg';
+import type { Plan } from '../../../types/Plan';
+import threeDotsIcon from '../../../assets/three_dots_icon.svg';
 import './PlanListItem.css';
 
 interface PlanListItemProps {

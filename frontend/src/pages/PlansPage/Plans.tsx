@@ -1,7 +1,7 @@
 import React from 'react';
-import NavBar from '../../components/NavBarComponent/NavBar';
-import PlansTable from '../../components/PlansTableComponent/PlansTable';
-import NewPlanButton from '../../components/NewPlanButtonComponent/NewPlanButton';
+import NavBar from '../../components/common/NavBarComponent/NavBar';
+import PlansTable from '../../components/plans/PlansTableComponent/PlansTable';
+import NewPlanButton from '../../components/plans/NewPlanButtonComponent/NewPlanButton';
 import './Plans.css';
 
 const Plans: React.FC = () => {

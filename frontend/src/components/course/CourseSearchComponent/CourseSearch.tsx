@@ -5,7 +5,7 @@ import SearchBar from '../SearchBarComponent/SearchBar';
 import Dropdown from '../DropdownComponent/Dropdown';
 import CourseList from '../CourseListComponent/CourseList';
 import CourseDetail from '../CourseDetailComponent/CourseDetail';
-import type { Course } from '../../types/Course';
+import type { Course } from '../../../types/Course';
 
 interface AcademicYear {
   id: number;
