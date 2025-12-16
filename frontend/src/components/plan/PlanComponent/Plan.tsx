@@ -1,6 +1,6 @@
 import React from 'react';
 import Semester from '../SemesterComponent/Semester';
-import type { PlannedCourse } from '../../types/PlannedCourse';
+import type { PlannedCourse } from '../../../types/PlannedCourse';
 import './Plan.css';
 
 interface PlanProps {

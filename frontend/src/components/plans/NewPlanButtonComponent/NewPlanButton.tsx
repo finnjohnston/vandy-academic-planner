@@ -1,5 +1,5 @@
 import React from 'react';
-import plusIcon from '../../assets/plus_icon.webp';
+import plusIcon from '../../../assets/plus_icon.webp';
 import './NewPlanButton.css';
 
 const NewPlanButton: React.FC = () => {

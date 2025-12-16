@@ -1,7 +1,7 @@
 import React from 'react';
 import './NavBar.css';
-import vanderbiltLogo from '../../assets/vanderbilt_logo.png';
-import vanderbiltLogotype from '../../assets/vanderbilt_logotype.png';
+import vanderbiltLogo from '../../../assets/vanderbilt_logo.png';
+import vanderbiltLogotype from '../../../assets/vanderbilt_logotype.png';
 
 interface NavBarProps {
   isBlurred?: boolean;

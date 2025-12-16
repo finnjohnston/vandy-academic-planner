@@ -1,7 +1,7 @@
 import React from 'react';
 import './Semester.css';
 import PlannedCourseList from '../PlannedCourseListComponent/PlannedCourseList';
-import type { PlannedCourse } from '../../types/PlannedCourse';
+import type { PlannedCourse } from '../../../types/PlannedCourse';
 
 interface SemesterProps {
   semesterNumber: number;

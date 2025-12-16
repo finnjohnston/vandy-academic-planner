@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Dropdown.css';
-import dropdownIcon from '../../assets/dropdown_icon.png';
+import dropdownIcon from '../../../assets/dropdown_icon.png';
 
 interface DropdownProps {
   label: string;

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import type { Course } from '../../types/Course';
+import type { Course } from '../../../types/Course';
 import './CourseDetail.css';
-import exitIcon from '../../assets/exit_icon.png';
+import exitIcon from '../../../assets/exit_icon.png';
 
 interface CourseDetailProps {
   course: Course;
