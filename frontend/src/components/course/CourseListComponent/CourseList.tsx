@@ -6,13 +6,22 @@ import CourseCardComponent from '../CourseCardComponent/CourseCard';
 interface CourseListProps {
   courses: CourseType[];
   onCourseClick?: (course: CourseType) => void;
+  searchContext?: {
+    type: 'year' | 'term';
+    termId?: string;
+  };
 }
 
-const CourseList: React.FC<CourseListProps> = ({ courses, onCourseClick }) => {
+const CourseList: React.FC<CourseListProps> = ({ courses, onCourseClick, searchContext }) => {
   return (
     <div className="course-list">
       {courses.map((course) => (
-        <CourseCardComponent key={course.id} course={course} onClick={onCourseClick} />
+        <CourseCardComponent
+          key={course.id}
+          course={course}
+          onClick={onCourseClick}
+          searchContext={searchContext}
+        />
       ))}
     </div>
   );

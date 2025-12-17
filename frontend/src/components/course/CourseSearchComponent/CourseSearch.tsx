@@ -56,6 +56,12 @@ const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose, 
   // Popup state
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
+  // Search context for drag-and-drop
+  const [searchContext, setSearchContext] = useState<{
+    type: 'year' | 'term';
+    termId?: string;
+  }>({ type: 'year' });
+
   // Fetch academic years on component mount
   useEffect(() => {
     const fetchAcademicYears = async () => {
@@ -155,6 +161,7 @@ const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose, 
 
       if (selectedTerm === 'Year') {
         // Search courses by academic year
+        setSearchContext({ type: 'year' });
         params = new URLSearchParams({
           academicYearId: selectedAcademicYear.id.toString(),
           q: searchQuery.trim()
@@ -165,6 +172,7 @@ const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose, 
         const selectedTermObj = terms.find(t => t.name === selectedTerm);
         if (!selectedTermObj) return;
 
+        setSearchContext({ type: 'term', termId: selectedTermObj.termId });
         params = new URLSearchParams({
           termId: selectedTermObj.termId,
           q: searchQuery.trim()
@@ -242,6 +250,7 @@ const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose, 
         <CourseList
           courses={courses}
           onCourseClick={handleCourseClick}
+          searchContext={searchContext}
         />
       )}
 

@@ -8,7 +8,15 @@
   align-items: center;
   position: relative;
   padding: 0 16px;
-  cursor: pointer;
+  cursor: grab;
+}
+
+.planned-course:active {
+  cursor: grabbing;
+}
+
+.planned-course-dragging {
+  cursor: grabbing;
 }
 
 .planned-course:last-child {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useDroppable } from '@dnd-kit/core';
 import './Semester.css';
 import PlannedCourseList from '../PlannedCourseListComponent/PlannedCourseList';
 import type { PlannedCourse } from '../../../types/PlannedCourse';
@@ -15,7 +16,7 @@ interface SemesterProps {
   credits?: number;
   plannedCourses?: PlannedCourse[];
   onCourseDetailsClick?: (courseId: string) => void;
-  onDeleteCourseClick?: (courseId: string) => void;
+  onDeleteCourseClick?: (plannedCourseId: number) => void;
 }
 
 interface SemesterInfo {
@@ -31,6 +32,13 @@ const Semester: React.FC<SemesterProps> = ({
   onCourseDetailsClick,
   onDeleteCourseClick,
 }) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `semester-${semesterNumber}`,
+    data: {
+      semesterNumber: semesterNumber
+    }
+  });
+
   const getSemesterInfo = (
     semesterNumber: number,
     academicYear: { start: number; end: number }
@@ -54,7 +62,10 @@ const Semester: React.FC<SemesterProps> = ({
         </span>
         <span className="semester-credits">{credits} credits</span>
       </div>
-      <div className="semester-body">
+      <div
+        ref={setNodeRef}
+        className={`semester-body${isOver ? ' semester-body-over' : ''}`}
+      >
         <PlannedCourseList
           semesterNumber={semesterNumber}
           plannedCourses={plannedCourses}

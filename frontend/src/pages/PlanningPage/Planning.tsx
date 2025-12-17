@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import ReactDOM from 'react-dom';
+import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core';
+import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import NavBar from '../../components/common/NavBarComponent/NavBar';
 import CourseSearch from '../../components/course/CourseSearchComponent/CourseSearch';
 import Plan from '../../components/plan/PlanComponent/Plan';
 import CourseDetail from '../../components/course/CourseDetailComponent/CourseDetail';
 import type { Course } from '../../types/Course';
+import type { DragData } from '../../types/DragData';
 import './Planning.css';
 
 const API_BASE_URL = 'http://localhost:3000';
@@ -26,7 +29,10 @@ interface PlanData {
     courseId: string | null;
     semesterNumber: number;
     credits: number;
-    course: Course | null;
+    course?: {
+      subjectCode: string;
+      courseNumber: string;
+    } | null;
   }>;
 }
 
@@ -37,6 +43,7 @@ const Planning: React.FC = () => {
   const [planData, setPlanData] = useState<PlanData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeDrag, setActiveDrag] = useState<DragData | null>(null);
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -102,6 +109,138 @@ const Planning: React.FC = () => {
     setIsPopupOpen(false);
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveDrag(event.active.data.current as DragData);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    setActiveDrag(null);
+
+    if (!over || !planData) return;
+
+    const dragData = active.data.current as DragData;
+    const semesterNumber = over.data.current?.semesterNumber as number;
+
+    if (dragData.source === 'search') {
+      await handleCreatePlannedCourse(dragData, semesterNumber);
+    } else if (dragData.source === 'planned') {
+      await handleMovePlannedCourse(dragData, semesterNumber);
+    }
+  };
+
+  const handleCreatePlannedCourse = async (
+    dragData: DragData,
+    semesterNumber: number
+  ) => {
+    if (!planData) return;
+
+    const course = dragData.course;
+    const isTermSearch = dragData.searchContext?.type === 'term';
+
+    const requestBody: { courseId?: string; classId?: string; semesterNumber: number; credits: number } = {
+      [isTermSearch ? 'classId' : 'courseId']: course.courseId,
+      semesterNumber,
+      credits: course.creditsMin
+    };
+
+    // Optimistic update
+    const tempId = -Date.now(); // Negative to distinguish from real IDs
+    const tempPlannedCourse = {
+      id: tempId,
+      courseId: course.courseId,
+      semesterNumber,
+      credits: course.creditsMin,
+      course: {
+        subjectCode: course.subjectCode,
+        courseNumber: course.courseNumber
+      }
+    };
+
+    setPlanData(prev => prev ? {
+      ...prev,
+      plannedCourses: [...prev.plannedCourses, tempPlannedCourse]
+    } : null);
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/plans/${planData.id}/courses`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to create course');
+
+      const result = await response.json();
+
+      // Replace temp with real data
+      setPlanData(prev => prev ? {
+        ...prev,
+        plannedCourses: prev.plannedCourses.map(pc =>
+          pc.id === tempId ? result.data : pc
+        )
+      } : null);
+    } catch (err) {
+      console.error('Error creating planned course:', err);
+      // Rollback on error
+      setPlanData(prev => prev ? {
+        ...prev,
+        plannedCourses: prev.plannedCourses.filter(pc => pc.id !== tempId)
+      } : null);
+      setError(err instanceof Error ? err.message : 'Failed to add course');
+    }
+  };
+
+  const handleMovePlannedCourse = async (
+    dragData: DragData,
+    newSemesterNumber: number
+  ) => {
+    if (!planData) return;
+    if (dragData.currentSemester === newSemesterNumber) return;
+
+    const plannedCourseId = dragData.plannedCourseId!;
+    const oldSemesterNumber = dragData.currentSemester!;
+
+    // Optimistic update
+    setPlanData(prev => prev ? {
+      ...prev,
+      plannedCourses: prev.plannedCourses.map(pc =>
+        pc.id === plannedCourseId
+          ? { ...pc, semesterNumber: newSemesterNumber }
+          : pc
+      )
+    } : null);
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/plans/${planData.id}/courses/${plannedCourseId}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ semesterNumber: newSemesterNumber })
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to move course');
+    } catch (err) {
+      console.error('Error moving course:', err);
+      // Rollback on error
+      setPlanData(prev => prev ? {
+        ...prev,
+        plannedCourses: prev.plannedCourses.map(pc =>
+          pc.id === plannedCourseId
+            ? { ...pc, semesterNumber: oldSemesterNumber }
+            : pc
+        )
+      } : null);
+      setError(err instanceof Error ? err.message : 'Failed to move course');
+    }
+  };
+
   if (loading) {
     return (
       <div className="planning-page">
@@ -125,28 +264,56 @@ const Planning: React.FC = () => {
   }
 
   return (
-    <div className="planning-page">
-      <NavBar isBlurred={isPopupOpen} />
-      <CourseSearch
-        onPopupOpen={() => setIsPopupOpen(true)}
-        onPopupClose={() => setIsPopupOpen(false)}
-        isBlurred={isPopupOpen}
-      />
-      <Plan
-        planId={planData.id}
-        planName={planData.name}
-        academicYear={planData.academicYear}
-        plannedCourses={planData.plannedCourses}
-        isBlurred={isPopupOpen}
-        onCourseDetailsClick={handlePlannedCourseClick}
-        onDeleteCourseClick={handleDeleteCourse}
-      />
+    <DndContext
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      collisionDetection={closestCenter}
+    >
+      <div className="planning-page">
+        <NavBar isBlurred={isPopupOpen} />
+        <CourseSearch
+          onPopupOpen={() => setIsPopupOpen(true)}
+          onPopupClose={() => setIsPopupOpen(false)}
+          isBlurred={isPopupOpen}
+        />
+        <Plan
+          planId={planData.id}
+          planName={planData.name}
+          academicYear={planData.academicYear}
+          plannedCourses={planData.plannedCourses}
+          isBlurred={isPopupOpen}
+          onCourseDetailsClick={handlePlannedCourseClick}
+          onDeleteCourseClick={handleDeleteCourse}
+        />
 
-      {selectedCourse && ReactDOM.createPortal(
-        <CourseDetail course={selectedCourse} onClose={handleClosePopup} />,
-        document.body
-      )}
-    </div>
+        {selectedCourse && ReactDOM.createPortal(
+          <CourseDetail course={selectedCourse} onClose={handleClosePopup} />,
+          document.body
+        )}
+      </div>
+
+      <DragOverlay>
+        {activeDrag && (
+          <div className="drag-preview">
+            <span className="drag-preview-code">
+              {activeDrag.course.subjectCode} {activeDrag.course.courseNumber}
+            </span>
+            <span className="drag-preview-title">
+              {(activeDrag.course.title || '').length > 40
+                ? (activeDrag.course.title || '').substring(0, 40) + '...'
+                : (activeDrag.course.title || '')}
+            </span>
+            <span className="drag-preview-credits">
+              {activeDrag.source === 'search'
+                ? activeDrag.course.creditsMin === activeDrag.course.creditsMax
+                  ? activeDrag.course.creditsMin
+                  : `${activeDrag.course.creditsMin} - ${activeDrag.course.creditsMax}`
+                : activeDrag.course.creditsMin}
+            </span>
+          </div>
+        )}
+      </DragOverlay>
+    </DndContext>
   );
 };
 

@@ -44,3 +44,7 @@
   box-sizing: border-box;
   overflow-y: visible;
 }
+
+.semester-body-over {
+  border: 2px solid var(--color-btn-border);
+}

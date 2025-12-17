@@ -30,6 +30,7 @@ const PlannedCourseList: React.FC<PlannedCourseListProps> = ({
           subjectCode={plannedCourse.subjectCode}
           courseNumber={plannedCourse.courseNumber}
           credits={plannedCourse.credits}
+          semesterNumber={semesterNumber}
           onCourseDetailsClick={onCourseDetailsClick}
           onDeleteCourseClick={onDeleteCourseClick}
         />

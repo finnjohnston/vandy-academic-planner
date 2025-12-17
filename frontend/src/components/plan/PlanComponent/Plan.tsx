@@ -25,7 +25,7 @@ interface PlanProps {
   }>;
   isBlurred?: boolean;
   onCourseDetailsClick?: (courseId: string) => void;
-  onDeleteCourseClick?: (courseId: string) => void;
+  onDeleteCourseClick?: (plannedCourseId: number) => void;
 }
 
 const Plan: React.FC<PlanProps> = ({
