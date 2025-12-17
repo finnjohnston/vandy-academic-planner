@@ -17,6 +17,7 @@
 
 .plan-name:hover {
   text-decoration: underline;
+  color: var(--color-gold-light);
   cursor: pointer;
 }
 

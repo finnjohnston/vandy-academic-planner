@@ -35,9 +35,30 @@ const PlansList: React.FC = () => {
     // TODO: Implement edit functionality
   };
 
-  const handleDeletePlan = (planId: number) => {
-    console.log('Delete plan:', planId);
-    // TODO: Implement delete functionality
+  const handleDeletePlan = async (planId: number) => {
+    // Optimistically remove the plan from the UI
+    const originalPlans = [...plans];
+    setPlans(plans.filter((plan) => plan.id !== planId));
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/plans/${planId}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        // If the server-side deletion fails, revert the UI change
+        setPlans(originalPlans);
+        // Optionally, show an error message to the user
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete the plan.');
+      }
+      // If server-side deletion is successful, the UI is already updated.
+    } catch (err) {
+      console.error('Error deleting plan:', err);
+      // Revert the optimistic update on any error
+      setPlans(originalPlans);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+    }
   };
 
   if (loading) {
