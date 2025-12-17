@@ -30,6 +30,16 @@ const PlansList: React.FC = () => {
     fetchPlans();
   }, []);
 
+  const handleEditPlan = (planId: number) => {
+    console.log('Edit plan:', planId);
+    // TODO: Implement edit functionality
+  };
+
+  const handleDeletePlan = (planId: number) => {
+    console.log('Delete plan:', planId);
+    // TODO: Implement delete functionality
+  };
+
   if (loading) {
     return (
       <div className="plans-list">
@@ -57,7 +67,12 @@ const PlansList: React.FC = () => {
   return (
     <div className="plans-list">
       {plans.map((plan) => (
-        <PlanListItem key={plan.id} plan={plan} />
+        <PlanListItem
+          key={plan.id}
+          plan={plan}
+          onEditClick={handleEditPlan}
+          onDeleteClick={handleDeletePlan}
+        />
       ))}
     </div>
   );

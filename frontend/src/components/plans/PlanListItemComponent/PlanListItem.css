@@ -27,12 +27,3 @@
   font-weight: 500;
   color: var(--color-text-white);
 }
-
-.plan-options-icon {
-  position: absolute;
-  right: 15px;
-  width: 15px;
-  height: 15px;
-  filter: brightness(0) invert(1);
-  cursor: pointer;
-}
