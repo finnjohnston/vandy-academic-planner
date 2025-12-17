@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import ReactDOM from 'react-dom';
 import NavBar from '../../components/common/NavBarComponent/NavBar';
 import CourseSearch from '../../components/course/CourseSearchComponent/CourseSearch';
@@ -30,6 +31,7 @@ interface PlanData {
 }
 
 const Planning: React.FC = () => {
+  const { planId } = useParams<{ planId: string }>();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [planData, setPlanData] = useState<PlanData | null>(null);
@@ -39,7 +41,8 @@ const Planning: React.FC = () => {
   useEffect(() => {
     const fetchPlan = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/plans/1`);
+        const id = planId || '1';
+        const response = await fetch(`${API_BASE_URL}/api/plans/${id}`);
         if (!response.ok) throw new Error('Failed to fetch plan data');
         const result = await response.json();
         setPlanData(result.data);
@@ -51,7 +54,7 @@ const Planning: React.FC = () => {
       }
     };
     fetchPlan();
-  }, []);
+  }, [planId]);
 
   const handlePlannedCourseClick = async (courseId: string) => {
     try {

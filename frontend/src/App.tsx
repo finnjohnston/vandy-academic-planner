@@ -7,6 +7,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/planning/:planId" element={<Planning />} />
         <Route path="/planning" element={<Planning />} />
         <Route path="/plans" element={<Plans />} />
       </Routes>

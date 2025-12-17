@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import type { Plan } from '../../../types/Plan';
 import PlanOptionsMenu from '../PlanOptionsMenuComponent/PlanOptionsMenu';
@@ -19,7 +20,9 @@ const PlanListItem: React.FC<PlanListItemProps> = ({
 
   return (
     <div className="plan-list-item">
-      <span className="plan-name">{plan.name}</span>
+      <Link to={`/planning/${plan.id}`} className="plan-name">
+        {plan.name}
+      </Link>
       <span className="plan-modified">{formattedDate}</span>
       <PlanOptionsMenu
         planId={plan.id}
