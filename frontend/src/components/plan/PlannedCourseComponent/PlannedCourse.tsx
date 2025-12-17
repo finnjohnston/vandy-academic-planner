@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import PlannedCourseOptionsMenu from '../PlannedCourseOptionsMenuComponent/PlannedCourseOptionsMenu';
 import './PlannedCourse.css';
@@ -25,6 +25,7 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
   onDeleteCourseClick,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isRecentlyDragged, setIsRecentlyDragged] = useState(false);
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `planned-course-${plannedCourseId}`,
@@ -36,7 +37,7 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
         courseId,
         subjectCode,
         courseNumber,
-        title: `${subjectCode} ${courseNumber}`,
+        title: '',
         creditsMin: credits,
         creditsMax: credits,
         id: plannedCourseId,
@@ -47,8 +48,23 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
     }
   });
 
+  useEffect(() => {
+    if (isDragging) {
+      setIsRecentlyDragged(true);
+    }
+  }, [isDragging]);
+
+  useEffect(() => {
+    if (isRecentlyDragged && !isDragging) {
+      const timer = setTimeout(() => {
+        setIsRecentlyDragged(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isRecentlyDragged, isDragging]);
+
   const handleCourseClick = () => {
-    if (isDragging) return;
+    if (isRecentlyDragged) return; // Prevent click after drag
     setIsMenuOpen(true);
   };
 

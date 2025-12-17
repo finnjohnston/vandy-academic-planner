@@ -45,6 +45,6 @@
   overflow-y: visible;
 }
 
-.semester-body-over {
-  border: 2px solid var(--color-btn-border);
+.semester-card-over {
+  border-color: var(--color-btn-border);
 }

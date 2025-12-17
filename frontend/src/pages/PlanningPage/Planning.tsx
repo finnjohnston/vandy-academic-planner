@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import ReactDOM from 'react-dom';
-import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core';
+import { DndContext, closestCenter, DragOverlay, PointerSensor, useSensor, useSensors, pointerWithin } from '@dnd-kit/core';
 import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import NavBar from '../../components/common/NavBarComponent/NavBar';
 import CourseSearch from '../../components/course/CourseSearchComponent/CourseSearch';
@@ -44,6 +44,15 @@ const Planning: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeDrag, setActiveDrag] = useState<DragData | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        delay: 150,
+        tolerance: 5,
+      },
+    })
+  );
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -123,6 +132,11 @@ const Planning: React.FC = () => {
     const dragData = active.data.current as DragData;
     const semesterNumber = over.data.current?.semesterNumber as number;
 
+    // Validate semesterNumber - only proceed if it's a valid number
+    if (!semesterNumber || typeof semesterNumber !== 'number') {
+      return;
+    }
+
     if (dragData.source === 'search') {
       await handleCreatePlannedCourse(dragData, semesterNumber);
     } else if (dragData.source === 'planned') {
@@ -173,17 +187,17 @@ const Planning: React.FC = () => {
         }
       );
 
-      if (!response.ok) throw new Error('Failed to create course');
+      if (!response.ok) {
+        throw new Error(`Failed to create course: ${response.status}`);
+      }
 
-      const result = await response.json();
 
-      // Replace temp with real data
-      setPlanData(prev => prev ? {
-        ...prev,
-        plannedCourses: prev.plannedCourses.map(pc =>
-          pc.id === tempId ? result.data : pc
-        )
-      } : null);
+      // Refetch the plan to get the updated data with proper structure
+      const planResponse = await fetch(`${API_BASE_URL}/api/plans/${planData.id}`);
+      if (planResponse.ok) {
+        const planResult = await planResponse.json();
+        setPlanData(planResult.data);
+      }
     } catch (err) {
       console.error('Error creating planned course:', err);
       // Rollback on error
@@ -265,9 +279,10 @@ const Planning: React.FC = () => {
 
   return (
     <DndContext
+      sensors={sensors}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      collisionDetection={closestCenter}
+      collisionDetection={pointerWithin}
     >
       <div className="planning-page">
         <NavBar isBlurred={isPopupOpen} />
@@ -294,23 +309,41 @@ const Planning: React.FC = () => {
 
       <DragOverlay>
         {activeDrag && (
-          <div className="drag-preview">
-            <span className="drag-preview-code">
-              {activeDrag.course.subjectCode} {activeDrag.course.courseNumber}
-            </span>
-            <span className="drag-preview-title">
-              {(activeDrag.course.title || '').length > 40
-                ? (activeDrag.course.title || '').substring(0, 40) + '...'
-                : (activeDrag.course.title || '')}
-            </span>
-            <span className="drag-preview-credits">
-              {activeDrag.source === 'search'
-                ? activeDrag.course.creditsMin === activeDrag.course.creditsMax
+          activeDrag.source === 'search' ? (
+            // CourseCard preview - match CourseCard structure exactly
+            <div className="course" style={{ opacity: 0.25 }}>
+              <span className="course-code">
+                {activeDrag.course.subjectCode || ''} {activeDrag.course.courseNumber || ''}
+              </span>
+              <span className="course-title">
+                {activeDrag.course.title && activeDrag.course.title.length > 40
+                  ? activeDrag.course.title.substring(0, 40) + '...'
+                  : (activeDrag.course.title || '')}
+              </span>
+              <span className="course-credits">
+                {activeDrag.course.creditsMin === activeDrag.course.creditsMax
                   ? activeDrag.course.creditsMin
-                  : `${activeDrag.course.creditsMin} - ${activeDrag.course.creditsMax}`
-                : activeDrag.course.creditsMin}
-            </span>
-          </div>
+                  : `${activeDrag.course.creditsMin} - ${activeDrag.course.creditsMax}`}
+              </span>
+            </div>
+          ) : (
+            // PlannedCourse preview - keep existing drag-preview structure
+            <div className="drag-preview">
+              <span className="drag-preview-code">
+                {activeDrag.course.subjectCode || ''} {activeDrag.course.courseNumber || ''}
+              </span>
+              {activeDrag.course.title && (
+                <span className="drag-preview-title">
+                  {activeDrag.course.title.length > 40
+                    ? activeDrag.course.title.substring(0, 40) + '...'
+                    : activeDrag.course.title}
+                </span>
+              )}
+              <span className="drag-preview-credits">
+                {activeDrag.course.creditsMin}
+              </span>
+            </div>
+          )
         )}
       </DragOverlay>
     </DndContext>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import './CourseCard.css';
 import type { Course } from '../../../types/Course';
@@ -13,6 +13,8 @@ interface CourseProps {
 }
 
 const CourseCardComponent: React.FC<CourseProps> = ({ course, onClick, searchContext }) => {
+  const [isRecentlyDragged, setIsRecentlyDragged] = useState(false);
+
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `course-${course.id}`,
     data: {
@@ -21,6 +23,22 @@ const CourseCardComponent: React.FC<CourseProps> = ({ course, onClick, searchCon
       searchContext: searchContext
     }
   });
+
+  useEffect(() => {
+    if (isDragging) {
+      setIsRecentlyDragged(true);
+    }
+  }, [isDragging]);
+
+  useEffect(() => {
+    if (isRecentlyDragged && !isDragging) {
+      // Keep flag set for a short time after drag ends
+      const timer = setTimeout(() => {
+        setIsRecentlyDragged(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isRecentlyDragged, isDragging]);
 
   const truncateTitle = (title: string, maxLength: number = 40): string => {
     if (title.length <= maxLength) return title;
@@ -35,6 +53,8 @@ const CourseCardComponent: React.FC<CourseProps> = ({ course, onClick, searchCon
   };
 
   const handleClick = () => {
+    if (isRecentlyDragged) return; // Prevent click after drag
+
     if (onClick) {
       onClick(course);
     }

@@ -24,14 +24,15 @@
   box-sizing: border-box;
   opacity: 0.25;
   cursor: grabbing;
+  position: relative;
 }
 
 .drag-preview-code {
   color: var(--color-text-white);
   font-size: 12px;
   font-weight: 500;
-  flex: 0 0 90px;
-  text-align: left;
+  flex: 1;
+  text-align: center;
 }
 
 .drag-preview-title {
@@ -50,6 +51,7 @@
   color: var(--color-text-dark);
   font-size: 12px;
   font-weight: 500;
-  flex: 0 0 50px;
+  position: absolute;
+  right: 16px;
   text-align: right;
 }
