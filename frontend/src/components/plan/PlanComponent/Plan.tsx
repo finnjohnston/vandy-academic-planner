@@ -24,7 +24,8 @@ interface PlanProps {
     } | null;
   }>;
   isBlurred?: boolean;
-  onCourseClick?: (courseId: string) => void;
+  onCourseDetailsClick?: (courseId: string) => void;
+  onDeleteCourseClick?: (courseId: string) => void;
 }
 
 const Plan: React.FC<PlanProps> = ({
@@ -33,7 +34,8 @@ const Plan: React.FC<PlanProps> = ({
   academicYear,
   plannedCourses,
   isBlurred = false,
-  onCourseClick
+  onCourseDetailsClick,
+  onDeleteCourseClick
 }) => {
   const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -70,7 +72,8 @@ const Plan: React.FC<PlanProps> = ({
               academicYear={academicYear}
               credits={calculateSemesterCredits(semesterNumber)}
               plannedCourses={transformedCourses}
-              onCourseClick={onCourseClick}
+              onCourseDetailsClick={onCourseDetailsClick}
+              onDeleteCourseClick={onDeleteCourseClick}
             />
           ))}
         </div>

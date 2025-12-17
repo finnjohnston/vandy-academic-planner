@@ -6,13 +6,15 @@ import PlannedCourse from '../PlannedCourseComponent/PlannedCourse';
 interface PlannedCourseListProps {
   semesterNumber: number;
   plannedCourses: PlannedCourseType[];
-  onCourseClick?: (courseId: string) => void;
+  onCourseDetailsClick?: (courseId: string) => void;
+  onDeleteCourseClick?: (plannedCourseId: number) => void;
 }
 
 const PlannedCourseList: React.FC<PlannedCourseListProps> = ({
   semesterNumber,
   plannedCourses,
-  onCourseClick,
+  onCourseDetailsClick,
+  onDeleteCourseClick,
 }) => {
   const semesterCourses = plannedCourses.filter(
     (course) => course.semesterNumber === semesterNumber
@@ -23,11 +25,13 @@ const PlannedCourseList: React.FC<PlannedCourseListProps> = ({
       {semesterCourses.map((plannedCourse) => (
         <PlannedCourse
           key={plannedCourse.id}
+          plannedCourseId={plannedCourse.id}
           courseId={plannedCourse.courseId || ''}
           subjectCode={plannedCourse.subjectCode}
           courseNumber={plannedCourse.courseNumber}
           credits={plannedCourse.credits}
-          onClick={onCourseClick}
+          onCourseDetailsClick={onCourseDetailsClick}
+          onDeleteCourseClick={onDeleteCourseClick}
         />
       ))}
     </div>

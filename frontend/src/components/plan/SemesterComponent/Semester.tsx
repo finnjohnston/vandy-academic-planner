@@ -14,7 +14,8 @@ interface SemesterProps {
   };
   credits?: number;
   plannedCourses?: PlannedCourse[];
-  onCourseClick?: (courseId: string) => void;
+  onCourseDetailsClick?: (courseId: string) => void;
+  onDeleteCourseClick?: (courseId: string) => void;
 }
 
 interface SemesterInfo {
@@ -27,7 +28,8 @@ const Semester: React.FC<SemesterProps> = ({
   academicYear,
   credits = 0,
   plannedCourses = [],
-  onCourseClick,
+  onCourseDetailsClick,
+  onDeleteCourseClick,
 }) => {
   const getSemesterInfo = (
     semesterNumber: number,
@@ -56,7 +58,8 @@ const Semester: React.FC<SemesterProps> = ({
         <PlannedCourseList
           semesterNumber={semesterNumber}
           plannedCourses={plannedCourses}
-          onCourseClick={onCourseClick}
+          onCourseDetailsClick={onCourseDetailsClick}
+          onDeleteCourseClick={onDeleteCourseClick}
         />
       </div>
     </div>

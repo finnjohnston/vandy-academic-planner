@@ -68,6 +68,35 @@ const Planning: React.FC = () => {
     }
   };
 
+  const handleDeleteCourse = async (plannedCourseId: number) => {
+    if (!planData) return;
+
+    const originalPlanData = { ...planData };
+    setPlanData({
+      ...planData,
+      plannedCourses: planData.plannedCourses.filter(
+        (pc) => pc.id !== plannedCourseId
+      )
+    });
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/plans/${planData.id}/courses/${plannedCourseId}`,
+        { method: 'DELETE' }
+      );
+
+      if (!response.ok) {
+        setPlanData(originalPlanData);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to delete course');
+      }
+    } catch (err) {
+      console.error('Error deleting course:', err);
+      setPlanData(originalPlanData);
+      setError(err instanceof Error ? err.message : 'Failed to delete course');
+    }
+  };
+
   const handleClosePopup = () => {
     setSelectedCourse(null);
     setIsPopupOpen(false);
@@ -109,7 +138,8 @@ const Planning: React.FC = () => {
         academicYear={planData.academicYear}
         plannedCourses={planData.plannedCourses}
         isBlurred={isPopupOpen}
-        onCourseClick={handlePlannedCourseClick}
+        onCourseDetailsClick={handlePlannedCourseClick}
+        onDeleteCourseClick={handleDeleteCourse}
       />
 
       {selectedCourse && ReactDOM.createPortal(
