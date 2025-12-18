@@ -164,6 +164,7 @@ model PlannedCourse {
   courseId              String?               @map("course_id") @db.VarChar(50)
   classId               String?               @map("class_id") @db.VarChar(255)
   semesterNumber        Int                   @map("semester_number")
+  position              Int                   @default(0)
   credits               Float
   createdAt             DateTime              @default(now()) @map("created_at")
   updatedAt             DateTime              @updatedAt @map("updated_at")
@@ -176,5 +177,6 @@ model PlannedCourse {
   @@index([planId])
   @@index([courseId])
   @@index([classId])
+  @@index([planId, semesterNumber, position])
   @@map("planned_courses")
 }
