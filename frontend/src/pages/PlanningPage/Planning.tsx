@@ -45,12 +45,16 @@ const Planning: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeDrag, setActiveDrag] = useState<DragData | null>(null);
-  const [dragOverPosition, setDragOverPosition] = useState<{ semesterNumber: number; position: number } | null>(null);
+  const [dragOverPosition, setDragOverPosition] = useState<{
+    semesterNumber: number;
+    position: number;
+    indicatorPosition: 'above' | 'below'
+  } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 150,
+        delay: 100,
         tolerance: 5,
       },
     })
@@ -134,55 +138,57 @@ const Planning: React.FC = () => {
     const overData = over.data.current;
     const dragData = active.data.current as DragData;
 
-    // Hovering over a planned course - insert at that position
+    // Hovering over a planned course - show gap on hovered course
     if (overData?.source === 'planned') {
       const hoveredPosition = overData.currentPosition;
       const activePosition = dragData.currentPosition;
       const activeSemester = dragData.currentSemester;
+      const isFromSearch = dragData.source === 'search';
+      const isSameSemester = activeSemester === overData.currentSemester;
 
-      let insertPosition: number;
-
-      // For cross-semester moves, insert at the hovered position (before the hovered course)
-      if (activeSemester !== overData.currentSemester) {
-        insertPosition = hoveredPosition;
-      }
-      // For same-semester moves, adjust based on drag direction
-      else {
-        // If dragging from above (lower position), insert at hoveredPosition - 1 ("above" indicator)
-        // If dragging from below (higher position), insert at hoveredPosition + 1 ("below" indicator)
-        insertPosition =
+      // Determine where the gap should appear (above or below the hovered course)
+      let indicatorPosition: 'above' | 'below';
+      if (isFromSearch || !isSameSemester) {
+        // Course cards or cross-semester moves: always show gap above (insert before)
+        indicatorPosition = 'above';
+      } else if (hoveredPosition === 0) {
+        // Special case: when hovering position 0, always show gap above to allow insertion at top
+        indicatorPosition = 'above';
+      } else {
+        // Same-semester moves: show gap above if dragging from above, below if from below
+        indicatorPosition =
           activePosition !== undefined && activePosition < hoveredPosition
-            ? hoveredPosition - 1  // Insert "above" (before the hovered course)
-            : hoveredPosition + 1;  // Insert "below" (after the hovered position)
+            ? 'above'
+            : 'below';
       }
 
+      // Store the HOVERED position (not insertion position) along with the indicator direction
       setDragOverPosition({
         semesterNumber: overData.currentSemester,
-        position: insertPosition
+        position: hoveredPosition,
+        indicatorPosition
       });
     }
     // Hovering over semester body - append to end
     else if (overData?.semesterNumber !== undefined) {
-      // Filter courses in target semester, excluding the one being dragged if it's in the same semester
+      // Filter courses in target semester, excluding:
+      // 1. The course being dragged if it's in the same semester
+      // 2. Temporary courses from optimistic updates (negative IDs)
       const semesterCourses = planData?.plannedCourses.filter(
         pc => pc.semesterNumber === overData.semesterNumber &&
+              pc.id > 0 && // Exclude temp courses (negative IDs from optimistic updates)
               !(dragData.source === 'planned' &&
                 dragData.plannedCourseId === pc.id &&
                 dragData.currentSemester === overData.semesterNumber)
       ) || [];
 
-      // Calculate max position, filtering out undefined values and using course count as fallback
-      const positions = semesterCourses
-        .map(pc => pc.position)
-        .filter((pos): pos is number => typeof pos === 'number' && !isNaN(pos));
-
-      const maxPosition = positions.length > 0
-        ? Math.max(...positions)
-        : -1;
+      // Use the count of courses to determine append position
+      const appendPosition = semesterCourses.length;
 
       setDragOverPosition({
         semesterNumber: overData.semesterNumber,
-        position: maxPosition + 1
+        position: appendPosition,
+        indicatorPosition: 'above'
       });
     }
     else {
@@ -200,16 +206,39 @@ const Planning: React.FC = () => {
 
     const dragData = active.data.current as DragData;
     const semesterNumber = targetPosition.semesterNumber;
-    const position = targetPosition.position;
+    const hoveredPosition = targetPosition.position;
+    const indicatorDirection = targetPosition.indicatorPosition;
 
     if (!semesterNumber || typeof semesterNumber !== 'number') {
       return;
     }
 
+    // Calculate actual insertion position from hovered position and indicator direction
+    const activeSemester = dragData.currentSemester;
+    const isSameSemester = activeSemester === semesterNumber;
+    const activePosition = dragData.currentPosition;
+
+    let insertPosition: number;
+    if (indicatorDirection === 'above') {
+      // Insert before the hovered course
+      // For same-semester: if dragging from above, no adjustment needed
+      // If dragging from below, the removal already happened, so use hovered position directly
+      if (isSameSemester && activePosition !== undefined && activePosition < hoveredPosition) {
+        // Dragging from above: course will be removed first, shifting positions down
+        insertPosition = hoveredPosition - 1;
+      } else {
+        // Cross-semester or dragging from below: use hovered position as-is
+        insertPosition = hoveredPosition;
+      }
+    } else {
+      // Insert after the hovered course
+      insertPosition = hoveredPosition + 1;
+    }
+
     if (dragData.source === 'search') {
-      await handleCreatePlannedCourse(dragData, semesterNumber, position);
+      await handleCreatePlannedCourse(dragData, semesterNumber, insertPosition);
     } else if (dragData.source === 'planned') {
-      await handleMovePlannedCourse(dragData, semesterNumber, position);
+      await handleMovePlannedCourse(dragData, semesterNumber, insertPosition);
     }
   };
 
@@ -385,6 +414,7 @@ const Planning: React.FC = () => {
           isBlurred={isPopupOpen}
           onCourseDetailsClick={handlePlannedCourseClick}
           onDeleteCourseClick={handleDeleteCourse}
+          dragOverPosition={dragOverPosition}
         />
 
         {selectedCourse && ReactDOM.createPortal(

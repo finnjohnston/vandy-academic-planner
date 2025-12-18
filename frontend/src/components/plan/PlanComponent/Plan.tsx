@@ -26,6 +26,11 @@ interface PlanProps {
   isBlurred?: boolean;
   onCourseDetailsClick?: (courseId: string) => void;
   onDeleteCourseClick?: (plannedCourseId: number) => void;
+  dragOverPosition: {
+    semesterNumber: number;
+    position: number;
+    indicatorPosition: 'above' | 'below'
+  } | null;
 }
 
 const Plan: React.FC<PlanProps> = ({
@@ -35,7 +40,8 @@ const Plan: React.FC<PlanProps> = ({
   plannedCourses,
   isBlurred = false,
   onCourseDetailsClick,
-  onDeleteCourseClick
+  onDeleteCourseClick,
+  dragOverPosition
 }) => {
   const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -75,6 +81,7 @@ const Plan: React.FC<PlanProps> = ({
               plannedCourses={transformedCourses}
               onCourseDetailsClick={onCourseDetailsClick}
               onDeleteCourseClick={onDeleteCourseClick}
+              dragOverPosition={dragOverPosition}
             />
           ))}
         </div>

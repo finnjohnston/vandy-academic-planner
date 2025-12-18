@@ -17,6 +17,11 @@ interface SemesterProps {
   plannedCourses?: PlannedCourse[];
   onCourseDetailsClick?: (courseId: string) => void;
   onDeleteCourseClick?: (plannedCourseId: number) => void;
+  dragOverPosition: {
+    semesterNumber: number;
+    position: number;
+    indicatorPosition?: 'above' | 'below'
+  } | null;
 }
 
 interface SemesterInfo {
@@ -31,6 +36,7 @@ const Semester: React.FC<SemesterProps> = ({
   plannedCourses = [],
   onCourseDetailsClick,
   onDeleteCourseClick,
+  dragOverPosition,
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `semester-${semesterNumber}`,
@@ -64,18 +70,14 @@ const Semester: React.FC<SemesterProps> = ({
       </div>
       <div
         ref={setNodeRef}
-        className={`semester-body${isOver && plannedCourses.length === 0 ? ' semester-body-over' : ''}`}
+        className="semester-body"
       >
-        {plannedCourses.length === 0 && isOver && (
-          <div className="semester-empty-drop-indicator">
-            Drop course here
-          </div>
-        )}
         <PlannedCourseList
           semesterNumber={semesterNumber}
           plannedCourses={plannedCourses}
           onCourseDetailsClick={onCourseDetailsClick}
           onDeleteCourseClick={onDeleteCourseClick}
+          dragOverPosition={dragOverPosition}
         />
       </div>
     </div>

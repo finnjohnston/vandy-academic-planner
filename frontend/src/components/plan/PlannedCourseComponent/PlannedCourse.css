@@ -2,22 +2,35 @@
   width: 100%;
   height: 36px;
   background-color: var(--color-card-bg);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border) !important;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   position: relative;
   padding: 0 16px;
   cursor: grab;
-  transition: opacity 0.2s ease, margin 0.15s ease;
+  transition: opacity 0.2s ease;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  outline: none !important;
 }
 
 .planned-course-drop-above {
   margin-top: 40px;
+  margin-bottom: 0 !important;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .planned-course-drop-below {
+  margin-top: 0 !important;
   margin-bottom: 40px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.planned-course-dragging {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
 }
 
 .planned-course:active {

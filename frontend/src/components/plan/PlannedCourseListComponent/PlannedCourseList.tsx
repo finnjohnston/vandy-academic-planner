@@ -9,6 +9,11 @@ interface PlannedCourseListProps {
   plannedCourses: PlannedCourseType[];
   onCourseDetailsClick?: (courseId: string) => void;
   onDeleteCourseClick?: (plannedCourseId: number) => void;
+  dragOverPosition: {
+    semesterNumber: number;
+    position: number;
+    indicatorPosition?: 'above' | 'below'
+  } | null;
 }
 
 const PlannedCourseList: React.FC<PlannedCourseListProps> = ({
@@ -16,6 +21,7 @@ const PlannedCourseList: React.FC<PlannedCourseListProps> = ({
   plannedCourses,
   onCourseDetailsClick,
   onDeleteCourseClick,
+  dragOverPosition,
 }) => {
   // Filter and sort by position
   const semesterCourses = plannedCourses
@@ -41,6 +47,7 @@ const PlannedCourseList: React.FC<PlannedCourseListProps> = ({
             position={plannedCourse.position}
             onCourseDetailsClick={onCourseDetailsClick}
             onDeleteCourseClick={onDeleteCourseClick}
+            dragOverPosition={dragOverPosition}
           />
         ))}
       </div>

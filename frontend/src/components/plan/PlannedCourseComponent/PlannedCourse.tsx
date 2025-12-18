@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import PlannedCourseOptionsMenu from '../PlannedCourseOptionsMenuComponent/PlannedCourseOptionsMenu';
-import DropIndicator from '../DropIndicatorComponent/DropIndicator';
 import './PlannedCourse.css';
 
 interface PlannedCourseProps {
@@ -15,6 +14,11 @@ interface PlannedCourseProps {
   position: number;
   onCourseDetailsClick?: (courseId: string) => void;
   onDeleteCourseClick?: (plannedCourseId: number) => void;
+  dragOverPosition: {
+    semesterNumber: number;
+    position: number;
+    indicatorPosition: 'above' | 'below'
+  } | null;
 }
 
 const PlannedCourse: React.FC<PlannedCourseProps> = ({
@@ -27,6 +31,7 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
   position,
   onCourseDetailsClick,
   onDeleteCourseClick,
+  dragOverPosition,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRecentlyDragged, setIsRecentlyDragged] = useState(false);
@@ -59,35 +64,47 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
         createdAt: '',
         updatedAt: ''
       }
-    }
+    },
+    // Disable automatic layout animations - we handle visual feedback with manual gaps
+    animateLayoutChanges: () => false
   });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  // Calculate drop indicator
-  const isOverThis = over?.id === `planned-course-${plannedCourseId}`;
-  const activePlannedCourseId = active?.data.current?.plannedCourseId;
-  const isNotSelf = activePlannedCourseId !== plannedCourseId;
-  const showIndicator = isOverThis && isNotSelf && !isDragging;
+  // Use dragOverPosition as single source of truth for showing indicator
+  // This prevents multiple courses from showing gaps simultaneously
+  const shouldShowIndicator =
+    !isDragging && // Don't show on the dragged element itself
+    dragOverPosition !== null &&
+    dragOverPosition.semesterNumber === semesterNumber &&
+    dragOverPosition.position === position;
 
   const activePosition = active?.data.current?.currentPosition;
   const activeSemester = active?.data.current?.currentSemester;
-  const isFromSearch = active?.data.current?.source === 'search';
   const isSameSemester = activeSemester === semesterNumber;
 
-  // Determine indicator position
-  let indicatorPosition: 'above' | 'below';
-  if (isFromSearch || !isSameSemester) {
-    // Course cards or cross-semester moves: always insert before the hovered course
-    indicatorPosition = 'above';
-  } else {
-    // Same-semester moves: compare positions to determine direction
-    indicatorPosition =
-      activePosition !== undefined && activePosition < position ? 'above' : 'below';
-  }
+  // Don't show indicator if hovering over a course directly adjacent to the dragged course
+  // in the same semester, because the dragged course (opacity: 0) already creates a gap
+  const indicatorPosition = dragOverPosition?.indicatorPosition || 'above';
+  const isAdjacentToActiveInSameSemester =
+    isSameSemester &&
+    activePosition !== undefined &&
+    ((indicatorPosition === 'above' && position === activePosition + 1) ||
+     (indicatorPosition === 'below' && position === activePosition - 1));
+
+  const showIndicator = shouldShowIndicator && !isAdjacentToActiveInSameSemester;
+
+  const style = {
+    // Apply transform: always for dragged item, for others only when not showing manual gap
+    transform: (isDragging || !showIndicator) && transform ? CSS.Transform.toString(transform) : undefined,
+    // Override transition to exclude margins - gaps should appear/disappear instantly
+    transition: 'transform 200ms ease, opacity 200ms ease',
+  };
+
+  // Build className explicitly to prevent both gap classes from being applied
+  const gapClass = showIndicator && !isDragging
+    ? (indicatorPosition === 'above' ? ' planned-course-drop-above' : ' planned-course-drop-below')
+    : '';
+
+  const finalClassName = `planned-course${isDragging ? ' planned-course-dragging' : ''}${gapClass}`;
 
   useEffect(() => {
     if (isDragging) {
@@ -113,14 +130,11 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`planned-course${isDragging ? ' planned-course-dragging' : ''}${
-        showIndicator ? ` planned-course-drop-${indicatorPosition}` : ''
-      }`}
+      className={finalClassName}
       onClick={handleCourseClick}
       {...listeners}
       {...attributes}
     >
-      {showIndicator && <DropIndicator position={indicatorPosition} />}
       <span className="planned-course-code">
         {subjectCode} {courseNumber}
       </span>
