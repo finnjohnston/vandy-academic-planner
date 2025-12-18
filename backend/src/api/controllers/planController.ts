@@ -70,7 +70,7 @@ export async function getPlanById(
             course: true,
             class: true,
           },
-          orderBy: [{ semesterNumber: 'asc' }, { courseId: 'asc' }],
+          orderBy: [{ semesterNumber: 'asc' }, { position: 'asc' }],
         },
       },
     });
@@ -96,6 +96,7 @@ export async function getPlanById(
         courseId: pc.courseId,
         classId: pc.classId,
         semesterNumber: pc.semesterNumber,
+        position: pc.position,
         credits: pc.credits,
         createdAt: pc.createdAt,
         updatedAt: pc.updatedAt,

@@ -9,4 +9,5 @@ export interface DragData {
   };
   plannedCourseId?: number;
   currentSemester?: number;
+  currentPosition?: number;
 }

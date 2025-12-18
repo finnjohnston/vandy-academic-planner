@@ -4,6 +4,7 @@ export interface PlannedCourse {
   courseId?: string;
   classId?: string;
   semesterNumber: number;
+  position: number;
   credits: number;
   subjectCode: string;
   courseNumber: string;

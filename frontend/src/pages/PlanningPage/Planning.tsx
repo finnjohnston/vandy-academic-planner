@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import ReactDOM from 'react-dom';
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, pointerWithin } from '@dnd-kit/core';
-import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
+import type { DragStartEvent, DragEndEvent, DragOverEvent } from '@dnd-kit/core';
 import NavBar from '../../components/common/NavBarComponent/NavBar';
 import CourseSearch from '../../components/course/CourseSearchComponent/CourseSearch';
 import Plan from '../../components/plan/PlanComponent/Plan';
@@ -28,6 +28,7 @@ interface PlanData {
     id: number;
     courseId: string | null;
     semesterNumber: number;
+    position: number;
     credits: number;
     course?: {
       subjectCode: string;
@@ -44,6 +45,7 @@ const Planning: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeDrag, setActiveDrag] = useState<DragData | null>(null);
+  const [dragOverPosition, setDragOverPosition] = useState<{ semesterNumber: number; position: number } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -122,41 +124,110 @@ const Planning: React.FC = () => {
     setActiveDrag(event.active.data.current as DragData);
   };
 
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over, active } = event;
+    if (!over) {
+      setDragOverPosition(null);
+      return;
+    }
+
+    const overData = over.data.current;
+    const dragData = active.data.current as DragData;
+
+    // Hovering over a planned course - insert at that position
+    if (overData?.source === 'planned') {
+      const hoveredPosition = overData.currentPosition;
+      const activePosition = dragData.currentPosition;
+      const activeSemester = dragData.currentSemester;
+
+      let insertPosition: number;
+
+      // For cross-semester moves, insert at the hovered position (before the hovered course)
+      if (activeSemester !== overData.currentSemester) {
+        insertPosition = hoveredPosition;
+      }
+      // For same-semester moves, adjust based on drag direction
+      else {
+        // If dragging from above (lower position), insert at hoveredPosition - 1 ("above" indicator)
+        // If dragging from below (higher position), insert at hoveredPosition + 1 ("below" indicator)
+        insertPosition =
+          activePosition !== undefined && activePosition < hoveredPosition
+            ? hoveredPosition - 1  // Insert "above" (before the hovered course)
+            : hoveredPosition + 1;  // Insert "below" (after the hovered position)
+      }
+
+      setDragOverPosition({
+        semesterNumber: overData.currentSemester,
+        position: insertPosition
+      });
+    }
+    // Hovering over semester body - append to end
+    else if (overData?.semesterNumber !== undefined) {
+      // Filter courses in target semester, excluding the one being dragged if it's in the same semester
+      const semesterCourses = planData?.plannedCourses.filter(
+        pc => pc.semesterNumber === overData.semesterNumber &&
+              !(dragData.source === 'planned' &&
+                dragData.plannedCourseId === pc.id &&
+                dragData.currentSemester === overData.semesterNumber)
+      ) || [];
+
+      // Calculate max position, filtering out undefined values and using course count as fallback
+      const positions = semesterCourses
+        .map(pc => pc.position)
+        .filter((pos): pos is number => typeof pos === 'number' && !isNaN(pos));
+
+      const maxPosition = positions.length > 0
+        ? Math.max(...positions)
+        : -1;
+
+      setDragOverPosition({
+        semesterNumber: overData.semesterNumber,
+        position: maxPosition + 1
+      });
+    }
+    else {
+      setDragOverPosition(null);
+    }
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-
     setActiveDrag(null);
+    const targetPosition = dragOverPosition;
+    setDragOverPosition(null);
 
-    if (!over || !planData) return;
+    if (!over || !planData || !targetPosition) return;
 
     const dragData = active.data.current as DragData;
-    const semesterNumber = over.data.current?.semesterNumber as number;
+    const semesterNumber = targetPosition.semesterNumber;
+    const position = targetPosition.position;
 
-    // Validate semesterNumber - only proceed if it's a valid number
     if (!semesterNumber || typeof semesterNumber !== 'number') {
       return;
     }
 
     if (dragData.source === 'search') {
-      await handleCreatePlannedCourse(dragData, semesterNumber);
+      await handleCreatePlannedCourse(dragData, semesterNumber, position);
     } else if (dragData.source === 'planned') {
-      await handleMovePlannedCourse(dragData, semesterNumber);
+      await handleMovePlannedCourse(dragData, semesterNumber, position);
     }
   };
 
   const handleCreatePlannedCourse = async (
     dragData: DragData,
-    semesterNumber: number
+    semesterNumber: number,
+    position: number
   ) => {
     if (!planData) return;
 
     const course = dragData.course;
     const isTermSearch = dragData.searchContext?.type === 'term';
 
-    const requestBody: { courseId?: string; classId?: string; semesterNumber: number; credits: number } = {
+    const requestBody: { courseId?: string; classId?: string; semesterNumber: number; credits: number; position: number } = {
       [isTermSearch ? 'classId' : 'courseId']: course.courseId,
       semesterNumber,
-      credits: course.creditsMin
+      credits: course.creditsMin,
+      position
     };
 
     // Optimistic update
@@ -165,6 +236,7 @@ const Planning: React.FC = () => {
       id: tempId,
       courseId: course.courseId,
       semesterNumber,
+      position,
       credits: course.creditsMin,
       course: {
         subjectCode: course.subjectCode,
@@ -211,20 +283,26 @@ const Planning: React.FC = () => {
 
   const handleMovePlannedCourse = async (
     dragData: DragData,
-    newSemesterNumber: number
+    newSemesterNumber: number,
+    newPosition: number
   ) => {
     if (!planData) return;
-    if (dragData.currentSemester === newSemesterNumber) return;
+
+    // Skip if both semester and position are the same
+    if (dragData.currentSemester === newSemesterNumber && dragData.currentPosition === newPosition) {
+      return;
+    }
 
     const plannedCourseId = dragData.plannedCourseId!;
     const oldSemesterNumber = dragData.currentSemester!;
+    const oldPosition = dragData.currentPosition!;
 
     // Optimistic update
     setPlanData(prev => prev ? {
       ...prev,
       plannedCourses: prev.plannedCourses.map(pc =>
         pc.id === plannedCourseId
-          ? { ...pc, semesterNumber: newSemesterNumber }
+          ? { ...pc, semesterNumber: newSemesterNumber, position: newPosition }
           : pc
       )
     } : null);
@@ -235,11 +313,18 @@ const Planning: React.FC = () => {
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ semesterNumber: newSemesterNumber })
+          body: JSON.stringify({ semesterNumber: newSemesterNumber, position: newPosition })
         }
       );
 
       if (!response.ok) throw new Error('Failed to move course');
+
+      // Refetch the plan to get correct positions for all courses
+      const planResponse = await fetch(`${API_BASE_URL}/api/plans/${planData.id}`);
+      if (planResponse.ok) {
+        const planResult = await planResponse.json();
+        setPlanData(planResult.data);
+      }
     } catch (err) {
       console.error('Error moving course:', err);
       // Rollback on error
@@ -247,7 +332,7 @@ const Planning: React.FC = () => {
         ...prev,
         plannedCourses: prev.plannedCourses.map(pc =>
           pc.id === plannedCourseId
-            ? { ...pc, semesterNumber: oldSemesterNumber }
+            ? { ...pc, semesterNumber: oldSemesterNumber, position: oldPosition }
             : pc
         )
       } : null);
@@ -281,6 +366,7 @@ const Planning: React.FC = () => {
     <DndContext
       sensors={sensors}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
       collisionDetection={pointerWithin}
     >

@@ -55,7 +55,7 @@ const Semester: React.FC<SemesterProps> = ({
   const { year, season } = getSemesterInfo(semesterNumber, academicYear);
 
   return (
-    <div className={`semester-card${isOver ? ' semester-card-over' : ''}`}>
+    <div className={`semester-card${isOver && plannedCourses.length === 0 ? ' semester-card-over' : ''}`}>
       <div className="semester-header">
         <span className="semester-name">
           {year} {season}
@@ -64,8 +64,13 @@ const Semester: React.FC<SemesterProps> = ({
       </div>
       <div
         ref={setNodeRef}
-        className="semester-body"
+        className={`semester-body${isOver && plannedCourses.length === 0 ? ' semester-body-over' : ''}`}
       >
+        {plannedCourses.length === 0 && isOver && (
+          <div className="semester-empty-drop-indicator">
+            Drop course here
+          </div>
+        )}
         <PlannedCourseList
           semesterNumber={semesterNumber}
           plannedCourses={plannedCourses}

@@ -9,6 +9,15 @@
   position: relative;
   padding: 0 16px;
   cursor: grab;
+  transition: opacity 0.2s ease, margin 0.15s ease;
+}
+
+.planned-course-drop-above {
+  margin-top: 40px;
+}
+
+.planned-course-drop-below {
+  margin-bottom: 40px;
 }
 
 .planned-course:active {
@@ -17,6 +26,7 @@
 
 .planned-course-dragging {
   cursor: grabbing;
+  opacity: 0;
 }
 
 .planned-course:last-child {

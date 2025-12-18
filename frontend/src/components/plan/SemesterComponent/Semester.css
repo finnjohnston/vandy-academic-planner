@@ -48,3 +48,19 @@
 .semester-card-over {
   border-color: var(--color-btn-border);
 }
+
+.semester-body-over {
+  background-color: rgba(99, 102, 241, 0.05);
+}
+
+.semester-empty-drop-indicator {
+  width: 100%;
+  padding: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-dark);
+  border: 2px dashed var(--color-btn-border);
+  border-radius: 8px;
+  margin: 12px;
+  box-sizing: border-box;
+}

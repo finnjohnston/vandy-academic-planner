@@ -41,12 +41,13 @@ const Plan: React.FC<PlanProps> = ({
 
   // Transform API response to PlannedCourse format
   const transformedCourses: PlannedCourse[] = plannedCourses
-    .filter(pc => pc.courseId && pc.course)
+    .filter(pc => pc.courseId && pc.course && typeof pc.position === 'number')
     .map(pc => ({
       id: pc.id,
       planId: planId,
       courseId: pc.courseId!,
       semesterNumber: pc.semesterNumber,
+      position: pc.position,
       credits: pc.credits,
       subjectCode: pc.course!.subjectCode,
       courseNumber: pc.course!.courseNumber,
