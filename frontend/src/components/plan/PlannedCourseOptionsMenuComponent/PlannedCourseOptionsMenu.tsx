@@ -1,4 +1,5 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
 import detailsIcon from '../../../assets/details_icon.png';
 import deleteIcon from '../../../assets/delete_icon.png';
 import './PlannedCourseOptionsMenu.css';
@@ -10,6 +11,7 @@ interface PlannedCourseOptionsMenuProps {
   onClose: () => void;
   onCourseDetailsClick?: (courseId: string) => void;
   onDeleteCourseClick?: (plannedCourseId: number) => void;
+  anchorElement?: HTMLElement | null;
 }
 
 const PlannedCourseOptionsMenu: React.FC<PlannedCourseOptionsMenuProps> = ({
@@ -18,9 +20,22 @@ const PlannedCourseOptionsMenu: React.FC<PlannedCourseOptionsMenuProps> = ({
   isOpen,
   onClose,
   onCourseDetailsClick,
-  onDeleteCourseClick
+  onDeleteCourseClick,
+  anchorElement
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ top: 0, right: 0 });
+
+  // Calculate position when menu opens
+  useEffect(() => {
+    if (isOpen && anchorElement) {
+      const rect = anchorElement.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom,
+        right: window.innerWidth - rect.right
+      });
+    }
+  }, [isOpen, anchorElement]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -56,8 +71,16 @@ const PlannedCourseOptionsMenu: React.FC<PlannedCourseOptionsMenuProps> = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="planned-course-options-container" ref={menuRef}>
+  const menu = (
+    <div
+      className="planned-course-options-container"
+      ref={menuRef}
+      style={{
+        position: 'fixed',
+        top: `${position.top}px`,
+        right: `${position.right}px`
+      }}
+    >
       <div className="planned-course-options-menu">
         <div className="planned-course-menu-item" onClick={handleCourseDetailsClick}>
           <img src={detailsIcon} alt="" className="planned-course-menu-icon planned-course-details-icon" />
@@ -70,6 +93,8 @@ const PlannedCourseOptionsMenu: React.FC<PlannedCourseOptionsMenuProps> = ({
       </div>
     </div>
   );
+
+  return ReactDOM.createPortal(menu, document.body);
 };
 
 export default PlannedCourseOptionsMenu;

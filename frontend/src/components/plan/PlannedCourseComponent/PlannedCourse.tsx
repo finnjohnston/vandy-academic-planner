@@ -37,6 +37,7 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRecentlyDragged, setIsRecentlyDragged] = useState(false);
+  const courseRef = useRef<HTMLDivElement>(null);
 
   const {
     attributes,
@@ -158,7 +159,10 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
 
   return (
     <div
-      ref={setNodeRef}
+      ref={(el) => {
+        setNodeRef(el);
+        (courseRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+      }}
       style={style}
       className={finalClassName}
       onClick={handleCourseClick}
@@ -176,6 +180,7 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
         onClose={() => setIsMenuOpen(false)}
         onCourseDetailsClick={onCourseDetailsClick}
         onDeleteCourseClick={onDeleteCourseClick}
+        anchorElement={courseRef.current}
       />
     </div>
   );
