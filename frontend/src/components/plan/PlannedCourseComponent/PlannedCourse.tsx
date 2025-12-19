@@ -87,13 +87,14 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
 
   const indicatorPosition = dragOverPosition?.indicatorPosition || 'above';
 
-  // Hide gap only when dragging from immediately before the last position TO the last position
-  // (adjacent positions). For non-adjacent positions, we need the gap indicator.
+  // Hide gap only when appending BELOW the last course (redundant with semester border drop zone)
+  // But allow gap ABOVE the last course (valid insertion point)
   const isDraggingAdjacentToLastPosition =
     isSameSemester &&
     activePosition !== undefined &&
     dragOverPosition?.isLastInSemester === true &&
-    position === activePosition + 1; // Adjacent: dragging from N to N+1
+    position === activePosition + 1 &&
+    indicatorPosition === 'below'; // Only hide when appending below
 
   const showIndicator = shouldShowIndicator && !isDraggingAdjacentToLastPosition;
 
