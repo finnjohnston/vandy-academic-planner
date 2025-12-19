@@ -48,7 +48,7 @@
 }
 
 .planned-course:last-child {
-  border-bottom: none;
+  border-bottom: none !important;
 }
 
 .planned-course-code {

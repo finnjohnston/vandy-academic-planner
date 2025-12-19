@@ -60,8 +60,11 @@ const Semester: React.FC<SemesterProps> = ({
 
   const { year, season } = getSemesterInfo(semesterNumber, academicYear);
 
+  // Highlight semester when dragging over it (isOver) or when dragging within it (same semester drag)
+  const shouldHighlight = isOver || (dragOverPosition !== null && dragOverPosition.semesterNumber === semesterNumber);
+
   return (
-    <div className={`semester-card${isOver && plannedCourses.length === 0 ? ' semester-card-over' : ''}`}>
+    <div className={`semester-card${shouldHighlight ? ' semester-card-over' : ''}`}>
       <div className="semester-header">
         <span className="semester-name">
           {year} {season}
