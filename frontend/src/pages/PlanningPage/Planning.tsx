@@ -141,32 +141,31 @@ const Planning: React.FC = () => {
     // Hovering over a planned course - show gap on hovered course
     if (overData?.source === 'planned') {
       const hoveredPosition = overData.currentPosition;
-      const activePosition = dragData.currentPosition;
       const activeSemester = dragData.currentSemester;
-      const isFromSearch = dragData.source === 'search';
       const isSameSemester = activeSemester === overData.currentSemester;
 
       // Determine where the gap should appear (above or below the hovered course)
-      let indicatorPosition: 'above' | 'below';
-      if (isFromSearch || !isSameSemester) {
-        // Course cards or cross-semester moves: always show gap above (insert before)
-        indicatorPosition = 'above';
-      } else if (hoveredPosition === 0) {
-        // Special case: when hovering position 0, always show gap above to allow insertion at top
-        indicatorPosition = 'above';
-      } else {
-        // Same-semester moves: show gap above if dragging from above, below if from below
-        indicatorPosition =
-          activePosition !== undefined && activePosition < hoveredPosition
-            ? 'above'
-            : 'below';
-      }
+      // For all moves: always show gap above (insert before hovered course)
+      // This allows inserting at any position in the list
+      const indicatorPosition: 'above' | 'below' = 'above';
 
       // Store the HOVERED position (not insertion position) along with the indicator direction
       setDragOverPosition({
         semesterNumber: overData.currentSemester,
         position: hoveredPosition,
         indicatorPosition
+      });
+
+      // DEBUG LOGGING
+      console.log('=== DRAG OVER ===', {
+        activePosition: dragData.currentPosition,
+        hoveredPosition,
+        activeSemester,
+        hoveredSemester: overData.currentSemester,
+        isSameSemester,
+        indicatorPosition,
+        draggedCourseId: dragData.plannedCourseId,
+        hoveredCourseId: overData.plannedCourseId
       });
     }
     // Hovering over semester body - append to end
@@ -218,22 +217,43 @@ const Planning: React.FC = () => {
     const isSameSemester = activeSemester === semesterNumber;
     const activePosition = dragData.currentPosition;
 
+    // DEBUG LOGGING
+    console.log('=== DRAG END (pre-calc) ===', {
+      activePosition,
+      hoveredPosition,
+      indicatorDirection,
+      isSameSemester,
+      oldSemester: dragData.currentSemester,
+      newSemester: semesterNumber
+    });
+
+    // Get the current count of courses in the target semester
+    const targetSemesterCourses = planData?.plannedCourses.filter(
+      pc => pc.semesterNumber === semesterNumber && pc.id > 0
+    ) || [];
+
+    // For same-semester moves, we remove one course first, so max position is count - 1
+    // For cross-semester/search, we're adding a course, so max position is count
+    const maxPosition = isSameSemester ? targetSemesterCourses.length - 1 : targetSemesterCourses.length;
+
+    // Since we always use 'above' indicator, we always insert before the hovered course
     let insertPosition: number;
-    if (indicatorDirection === 'above') {
-      // Insert before the hovered course
-      // For same-semester: if dragging from above, no adjustment needed
-      // If dragging from below, the removal already happened, so use hovered position directly
-      if (isSameSemester && activePosition !== undefined && activePosition < hoveredPosition) {
-        // Dragging from above: course will be removed first, shifting positions down
-        insertPosition = hoveredPosition - 1;
-      } else {
-        // Cross-semester or dragging from below: use hovered position as-is
-        insertPosition = hoveredPosition;
-      }
+    if (isSameSemester && activePosition !== undefined && activePosition < hoveredPosition) {
+      // Same-semester, dragging downward: course will be removed first, shifting positions down
+      // The hovered course will be at (hoveredPosition - 1) after removal
+      insertPosition = hoveredPosition - 1;
     } else {
-      // Insert after the hovered course
-      insertPosition = hoveredPosition + 1;
+      // Cross-semester OR same-semester dragging upward: insert before hovered position
+      insertPosition = hoveredPosition;
     }
+
+    // Ensure position doesn't exceed valid range
+    insertPosition = Math.min(insertPosition, maxPosition);
+
+    // DEBUG LOGGING
+    console.log('=== DRAG END (post-calc) ===', {
+      calculatedInsertPosition: insertPosition
+    });
 
     if (dragData.source === 'search') {
       await handleCreatePlannedCourse(dragData, semesterNumber, insertPosition);

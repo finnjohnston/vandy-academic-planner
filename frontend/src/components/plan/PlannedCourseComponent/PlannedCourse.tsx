@@ -83,18 +83,35 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
 
   // Don't show indicator if hovering over a course directly adjacent to the dragged course
   // in the same semester, because the dragged course (opacity: 0) already creates a gap
+  // Since we always use 'above' indicator, only check for position === activePosition + 1
   const indicatorPosition = dragOverPosition?.indicatorPosition || 'above';
   const isAdjacentToActiveInSameSemester =
     isSameSemester &&
     activePosition !== undefined &&
-    ((indicatorPosition === 'above' && position === activePosition + 1) ||
-     (indicatorPosition === 'below' && position === activePosition - 1));
+    position === activePosition + 1;
 
   const showIndicator = shouldShowIndicator && !isAdjacentToActiveInSameSemester;
 
+  // DEBUG LOGGING
+  useEffect(() => {
+    console.log(`COURSE ${subjectCode} ${courseNumber} (pos ${position}):`, {
+      showIndicator,
+      gapClass: showIndicator ? (indicatorPosition === 'above' ? 'GAP-ABOVE' : 'GAP-BELOW') : 'NO-GAP',
+      isDragging,
+      dragOverPosition: dragOverPosition?.position,
+      thisPosition: position
+    });
+  }, [showIndicator, position, isDragging, dragOverPosition, subjectCode, courseNumber, indicatorPosition]);
+
+  // Check if there's a same-semester drag happening
+  const isSameSemesterDrag = dragOverPosition && dragOverPosition.semesterNumber === semesterNumber;
+
   const style = {
-    // Apply transform: always for dragged item, for others only when not showing manual gap
-    transform: (isDragging || !showIndicator) && transform ? CSS.Transform.toString(transform) : undefined,
+    // When dragging within same semester: disable ALL transforms except for the dragged item
+    // This prevents DND Kit transforms from interfering with our manual gap system
+    transform: isDragging && transform ? CSS.Transform.toString(transform) :
+               isSameSemesterDrag ? undefined :
+               transform ? CSS.Transform.toString(transform) : undefined,
     // Override transition to exclude margins - gaps should appear/disappear instantly
     transition: 'transform 200ms ease, opacity 200ms ease',
   };
