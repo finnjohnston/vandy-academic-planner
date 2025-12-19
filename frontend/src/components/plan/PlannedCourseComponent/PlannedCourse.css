@@ -40,6 +40,11 @@
 .planned-course-dragging {
   cursor: grabbing;
   opacity: 0;
+  height: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: none;
+  padding: 0;
 }
 
 .planned-course:last-child {

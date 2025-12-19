@@ -125,6 +125,12 @@ export async function reorderWithinSemester(
     return; // No change needed
   }
 
+  // Move to temporary position first to avoid duplicate positions during reordering
+  await prisma.plannedCourse.update({
+    where: { id: courseId },
+    data: { position: -1 },
+  });
+
   if (oldPosition < newPosition) {
     // Moving down: shift courses between old and new positions up
     await prisma.plannedCourse.updateMany({
@@ -151,7 +157,7 @@ export async function reorderWithinSemester(
     });
   }
 
-  // Update the course to new position
+  // Update the course to final position
   await prisma.plannedCourse.update({
     where: { id: courseId },
     data: { position: newPosition },

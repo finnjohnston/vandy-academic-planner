@@ -73,6 +73,7 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
   // This prevents multiple courses from showing gaps simultaneously
   const shouldShowIndicator =
     !isDragging && // Don't show on the dragged element itself
+    active !== null && // Only show gaps during an active drag
     dragOverPosition !== null &&
     dragOverPosition.semesterNumber === semesterNumber &&
     dragOverPosition.position === position;
@@ -81,16 +82,17 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
   const activeSemester = active?.data.current?.currentSemester;
   const isSameSemester = activeSemester === semesterNumber;
 
-  // Don't show indicator if hovering over a course directly adjacent to the dragged course
-  // in the same semester, because the dragged course (opacity: 0) already creates a gap
-  // Since we always use 'above' indicator, only check for position === activePosition + 1
   const indicatorPosition = dragOverPosition?.indicatorPosition || 'above';
-  const isAdjacentToActiveInSameSemester =
+
+  // Hide gap only when dragging from immediately before the last position TO the last position
+  // (adjacent positions). For non-adjacent positions, we need the gap indicator.
+  const isDraggingAdjacentToLastPosition =
     isSameSemester &&
     activePosition !== undefined &&
-    position === activePosition + 1;
+    dragOverPosition?.isLastInSemester === true &&
+    position === activePosition + 1; // Adjacent: dragging from N to N+1
 
-  const showIndicator = shouldShowIndicator && !isAdjacentToActiveInSameSemester;
+  const showIndicator = shouldShowIndicator && !isDraggingAdjacentToLastPosition;
 
   // DEBUG LOGGING
   useEffect(() => {
@@ -107,13 +109,15 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
   const isSameSemesterDrag = dragOverPosition && dragOverPosition.semesterNumber === semesterNumber;
 
   const style = {
-    // When dragging within same semester: disable ALL transforms except for the dragged item
-    // This prevents DND Kit transforms from interfering with our manual gap system
+    // When dragging within same semester: disable DND transforms completely
+    // The dragged item collapses (height: 0), so items naturally flow up
+    // Only show manual gap margins for the indicator
     transform: isDragging && transform ? CSS.Transform.toString(transform) :
                isSameSemesterDrag ? undefined :
                transform ? CSS.Transform.toString(transform) : undefined,
-    // Override transition to exclude margins - gaps should appear/disappear instantly
-    transition: 'transform 200ms ease, opacity 200ms ease',
+    // Disable transitions for recently dropped courses to prevent movement animation
+    // For cross-semester drags, keep smooth transitions
+    transition: isRecentlyDragged ? 'none' : 'transform 200ms ease, opacity 200ms ease',
   };
 
   // Build className explicitly to prevent both gap classes from being applied

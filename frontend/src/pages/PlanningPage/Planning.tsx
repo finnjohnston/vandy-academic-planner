@@ -48,7 +48,8 @@ const Planning: React.FC = () => {
   const [dragOverPosition, setDragOverPosition] = useState<{
     semesterNumber: number;
     position: number;
-    indicatorPosition: 'above' | 'below'
+    indicatorPosition: 'above' | 'below';
+    isLastInSemester: boolean;
   } | null>(null);
 
   const sensors = useSensors(
@@ -149,11 +150,19 @@ const Planning: React.FC = () => {
       // This allows inserting at any position in the list
       const indicatorPosition: 'above' | 'below' = 'above';
 
+      // Calculate if this is the last position in the semester
+      const semesterCourses = planData?.plannedCourses.filter(
+        pc => pc.semesterNumber === overData.currentSemester && pc.id > 0
+      ) || [];
+      const maxPosition = Math.max(...semesterCourses.map(pc => pc.position), -1);
+      const isLastInSemester = hoveredPosition === maxPosition;
+
       // Store the HOVERED position (not insertion position) along with the indicator direction
       setDragOverPosition({
         semesterNumber: overData.currentSemester,
         position: hoveredPosition,
-        indicatorPosition
+        indicatorPosition,
+        isLastInSemester
       });
 
       // DEBUG LOGGING
@@ -181,13 +190,15 @@ const Planning: React.FC = () => {
                 dragData.currentSemester === overData.semesterNumber)
       ) || [];
 
-      // Use the count of courses to determine append position
-      const appendPosition = semesterCourses.length;
+      // Use max position + 1 to ensure append position doesn't match any existing course
+      const maxPosition = Math.max(...semesterCourses.map(pc => pc.position), -1);
+      const appendPosition = maxPosition + 1;
 
       setDragOverPosition({
         semesterNumber: overData.semesterNumber,
         position: appendPosition,
-        indicatorPosition: 'above'
+        indicatorPosition: 'above',
+        isLastInSemester: true // Appending is always at the end
       });
     }
     else {
@@ -240,8 +251,17 @@ const Planning: React.FC = () => {
     let insertPosition: number;
     if (isSameSemester && activePosition !== undefined && activePosition < hoveredPosition) {
       // Same-semester, dragging downward: course will be removed first, shifting positions down
-      // The hovered course will be at (hoveredPosition - 1) after removal
-      insertPosition = hoveredPosition - 1;
+      const isLastPosition = targetPosition.isLastInSemester;
+      const isAdjacentToLast = isLastPosition && hoveredPosition === activePosition + 1;
+
+      if (isAdjacentToLast) {
+        // Special case: dragging from N to N+1 where N+1 is last position
+        // Swap adjacent courses: insert after the last course
+        insertPosition = hoveredPosition;
+      } else {
+        // Normal downward drag: the hovered course will be at (hoveredPosition - 1) after removal
+        insertPosition = hoveredPosition - 1;
+      }
     } else {
       // Cross-semester OR same-semester dragging upward: insert before hovered position
       insertPosition = hoveredPosition;
@@ -346,12 +366,19 @@ const Planning: React.FC = () => {
     const oldSemesterNumber = dragData.currentSemester!;
     const oldPosition = dragData.currentPosition!;
 
-    // Optimistic update
+    // Optimistic update with fractional position to avoid sort conflicts
+    // For same-semester moves, use .5 offset to ensure correct visual ordering:
+    // - Downward drags: add 0.5 to appear after courses at newPosition
+    // - Upward drags: subtract 0.5 to appear before courses at newPosition
+    const optimisticPosition = newSemesterNumber === oldSemesterNumber
+      ? (oldPosition < newPosition ? newPosition + 0.5 : newPosition - 0.5)
+      : newPosition;
+
     setPlanData(prev => prev ? {
       ...prev,
       plannedCourses: prev.plannedCourses.map(pc =>
         pc.id === plannedCourseId
-          ? { ...pc, semesterNumber: newSemesterNumber, position: newPosition }
+          ? { ...pc, semesterNumber: newSemesterNumber, position: optimisticPosition }
           : pc
       )
     } : null);
