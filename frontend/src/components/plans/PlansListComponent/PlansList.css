@@ -1,0 +1,22 @@
+.plans-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.plans-list .plan-list-item:last-child {
+  border-bottom: none;
+}
+
+.plans-list-loading,
+.plans-list-error,
+.plans-list-empty {
+  padding: 2rem;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-dark);
+}
+
+.plans-list-error {
+  color: #ff6b6b;
+}

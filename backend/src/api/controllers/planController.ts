@@ -17,6 +17,9 @@ export async function getPlans(
     logger.http('GET /api/plans');
 
     const plans = await prisma.plan.findMany({
+      include: {
+        academicYear: true,
+      },
       orderBy: { createdAt: 'desc' },
       take: 1000,
     });
@@ -26,7 +29,13 @@ export async function getPlans(
       id: plan.id,
       name: plan.name,
       schoolId: plan.schoolId,
-      startingYear: plan.startingYear,
+      academicYearId: plan.academicYearId,
+      academicYear: plan.academicYear ? {
+        id: plan.academicYear.id,
+        year: plan.academicYear.year,
+        start: plan.academicYear.start,
+        end: plan.academicYear.end,
+      } : null,
       currentSemester: plan.currentSemester,
       isActive: plan.isActive,
       createdAt: plan.createdAt,
@@ -55,12 +64,13 @@ export async function getPlanById(
     const plan = await prisma.plan.findUnique({
       where: { id: Number(id) },
       include: {
+        academicYear: true,
         plannedCourses: {
           include: {
             course: true,
             class: true,
           },
-          orderBy: [{ semesterNumber: 'asc' }, { courseId: 'asc' }],
+          orderBy: [{ semesterNumber: 'asc' }, { position: 'asc' }],
         },
       },
     });
@@ -74,7 +84,8 @@ export async function getPlanById(
       id: plan.id,
       name: plan.name,
       schoolId: plan.schoolId,
-      startingYear: plan.startingYear,
+      academicYearId: plan.academicYearId,
+      academicYear: plan.academicYear,
       currentSemester: plan.currentSemester,
       isActive: plan.isActive,
       createdAt: plan.createdAt,
@@ -85,6 +96,7 @@ export async function getPlanById(
         courseId: pc.courseId,
         classId: pc.classId,
         semesterNumber: pc.semesterNumber,
+        position: pc.position,
         credits: pc.credits,
         createdAt: pc.createdAt,
         updatedAt: pc.updatedAt,
@@ -109,7 +121,7 @@ export async function createPlan(
   next: NextFunction
 ): Promise<void> {
   try {
-    const { name, schoolId, startingYear, currentSemester, isActive } =
+    const { name, schoolId, academicYearId, currentSemester, isActive } =
       req.body;
     logger.http(`POST /api/plans (${name})`);
 
@@ -117,9 +129,12 @@ export async function createPlan(
       data: {
         name,
         schoolId,
-        startingYear,
+        academicYearId,
         currentSemester,
         isActive,
+      },
+      include: {
+        academicYear: true,
       },
     });
 
@@ -128,7 +143,8 @@ export async function createPlan(
       id: plan.id,
       name: plan.name,
       schoolId: plan.schoolId,
-      startingYear: plan.startingYear,
+      academicYearId: plan.academicYearId,
+      academicYear: plan.academicYear,
       currentSemester: plan.currentSemester,
       isActive: plan.isActive,
       createdAt: plan.createdAt,
@@ -158,6 +174,9 @@ export async function updatePlan(
     const plan = await prisma.plan.update({
       where: { id: Number(id) },
       data: updateData,
+      include: {
+        academicYear: true,
+      },
     });
 
     // Transform data - return relevant fields
@@ -165,7 +184,8 @@ export async function updatePlan(
       id: plan.id,
       name: plan.name,
       schoolId: plan.schoolId,
-      startingYear: plan.startingYear,
+      academicYearId: plan.academicYearId,
+      academicYear: plan.academicYear,
       currentSemester: plan.currentSemester,
       isActive: plan.isActive,
       createdAt: plan.createdAt,
@@ -246,7 +266,7 @@ export async function duplicatePlan(
       data: {
         name,
         schoolId: originalPlan.schoolId,
-        startingYear: originalPlan.startingYear,
+        academicYearId: originalPlan.academicYearId,
         currentSemester: 0, // Reset to semester 0
         isActive: false, // New plan starts inactive
         plannedCourses: {
@@ -259,6 +279,7 @@ export async function duplicatePlan(
         },
       },
       include: {
+        academicYear: true,
         plannedCourses: true,
       },
     });
@@ -268,7 +289,8 @@ export async function duplicatePlan(
       id: duplicatedPlan.id,
       name: duplicatedPlan.name,
       schoolId: duplicatedPlan.schoolId,
-      startingYear: duplicatedPlan.startingYear,
+      academicYearId: duplicatedPlan.academicYearId,
+      academicYear: duplicatedPlan.academicYear,
       currentSemester: duplicatedPlan.currentSemester,
       isActive: duplicatedPlan.isActive,
       createdAt: duplicatedPlan.createdAt,

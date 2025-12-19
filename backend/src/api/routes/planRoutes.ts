@@ -19,7 +19,7 @@ const idParamSchema = z.object({
 const createPlanSchema = z.object({
   name: z.string().min(1).max(255),
   schoolId: z.number().int().positive().optional(),
-  startingYear: z.number().int().min(2000).max(2100),
+  academicYearId: z.number().int().positive(),
   currentSemester: z.number().int().min(0).max(8).optional().default(0),
   isActive: z.boolean().optional().default(true),
 });

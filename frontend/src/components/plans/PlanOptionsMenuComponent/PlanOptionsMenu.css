@@ -1,0 +1,66 @@
+.plan-options-container {
+  position: absolute;
+  right: 15px;
+}
+
+.plan-options-icon {
+  width: 15px;
+  height: 15px;
+  filter: brightness(0) invert(1);
+  cursor: pointer;
+  display: block;
+}
+
+.plan-options-menu {
+  position: absolute;
+  top: 30px;
+  right: 0;
+  min-width: 130px;
+  background-color: var(--color-drpdwn-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 4px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.plan-menu-item {
+  height: 35px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-text-light);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.plan-menu-item:hover {
+  background-color: var(--color-btn-bg);
+}
+
+.plan-delete-menu-item {
+  padding-left: 4px;
+}
+
+.plan-menu-icon {
+  filter: brightness(0) invert(1);
+  flex-shrink: 0;
+}
+
+.plan-edit-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.plan-delete-icon {
+  width: 20px;
+  height: 20px;
+  padding-left: 4px;
+}
+
+.plan-delete-text {
+  margin-left: -4px;
+}

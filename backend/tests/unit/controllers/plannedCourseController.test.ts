@@ -62,6 +62,7 @@ describe('plannedCourseController', () => {
           courseId: 'CS-1101',
           classId: null,
           semesterNumber: 1,
+          position: 0,
           credits: 3,
           createdAt: new Date('2024-01-01'),
           updatedAt: new Date('2024-01-01'),
@@ -77,6 +78,7 @@ describe('plannedCourseController', () => {
           courseId: 'MATH-1200',
           classId: null,
           semesterNumber: 1,
+          position: 1,
           credits: 4,
           createdAt: new Date('2024-01-01'),
           updatedAt: new Date('2024-01-01'),
@@ -97,7 +99,7 @@ describe('plannedCourseController', () => {
       expect(prisma.plannedCourse.findMany).toHaveBeenCalledWith({
         where: { planId: 1 },
         include: { course: true, class: true },
-        orderBy: [{ semesterNumber: 'asc' }, { courseId: 'asc' }],
+        orderBy: [{ semesterNumber: 'asc' }, { position: 'asc' }],
       });
       expect(res.json).toHaveBeenCalledWith({
         data: mockPlannedCourses.map((pc) => ({
@@ -106,6 +108,7 @@ describe('plannedCourseController', () => {
           courseId: pc.courseId,
           classId: pc.classId,
           semesterNumber: pc.semesterNumber,
+          position: pc.position,
           credits: pc.credits,
           createdAt: pc.createdAt,
           updatedAt: pc.updatedAt,
@@ -125,6 +128,7 @@ describe('plannedCourseController', () => {
           courseId: 'CS-2201',
           classId: null,
           semesterNumber: 2,
+          position: 0,
           credits: 3,
           createdAt: new Date('2024-01-01'),
           updatedAt: new Date('2024-01-01'),
@@ -145,7 +149,7 @@ describe('plannedCourseController', () => {
       expect(prisma.plannedCourse.findMany).toHaveBeenCalledWith({
         where: { planId: 1, semesterNumber: 2 },
         include: { course: true, class: true },
-        orderBy: [{ semesterNumber: 'asc' }, { courseId: 'asc' }],
+        orderBy: [{ semesterNumber: 'asc' }, { position: 'asc' }],
       });
       expect(logger.http).toHaveBeenCalledWith(
         'GET /api/plans/1/courses?semesterNumber=2'
@@ -160,6 +164,7 @@ describe('plannedCourseController', () => {
         courseId: 'CS-1101',
         classId: 'CS-1101-001',
         semesterNumber: 1,
+          position: 0,
         credits: 3,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
@@ -187,6 +192,7 @@ describe('plannedCourseController', () => {
             courseId: mockPlannedCourse.courseId,
             classId: mockPlannedCourse.classId,
             semesterNumber: mockPlannedCourse.semesterNumber,
+            position: mockPlannedCourse.position,
             credits: mockPlannedCourse.credits,
             createdAt: mockPlannedCourse.createdAt,
             updatedAt: mockPlannedCourse.updatedAt,
@@ -226,6 +232,7 @@ describe('plannedCourseController', () => {
         courseId: 'CS-1101',
         classId: null,
         semesterNumber: 1,
+        position: 0,
         credits: 3,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
@@ -285,6 +292,7 @@ describe('plannedCourseController', () => {
         courseId: 'CS-1101',
         classId: null,
         semesterNumber: 1,
+          position: 0,
         credits: 3,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
@@ -315,6 +323,7 @@ describe('plannedCourseController', () => {
         courseId: 'CS-1101',
         classId: 'CS-1101-001',
         semesterNumber: 1,
+          position: 0,
         credits: 3,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
@@ -359,13 +368,14 @@ describe('plannedCourseController', () => {
       req.body = {
         courseId: 'CS-1101',
         semesterNumber: 1,
+          position: 0,
         credits: 3,
       };
       const mockPlan = {
         id: 1,
         name: 'My Plan',
         schoolId: null,
-        startingYear: 2024,
+        academicYearId: 1,
         currentSemester: 0,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -377,6 +387,7 @@ describe('plannedCourseController', () => {
         courseId: 'CS-1101',
         classId: null,
         semesterNumber: 1,
+          position: 0,
         credits: 3,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
@@ -398,6 +409,7 @@ describe('plannedCourseController', () => {
           courseId: 'CS-1101',
           classId: undefined,
           semesterNumber: 1,
+          position: 0,
           credits: 3,
         },
       });
@@ -421,13 +433,14 @@ describe('plannedCourseController', () => {
       req.body = {
         courseId: 'CS-1101',
         semesterNumber: 1,
+          position: 0,
         credits: 3,
       };
       const mockPlan = {
         id: 1,
         name: 'My Plan',
         schoolId: null,
-        startingYear: 2024,
+        academicYearId: 1,
         currentSemester: 0,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -441,6 +454,7 @@ describe('plannedCourseController', () => {
         courseId: 'CS-1101',
         classId: null,
         semesterNumber: 1,
+          position: 0,
         credits: 3,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
@@ -458,6 +472,7 @@ describe('plannedCourseController', () => {
       req.body = {
         courseId: 'CS-1101',
         semesterNumber: 1,
+          position: 0,
         credits: 3,
       };
       vi.mocked(prisma.plan.findUnique).mockResolvedValue(null);
@@ -478,13 +493,14 @@ describe('plannedCourseController', () => {
       req.body = {
         courseId: 'CS-1101',
         semesterNumber: 1,
+          position: 0,
         credits: 3,
       };
       const mockPlan = {
         id: 1,
         name: 'My Plan',
         schoolId: null,
-        startingYear: 2024,
+        academicYearId: 1,
         currentSemester: 0,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -496,6 +512,7 @@ describe('plannedCourseController', () => {
         courseId: 'CS-1101',
         classId: null,
         semesterNumber: 1,
+          position: 0,
         credits: 3,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
@@ -516,6 +533,7 @@ describe('plannedCourseController', () => {
       req.body = {
         courseId: 'CS-1101',
         semesterNumber: 1,
+          position: 0,
         credits: 3,
       };
       const error = new Error('Database error');
@@ -537,6 +555,7 @@ describe('plannedCourseController', () => {
         courseId: 'CS-1101',
         classId: null,
         semesterNumber: 1,
+          position: 0,
         credits: 3,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
@@ -544,6 +563,7 @@ describe('plannedCourseController', () => {
       const updatedPlannedCourse = {
         ...existingPlannedCourse,
         semesterNumber: 2,
+          position: 0,
         updatedAt: new Date('2024-01-02'),
       };
 
@@ -583,6 +603,7 @@ describe('plannedCourseController', () => {
         courseId: 'CS-1101',
         classId: null,
         semesterNumber: 1,
+          position: 0,
         credits: 3,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
@@ -633,6 +654,7 @@ describe('plannedCourseController', () => {
         courseId: 'CS-1101',
         classId: null,
         semesterNumber: 1,
+          position: 0,
         credits: 3,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
@@ -674,6 +696,7 @@ describe('plannedCourseController', () => {
         courseId: 'CS-1101',
         classId: null,
         semesterNumber: 1,
+          position: 0,
         credits: 3,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
@@ -703,6 +726,7 @@ describe('plannedCourseController', () => {
         courseId: 'CS-1101',
         classId: null,
         semesterNumber: 1,
+          position: 0,
         credits: 3,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
@@ -743,6 +767,7 @@ describe('plannedCourseController', () => {
         courseId: 'CS-1101',
         classId: null,
         semesterNumber: 1,
+          position: 0,
         credits: 3,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),

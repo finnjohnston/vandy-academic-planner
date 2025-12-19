@@ -1,0 +1,55 @@
+.planned-course-options-container {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0;
+  z-index: 9999;
+}
+
+.planned-course-options-menu {
+  position: relative;
+  min-width: 130px;
+  background-color: var(--color-drpdwn-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.planned-course-menu-item {
+  height: 35px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-text-light);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.planned-course-menu-item:hover {
+  background-color: var(--color-btn-bg);
+}
+
+.planned-course-delete-menu-item {
+  padding-left: 5px;
+}
+
+.planned-course-menu-icon {
+  filter: brightness(0) invert(1);
+  flex-shrink: 0;
+}
+
+.planned-course-details-icon {
+  width: 12px;
+  height: 12px;
+  position: relative;
+  margin-left: -1px;
+}
+
+.planned-course-delete-icon {
+  width: 20px;
+  height: 20px;
+}

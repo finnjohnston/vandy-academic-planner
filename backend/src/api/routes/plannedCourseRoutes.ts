@@ -29,6 +29,7 @@ const addPlannedCourseSchema = z
     classId: z.string().min(1).max(255).optional(),
     semesterNumber: z.number().int().min(0).max(8),
     credits: z.number().positive(),
+    position: z.number().int().min(0).optional(),
   })
   .refine((data) => data.courseId || data.classId, {
     message: 'Either courseId or classId must be provided',
@@ -40,6 +41,7 @@ const updatePlannedCourseSchema = z
     classId: z.string().min(1).max(255).nullable().optional(),
     semesterNumber: z.number().int().min(0).max(8).optional(),
     credits: z.number().positive().optional(),
+    position: z.number().int().min(0).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field required for update',

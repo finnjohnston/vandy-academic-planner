@@ -10,3 +10,48 @@
   padding: 0;
   overflow-y: auto;
 }
+
+/* Drag Preview */
+.drag-preview {
+  width: 300px;
+  height: 42px;
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  box-sizing: border-box;
+  opacity: 0.25;
+  cursor: grabbing;
+  position: relative;
+}
+
+.drag-preview-code {
+  color: var(--color-text-white);
+  font-size: 12px;
+  font-weight: 500;
+  flex: 1;
+  text-align: center;
+}
+
+.drag-preview-title {
+  color: var(--color-text-dark);
+  font-size: 12px;
+  font-weight: 500;
+  flex: 1 1 auto;
+  margin-left: 10px;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drag-preview-credits {
+  color: var(--color-text-dark);
+  font-size: 12px;
+  font-weight: 500;
+  position: absolute;
+  right: 16px;
+  text-align: right;
+}

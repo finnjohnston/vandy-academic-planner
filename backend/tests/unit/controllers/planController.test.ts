@@ -57,7 +57,16 @@ describe('planController', () => {
           id: 1,
           name: 'Engineering Plan',
           schoolId: 1,
-          startingYear: 2024,
+          academicYearId: 869,
+          academicYear: {
+            id: 869,
+            year: '2025-2026',
+            start: 2025,
+            end: 2026,
+            isCurrent: true,
+            createdAt: new Date('2024-01-01'),
+            updatedAt: new Date('2024-01-01'),
+          },
           currentSemester: 0,
           isActive: true,
           createdAt: new Date('2024-01-01'),
@@ -67,7 +76,16 @@ describe('planController', () => {
           id: 2,
           name: 'Arts Plan',
           schoolId: 2,
-          startingYear: 2024,
+          academicYearId: 869,
+          academicYear: {
+            id: 869,
+            year: '2025-2026',
+            start: 2025,
+            end: 2026,
+            isCurrent: true,
+            createdAt: new Date('2024-01-01'),
+            updatedAt: new Date('2024-01-01'),
+          },
           currentSemester: 2,
           isActive: false,
           createdAt: new Date('2024-01-02'),
@@ -80,6 +98,9 @@ describe('planController', () => {
       await getPlans(req as Request, res as Response, next);
 
       expect(prisma.plan.findMany).toHaveBeenCalledWith({
+        include: {
+          academicYear: true,
+        },
         orderBy: { createdAt: 'desc' },
         take: 1000,
       });
@@ -88,7 +109,13 @@ describe('planController', () => {
           id: p.id,
           name: p.name,
           schoolId: p.schoolId,
-          startingYear: p.startingYear,
+          academicYearId: p.academicYearId,
+          academicYear: p.academicYear ? {
+            id: p.academicYear.id,
+            year: p.academicYear.year,
+            start: p.academicYear.start,
+            end: p.academicYear.end,
+          } : null,
           currentSemester: p.currentSemester,
           isActive: p.isActive,
           createdAt: p.createdAt,
@@ -122,7 +149,7 @@ describe('planController', () => {
         id: 1,
         name: 'Engineering Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
         currentSemester: 0,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -154,6 +181,7 @@ describe('planController', () => {
       expect(prisma.plan.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
         include: {
+          academicYear: true,
           plannedCourses: {
             include: {
               course: true,
@@ -178,7 +206,7 @@ describe('planController', () => {
         id: 1,
         name: 'Engineering Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
         currentSemester: 0,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -242,13 +270,22 @@ describe('planController', () => {
       req.body = {
         name: 'Engineering Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
       };
       const mockPlan = {
         id: 1,
         name: 'Engineering Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
+        academicYear: {
+          id: 869,
+          year: '2025-2026',
+          start: 2025,
+          end: 2026,
+          isCurrent: true,
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-01'),
+        },
         currentSemester: 0,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -263,9 +300,12 @@ describe('planController', () => {
         data: {
           name: 'Engineering Plan',
           schoolId: 1,
-          startingYear: 2024,
+          academicYearId: 869,
           currentSemester: undefined,
           isActive: undefined,
+        },
+        include: {
+          academicYear: true,
         },
       });
       expect(res.status).toHaveBeenCalledWith(201);
@@ -274,7 +314,16 @@ describe('planController', () => {
           id: 1,
           name: 'Engineering Plan',
           schoolId: 1,
-          startingYear: 2024,
+          academicYearId: 869,
+          academicYear: {
+            id: 869,
+            year: '2025-2026',
+            start: 2025,
+            end: 2026,
+            isCurrent: true,
+            createdAt: new Date('2024-01-01'),
+            updatedAt: new Date('2024-01-01'),
+          },
           currentSemester: 0,
           isActive: true,
           createdAt: mockPlan.createdAt,
@@ -286,7 +335,7 @@ describe('planController', () => {
     it('should use default values for optional fields', async () => {
       req.body = {
         name: 'Engineering Plan',
-        startingYear: 2024,
+        academicYearId: 869,
         currentSemester: 0,
         isActive: true,
       };
@@ -294,7 +343,7 @@ describe('planController', () => {
         id: 1,
         name: 'Engineering Plan',
         schoolId: null,
-        startingYear: 2024,
+        academicYearId: 869,
         currentSemester: 0,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -311,13 +360,13 @@ describe('planController', () => {
     it('should return 201 status', async () => {
       req.body = {
         name: 'Engineering Plan',
-        startingYear: 2024,
+        academicYearId: 869,
       };
       const mockPlan = {
         id: 1,
         name: 'Engineering Plan',
         schoolId: null,
-        startingYear: 2024,
+        academicYearId: 869,
         currentSemester: 0,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -334,7 +383,7 @@ describe('planController', () => {
     it('should handle errors', async () => {
       req.body = {
         name: 'Engineering Plan',
-        startingYear: 2024,
+        academicYearId: 869,
       };
       const error = new Error('Database error');
       vi.mocked(prisma.plan.create).mockRejectedValue(error);
@@ -353,7 +402,16 @@ describe('planController', () => {
         id: 1,
         name: 'Updated Plan Name',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
+        academicYear: {
+          id: 869,
+          year: '2025-2026',
+          start: 2025,
+          end: 2026,
+          isCurrent: true,
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-01'),
+        },
         currentSemester: 0,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -367,13 +425,25 @@ describe('planController', () => {
       expect(prisma.plan.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: { name: 'Updated Plan Name' },
+        include: {
+          academicYear: true,
+        },
       });
       expect(res.json).toHaveBeenCalledWith({
         data: {
           id: 1,
           name: 'Updated Plan Name',
           schoolId: 1,
-          startingYear: 2024,
+          academicYearId: 869,
+        academicYear: {
+          id: 869,
+          year: '2025-2026',
+          start: 2025,
+          end: 2026,
+          isCurrent: true,
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-01'),
+        },
           currentSemester: 0,
           isActive: true,
           createdAt: mockPlan.createdAt,
@@ -389,7 +459,16 @@ describe('planController', () => {
         id: 1,
         name: 'Engineering Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
+        academicYear: {
+          id: 869,
+          year: '2025-2026',
+          start: 2025,
+          end: 2026,
+          isCurrent: true,
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-01'),
+        },
         currentSemester: 3,
         isActive: false,
         createdAt: new Date('2024-01-01'),
@@ -403,6 +482,9 @@ describe('planController', () => {
       expect(prisma.plan.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: { currentSemester: 3, isActive: false },
+        include: {
+          academicYear: true,
+        },
       });
     });
 
@@ -413,7 +495,16 @@ describe('planController', () => {
         id: 1,
         name: 'Engineering Plan',
         schoolId: null,
-        startingYear: 2024,
+        academicYearId: 869,
+        academicYear: {
+          id: 869,
+          year: '2025-2026',
+          start: 2025,
+          end: 2026,
+          isCurrent: true,
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-01'),
+        },
         currentSemester: 0,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -427,6 +518,9 @@ describe('planController', () => {
       expect(prisma.plan.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: { schoolId: null },
+        include: {
+          academicYear: true,
+        },
       });
     });
 
@@ -518,7 +612,7 @@ describe('planController', () => {
         id: 1,
         name: 'Original Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
         currentSemester: 3,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -541,7 +635,7 @@ describe('planController', () => {
         id: 2,
         name: 'Duplicated Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
         currentSemester: 0,
         isActive: false,
         createdAt: new Date('2024-01-02'),
@@ -582,7 +676,7 @@ describe('planController', () => {
         id: 1,
         name: 'Original Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
         currentSemester: 3,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -615,7 +709,16 @@ describe('planController', () => {
         id: 2,
         name: 'Duplicated Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
+        academicYear: {
+          id: 869,
+          year: '2025-2026',
+          start: 2025,
+          end: 2026,
+          isCurrent: true,
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-01'),
+        },
         currentSemester: 0,
         isActive: false,
         createdAt: new Date('2024-01-02'),
@@ -653,7 +756,7 @@ describe('planController', () => {
         data: {
           name: 'Duplicated Plan',
           schoolId: 1,
-          startingYear: 2024,
+          academicYearId: 869,
           currentSemester: 0,
           isActive: false,
           plannedCourses: {
@@ -674,6 +777,7 @@ describe('planController', () => {
           },
         },
         include: {
+          academicYear: true,
           plannedCourses: true,
         },
       });
@@ -687,7 +791,7 @@ describe('planController', () => {
         id: 1,
         name: 'Original Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
         currentSemester: 5,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -699,7 +803,16 @@ describe('planController', () => {
         id: 2,
         name: 'Duplicated Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
+        academicYear: {
+          id: 869,
+          year: '2025-2026',
+          start: 2025,
+          end: 2026,
+          isCurrent: true,
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-01'),
+        },
         currentSemester: 0,
         isActive: false,
         createdAt: new Date('2024-01-02'),
@@ -729,7 +842,7 @@ describe('planController', () => {
         id: 1,
         name: 'Original Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
         currentSemester: 3,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -741,7 +854,16 @@ describe('planController', () => {
         id: 2,
         name: 'Duplicated Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
+        academicYear: {
+          id: 869,
+          year: '2025-2026',
+          start: 2025,
+          end: 2026,
+          isCurrent: true,
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-01'),
+        },
         currentSemester: 0,
         isActive: false,
         createdAt: new Date('2024-01-02'),
@@ -771,7 +893,7 @@ describe('planController', () => {
         id: 1,
         name: 'Original Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
         currentSemester: 3,
         isActive: true,
         createdAt: new Date('2024-01-01'),
@@ -783,7 +905,16 @@ describe('planController', () => {
         id: 2,
         name: 'Duplicated Plan',
         schoolId: 1,
-        startingYear: 2024,
+        academicYearId: 869,
+        academicYear: {
+          id: 869,
+          year: '2025-2026',
+          start: 2025,
+          end: 2026,
+          isCurrent: true,
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-01'),
+        },
         currentSemester: 0,
         isActive: false,
         createdAt: new Date('2024-01-02'),
