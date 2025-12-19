@@ -31,6 +31,10 @@ interface PlanProps {
     position: number;
     indicatorPosition: 'above' | 'below'
   } | null;
+  activeDrag?: {
+    source: 'search' | 'planned';
+    currentSemester?: number;
+  } | null;
 }
 
 const Plan: React.FC<PlanProps> = ({
@@ -41,7 +45,8 @@ const Plan: React.FC<PlanProps> = ({
   isBlurred = false,
   onCourseDetailsClick,
   onDeleteCourseClick,
-  dragOverPosition
+  dragOverPosition,
+  activeDrag
 }) => {
   const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -82,6 +87,7 @@ const Plan: React.FC<PlanProps> = ({
               onCourseDetailsClick={onCourseDetailsClick}
               onDeleteCourseClick={onDeleteCourseClick}
               dragOverPosition={dragOverPosition}
+              activeDrag={activeDrag}
             />
           ))}
         </div>

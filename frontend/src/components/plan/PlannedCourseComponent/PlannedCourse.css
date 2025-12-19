@@ -9,7 +9,7 @@
   position: relative;
   padding: 0 16px;
   cursor: grab;
-  transition: opacity 0.2s ease;
+  transition: none;
   border-left: none !important;
   border-right: none !important;
   border-top: none !important;
@@ -17,20 +17,25 @@
 }
 
 .planned-course-drop-above {
-  margin-top: 40px;
+  margin-top: 35px;
   margin-bottom: 0 !important;
   border-bottom: 1px solid var(--color-border);
 }
 
 .planned-course-drop-below {
   margin-top: 0 !important;
-  margin-bottom: 40px;
+  margin-bottom: 35px;
   border-bottom: 1px solid var(--color-border);
 }
 
 .planned-course-dragging {
   margin-top: 0 !important;
   margin-bottom: 0 !important;
+}
+
+.planned-course-swap-target {
+  border: 1px solid var(--color-btn-border) !important;
+  border-radius: 4px;
 }
 
 .planned-course:active {
@@ -45,10 +50,6 @@
   overflow: hidden;
   border: none;
   padding: 0;
-}
-
-.planned-course:last-child {
-  border-bottom: none !important;
 }
 
 .planned-course-code {

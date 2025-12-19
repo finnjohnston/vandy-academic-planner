@@ -17,7 +17,9 @@ interface PlannedCourseProps {
   dragOverPosition: {
     semesterNumber: number;
     position: number;
-    indicatorPosition: 'above' | 'below'
+    indicatorPosition: 'above' | 'below';
+    isSwapMode?: boolean;
+    hoveredPlannedCourseId?: number;
   } | null;
 }
 
@@ -115,17 +117,24 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
     transform: isDragging && transform ? CSS.Transform.toString(transform) :
                isSameSemesterDrag ? undefined :
                transform ? CSS.Transform.toString(transform) : undefined,
-    // Disable transitions for recently dropped courses to prevent movement animation
-    // For cross-semester drags, keep smooth transitions
-    transition: isRecentlyDragged ? 'none' : 'transform 200ms ease, opacity 200ms ease',
+    // Disable all transitions to prevent any movement animation from margin/layout changes
+    transition: 'none',
   };
 
+  // Check if this course is a swap target (full semester with 7 courses)
+  const isSwapTarget =
+    !isDragging &&
+    dragOverPosition?.isSwapMode &&
+    dragOverPosition?.hoveredPlannedCourseId === plannedCourseId;
+
   // Build className explicitly to prevent both gap classes from being applied
-  const gapClass = showIndicator && !isDragging
+  const gapClass = showIndicator && !isDragging && !isSwapTarget
     ? (indicatorPosition === 'above' ? ' planned-course-drop-above' : ' planned-course-drop-below')
     : '';
 
-  const finalClassName = `planned-course${isDragging ? ' planned-course-dragging' : ''}${gapClass}`;
+  const swapClass = isSwapTarget ? ' planned-course-swap-target' : '';
+
+  const finalClassName = `planned-course${isDragging ? ' planned-course-dragging' : ''}${gapClass}${swapClass}`;
 
   useEffect(() => {
     if (isDragging) {

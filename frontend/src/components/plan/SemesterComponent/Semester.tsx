@@ -22,6 +22,10 @@ interface SemesterProps {
     position: number;
     indicatorPosition?: 'above' | 'below'
   } | null;
+  activeDrag?: {
+    source: 'search' | 'planned';
+    currentSemester?: number;
+  } | null;
 }
 
 interface SemesterInfo {
@@ -37,6 +41,7 @@ const Semester: React.FC<SemesterProps> = ({
   onCourseDetailsClick,
   onDeleteCourseClick,
   dragOverPosition,
+  activeDrag,
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `semester-${semesterNumber}`,
@@ -60,8 +65,26 @@ const Semester: React.FC<SemesterProps> = ({
 
   const { year, season } = getSemesterInfo(semesterNumber, academicYear);
 
+  // Calculate number of courses in this semester
+  const coursesInSemester = plannedCourses.filter(
+    pc => pc.semesterNumber === semesterNumber
+  ).length;
+
+  // Check if dragging from outside this semester
+  const isDraggingFromOutside = activeDrag && (
+    activeDrag.source === 'search' ||
+    activeDrag.currentSemester !== semesterNumber
+  );
+
+  // If semester has 7 courses and dragging from outside, don't highlight on hover
+  // This prevents dropping on semester border when it's full (only swap with courses allowed)
+  const shouldBlockHighlight = coursesInSemester >= 7 && isDraggingFromOutside;
+
   // Highlight semester when dragging over it (isOver) or when dragging within it (same semester drag)
-  const shouldHighlight = isOver || (dragOverPosition !== null && dragOverPosition.semesterNumber === semesterNumber);
+  // But don't highlight if semester is full and dragging from outside
+  const shouldHighlight = !shouldBlockHighlight && (
+    isOver || (dragOverPosition !== null && dragOverPosition.semesterNumber === semesterNumber)
+  );
 
   return (
     <div className={`semester-card${shouldHighlight ? ' semester-card-over' : ''}`}>

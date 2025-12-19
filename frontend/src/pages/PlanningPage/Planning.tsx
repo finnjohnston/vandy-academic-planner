@@ -50,6 +50,8 @@ const Planning: React.FC = () => {
     position: number;
     indicatorPosition: 'above' | 'below';
     isLastInSemester: boolean;
+    isSwapMode?: boolean;
+    hoveredPlannedCourseId?: number;
   } | null>(null);
 
   const sensors = useSensors(
@@ -157,12 +159,22 @@ const Planning: React.FC = () => {
       const maxPosition = Math.max(...semesterCourses.map(pc => pc.position), -1);
       const isLastInSemester = hoveredPosition === maxPosition;
 
+      // Check if semester has 7 courses (excluding the dragged course if same semester)
+      // For same-semester drags, we're moving a course that's already in the semester,
+      // so we subtract 1 from the count. For cross-semester/search drags, we count all courses.
+      const targetSemesterCourseCount = isSameSemester
+        ? semesterCourses.length - 1  // Exclude the dragged course
+        : semesterCourses.length;     // Count all courses (we're adding a new one)
+      const isSwapMode = targetSemesterCourseCount >= 7;
+
       // Store the HOVERED position (not insertion position) along with the indicator direction
       setDragOverPosition({
         semesterNumber: overData.currentSemester,
         position: hoveredPosition,
         indicatorPosition,
-        isLastInSemester
+        isLastInSemester,
+        isSwapMode,
+        hoveredPlannedCourseId: overData.plannedCourseId
       });
 
       // DEBUG LOGGING
@@ -189,6 +201,16 @@ const Planning: React.FC = () => {
                 dragData.plannedCourseId === pc.id &&
                 dragData.currentSemester === overData.semesterNumber)
       ) || [];
+
+      const isSameSemesterDrag =
+        dragData.source === 'planned' &&
+        dragData.currentSemester === overData.semesterNumber;
+
+      // If semester has 7 courses and dragging from outside, disallow append (only swap allowed)
+      if (!isSameSemesterDrag && semesterCourses.length >= 7) {
+        setDragOverPosition(null);
+        return;
+      }
 
       // Use max position + 1 to ensure append position doesn't match any existing course
       const maxPosition = Math.max(...semesterCourses.map(pc => pc.position), -1);
@@ -238,42 +260,76 @@ const Planning: React.FC = () => {
       newSemester: semesterNumber
     });
 
-    // Get the current count of courses in the target semester
-    const targetSemesterCourses = planData?.plannedCourses.filter(
-      pc => pc.semesterNumber === semesterNumber && pc.id > 0
-    ) || [];
-
-    // For same-semester moves, we remove one course first, so max position is count - 1
-    // For cross-semester/search, we're adding a course, so max position is count
-    const maxPosition = isSameSemester ? targetSemesterCourses.length - 1 : targetSemesterCourses.length;
-
-    // Since we always use 'above' indicator, we always insert before the hovered course
     let insertPosition: number;
-    if (isSameSemester && activePosition !== undefined && activePosition < hoveredPosition) {
-      // Same-semester, dragging downward: course will be removed first, shifting positions down
-      const isLastPosition = targetPosition.isLastInSemester;
-      const isAdjacentToLast = isLastPosition && hoveredPosition === activePosition + 1;
 
-      if (isAdjacentToLast) {
-        // Special case: dragging from N to N+1 where N+1 is last position
-        // Swap adjacent courses: insert after the last course
-        insertPosition = hoveredPosition;
-      } else {
-        // Normal downward drag: the hovered course will be at (hoveredPosition - 1) after removal
-        insertPosition = hoveredPosition - 1;
-      }
-    } else {
-      // Cross-semester OR same-semester dragging upward: insert before hovered position
+    // In swap mode, insert at the exact position of the deleted course
+    if (targetPosition.isSwapMode) {
       insertPosition = hoveredPosition;
-    }
+    } else {
+      // Normal insertion logic
+      // Get the current count of courses in the target semester
+      const targetSemesterCourses = planData?.plannedCourses.filter(
+        pc => pc.semesterNumber === semesterNumber && pc.id > 0
+      ) || [];
 
-    // Ensure position doesn't exceed valid range
-    insertPosition = Math.min(insertPosition, maxPosition);
+      // For same-semester moves, we remove one course first, so max position is count - 1
+      // For cross-semester/search, we're adding a course, so max position is count
+      const maxPosition = isSameSemester ? targetSemesterCourses.length - 1 : targetSemesterCourses.length;
+
+      // Since we always use 'above' indicator, we always insert before the hovered course
+      if (isSameSemester && activePosition !== undefined && activePosition < hoveredPosition) {
+        // Same-semester, dragging downward: course will be removed first, shifting positions down
+        const isLastPosition = targetPosition.isLastInSemester;
+        const isAdjacentToLast = isLastPosition && hoveredPosition === activePosition + 1;
+
+        if (isAdjacentToLast) {
+          // Special case: dragging from N to N+1 where N+1 is last position
+          // Swap adjacent courses: insert after the last course
+          insertPosition = hoveredPosition;
+        } else {
+          // Normal downward drag: the hovered course will be at (hoveredPosition - 1) after removal
+          insertPosition = hoveredPosition - 1;
+        }
+      } else {
+        // Cross-semester OR same-semester dragging upward: insert before hovered position
+        insertPosition = hoveredPosition;
+      }
+
+      // Ensure position doesn't exceed valid range
+      insertPosition = Math.min(insertPosition, maxPosition);
+    }
 
     // DEBUG LOGGING
     console.log('=== DRAG END (post-calc) ===', {
-      calculatedInsertPosition: insertPosition
+      calculatedInsertPosition: insertPosition,
+      isSwapMode: targetPosition.isSwapMode,
+      hoveredPlannedCourseId: targetPosition.hoveredPlannedCourseId
     });
+
+    // Handle swap mode: delete the hovered course before inserting
+    if (targetPosition.isSwapMode && targetPosition.hoveredPlannedCourseId) {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/plans/${planData.id}/courses/${targetPosition.hoveredPlannedCourseId}`,
+          { method: 'DELETE' }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to delete course in swap');
+        }
+
+        // Remove from local state
+        setPlanData({
+          ...planData,
+          plannedCourses: planData.plannedCourses.filter(
+            pc => pc.id !== targetPosition.hoveredPlannedCourseId
+          )
+        });
+      } catch (err) {
+        console.error('Error deleting course in swap:', err);
+        return; // Abort the swap if deletion fails
+      }
+    }
 
     if (dragData.source === 'search') {
       await handleCreatePlannedCourse(dragData, semesterNumber, insertPosition);
@@ -462,6 +518,7 @@ const Planning: React.FC = () => {
           onCourseDetailsClick={handlePlannedCourseClick}
           onDeleteCourseClick={handleDeleteCourse}
           dragOverPosition={dragOverPosition}
+          activeDrag={activeDrag}
         />
 
         {selectedCourse && ReactDOM.createPortal(

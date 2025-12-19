@@ -1,6 +1,6 @@
 .semester-card {
   width: 300px;
-  height: 300px;
+  height: 297px;
   background-color: var(--color-card-bg);
   border: 1px solid var(--color-border);
   border-radius: 12px;
@@ -40,9 +40,10 @@
 
 .semester-body {
   flex: 1;
-  padding: 0 0 12px 0;
+  padding: 0;
   box-sizing: border-box;
-  overflow-y: visible;
+  overflow: hidden;
+  border-radius: 0 0 12px 12px;
 }
 
 .semester-card-over {
