@@ -65,12 +65,27 @@ export async function getPlanById(
       where: { id: Number(id) },
       include: {
         academicYear: true,
+        school: true,
         plannedCourses: {
           include: {
             course: true,
             class: true,
           },
           orderBy: [{ semesterNumber: 'asc' }, { position: 'asc' }],
+        },
+        planPrograms: {
+          include: {
+            program: {
+              include: {
+                academicYear: true,
+                school: true,
+              },
+            },
+          },
+          orderBy: [
+            { program: { type: 'asc' } },
+            { createdAt: 'asc' },
+          ],
         },
       },
     });
@@ -86,6 +101,7 @@ export async function getPlanById(
       schoolId: plan.schoolId,
       academicYearId: plan.academicYearId,
       academicYear: plan.academicYear,
+      school: plan.school,
       currentSemester: plan.currentSemester,
       isActive: plan.isActive,
       createdAt: plan.createdAt,
@@ -102,6 +118,41 @@ export async function getPlanById(
         updatedAt: pc.updatedAt,
         course: pc.course,
         class: pc.class,
+      })),
+      programs: plan.planPrograms.map((pp) => ({
+        id: pp.id,
+        planId: pp.planId,
+        programId: pp.programId,
+        createdAt: pp.createdAt,
+        updatedAt: pp.updatedAt,
+        program: {
+          id: pp.program.id,
+          programId: pp.program.programId,
+          name: pp.program.name,
+          type: pp.program.type,
+          totalCredits: pp.program.totalCredits,
+          requirements: pp.program.requirements,
+          academicYearId: pp.program.academicYearId,
+          schoolId: pp.program.schoolId,
+          academicYear: {
+            id: pp.program.academicYear.id,
+            year: pp.program.academicYear.year,
+            start: pp.program.academicYear.start,
+            end: pp.program.academicYear.end,
+            isCurrent: pp.program.academicYear.isCurrent,
+            createdAt: pp.program.academicYear.createdAt,
+            updatedAt: pp.program.academicYear.updatedAt,
+          },
+          school: {
+            id: pp.program.school.id,
+            code: pp.program.school.code,
+            name: pp.program.school.name,
+            createdAt: pp.program.school.createdAt,
+            updatedAt: pp.program.school.updatedAt,
+          },
+          createdAt: pp.program.createdAt,
+          updatedAt: pp.program.updatedAt,
+        },
       })),
     };
 
