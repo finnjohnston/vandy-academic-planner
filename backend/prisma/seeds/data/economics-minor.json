@@ -1,0 +1,85 @@
+{
+  "sections": [
+    {
+      "id": "economics_minor",
+      "title": "Economics minor",
+      "creditsRequired": 21,
+      "requirements": [
+        {
+          "id": "economics_principles",
+          "title": "Economics principles",
+          "description": "Take the following courses",
+          "creditsRequired": 6,
+          "rule": {
+            "type": "take_courses",
+            "courses": ["ECON 1010", "ECON 1020"]
+          },
+          "constraints": []
+        },
+        {
+          "id": "statistics",
+          "title": "Statistics",
+          "description": "Choose a statistics option",
+          "creditsRequired": 3,
+          "rule": {
+            "type": "group",
+            "operator": "OR",
+            "rules": [
+              {
+                "type": "take_from_list",
+                "count": 1,
+                "countType": "courses",
+                "courses": ["ECON 1500", "ECON 1510"]
+              },
+              {
+                "type": "group",
+                "operator": "AND",
+                "rules": [
+                  {
+                    "type": "take_courses",
+                    "courses": ["MATH 2820L"]
+                  },
+                  {
+                    "type": "take_from_list",
+                    "count": 1,
+                    "countType": "courses",
+                    "courses": ["MATH 2810", "MATH 2820"]
+                  }
+                ]
+              }
+            ]
+          },
+          "constraints": []
+        },
+        {
+          "id": "microeconomics",
+          "title": "Microeconomics",
+          "description": "Take the following course",
+          "creditsRequired": 3,
+          "rule": {
+            "type": "take_courses",
+            "courses": ["ECON 3012"]
+          },
+          "constraints": []
+        },
+        {
+          "id": "economics_electives",
+          "title": "Economics electives",
+          "description": "Choose from economics courses",
+          "creditsRequired": 9,
+          "rule": {
+            "type": "take_any_courses",
+            "credits": 9,
+            "filter": {
+              "type": "placeholder"
+            }
+          },
+          "constraints": [
+            "At least one course must be above ECON 3015"
+          ]
+        }
+      ]
+    }
+  ],
+  "constraints": []
+}
