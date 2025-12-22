@@ -50,7 +50,10 @@ export type TakeAnyCoursesRule = {
   filter: CourseFilter;
 };
 
-export type CourseFilter = {
+// Filter Types (Phase 6 implementation)
+export type CourseFilter = PlaceholderFilter; // TODO: Add more filter types in Phase 6
+
+export type PlaceholderFilter = {
   type: "placeholder";
 };
 

@@ -31,10 +31,18 @@ afterAll(async () => {
 beforeEach(async () => {
   // Clean database between tests (in reverse order of foreign keys)
   await prisma.$transaction([
+    // Most dependent (delete first)
+    prisma.requirementFulfillment.deleteMany(),
+    prisma.planProgram.deleteMany(),
+    prisma.plannedCourse.deleteMany(),
+    prisma.plan.deleteMany(),
+    prisma.program.deleteMany(),
     prisma.section.deleteMany(),
     prisma.class.deleteMany(),
     prisma.course.deleteMany(),
     prisma.term.deleteMany(),
+    prisma.school.deleteMany(),
+    // Least dependent (delete last)
     prisma.academicYear.deleteMany(),
   ]);
 });

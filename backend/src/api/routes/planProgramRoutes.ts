@@ -6,6 +6,7 @@ import {
   addPlanProgram,
   deletePlanProgram,
 } from '../controllers/planProgramController.js';
+import fulfillmentRoutes from './fulfillmentRoutes.js';
 
 // CRITICAL: mergeParams allows access to :planId from parent router
 const router = Router({ mergeParams: true });
@@ -36,5 +37,8 @@ router.delete(
   validate({ params: planProgramIdParamSchema }),
   deletePlanProgram
 );
+
+// Mount nested fulfillment routes
+router.use('/:planProgramId/fulfillments', fulfillmentRoutes);
 
 export default router;

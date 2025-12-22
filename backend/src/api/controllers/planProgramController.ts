@@ -3,6 +3,7 @@ import { prisma } from '../../config/prisma.js';
 import { sendSuccess } from '../utils/response.utils.js';
 import { NotFoundError } from '../types/error.types.js';
 import logger from '../../utils/logger.js';
+import { autoAssignFulfillments } from '../services/fulfillmentAssigner.service.js';
 
 /**
  * GET /api/plans/:planId/programs
@@ -122,6 +123,9 @@ export async function addPlanProgram(
         programId: programId,
       },
     });
+
+    // PHASE 4: Auto-assign fulfillments for new program
+    await autoAssignFulfillments(Number(planId));
 
     // STEP 4: Transform and return with 201 Created
     const transformedPlanProgram = {
