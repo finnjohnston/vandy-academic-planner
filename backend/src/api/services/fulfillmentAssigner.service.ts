@@ -44,30 +44,32 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
 
   // STEP 3: For each course, find best match in each program
   for (const plannedCourse of plan.plannedCourses) {
-    for (const planProgram of plan.planPrograms) {
-      // Find all requirements this course could fulfill
-      const matches = findMatchingRequirements(
-        plannedCourse.course,
-        planProgram.program.requirements as any
-      );
-
-      // Assign to the most specific match (already sorted by specificity)
-      if (matches.length > 0) {
-        const bestMatch = matches[0];
-
-        await prisma.requirementFulfillment.create({
-          data: {
-            planProgramId: planProgram.id,
-            requirementId: `${bestMatch.sectionId}.${bestMatch.requirementId}`,
-            plannedCourseId: plannedCourse.id,
-            creditsApplied: plannedCourse.credits,
-          },
-        });
-
-        logger.debug(
-          `Assigned ${plannedCourse.course.courseId} to ${bestMatch.sectionId}.${bestMatch.requirementId} ` +
-            `in program ${planProgram.program.name} (score: ${bestMatch.specificityScore})`
+    if (plannedCourse.course) {
+      for (const planProgram of plan.planPrograms) {
+        // Find all requirements this course could fulfill
+        const matches = findMatchingRequirements(
+          plannedCourse.course,
+          planProgram.program.requirements as any
         );
+
+        // Assign to the most specific match (already sorted by specificity)
+        if (matches.length > 0) {
+          const bestMatch = matches[0];
+
+          await prisma.requirementFulfillment.create({
+            data: {
+              planProgramId: planProgram.id,
+              requirementId: `${bestMatch.sectionId}.${bestMatch.requirementId}`,
+              plannedCourseId: plannedCourse.id,
+              creditsApplied: plannedCourse.credits,
+            },
+          });
+
+          logger.debug(
+            `Assigned ${plannedCourse.course.courseId} to ${bestMatch.sectionId}.${bestMatch.requirementId} ` +
+              `in program ${planProgram.program.name} (score: ${bestMatch.specificityScore})`
+          );
+        }
       }
     }
   }

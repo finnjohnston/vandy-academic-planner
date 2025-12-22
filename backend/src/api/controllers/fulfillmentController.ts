@@ -44,21 +44,27 @@ export async function getPlanProgramFulfillments(
     });
 
     // Transform response
-    const transformedFulfillments = fulfillments.map((f) => ({
-      id: f.id,
-      planProgramId: f.planProgramId,
-      requirementId: f.requirementId,
-      plannedCourseId: f.plannedCourseId,
-      creditsApplied: f.creditsApplied,
-      createdAt: f.createdAt,
-      updatedAt: f.updatedAt,
-      course: {
-        id: f.plannedCourse.course.id,
-        courseId: f.plannedCourse.course.courseId,
-        title: f.plannedCourse.course.title,
-        credits: f.plannedCourse.course.credits,
-      },
-    }));
+    const transformedFulfillments = fulfillments.map((f: any) => {
+      const fulfillment: any = {
+        id: f.id,
+        planProgramId: f.planProgramId,
+        requirementId: f.requirementId,
+        plannedCourseId: f.plannedCourseId,
+        creditsApplied: f.creditsApplied,
+        createdAt: f.createdAt,
+        updatedAt: f.updatedAt,
+      };
+
+      if (f.plannedCourse && f.plannedCourse.course) {
+        fulfillment.course = {
+          id: f.plannedCourse.course.id,
+          courseId: f.plannedCourse.course.courseId,
+          title: f.plannedCourse.course.title,
+          credits: f.plannedCourse.credits,
+        };
+      }
+      return fulfillment;
+    });
 
     sendSuccess(res, transformedFulfillments);
   } catch (err) {

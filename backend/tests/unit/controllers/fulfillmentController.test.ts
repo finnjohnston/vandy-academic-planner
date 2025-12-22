@@ -165,7 +165,7 @@ describe('fulfillmentController', () => {
               id: 1,
               courseId: 'CS 1101',
               title: 'Programming and Problem Solving',
-              credits: undefined, // Note: Course model has creditsMin/creditsMax, not credits
+              credits: 3, // Credits from plannedCourse
             },
           },
           {
@@ -180,7 +180,7 @@ describe('fulfillmentController', () => {
               id: 2,
               courseId: 'MATH 1300',
               title: 'Differential Calculus',
-              credits: undefined,
+              credits: 4, // Credits from plannedCourse
             },
           },
         ],
