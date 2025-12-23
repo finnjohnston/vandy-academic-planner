@@ -4,9 +4,12 @@ import {
   TakeCoursesRule,
   TakeFromListRule,
   TakeAnyCoursesRule,
-  CourseFilter,
 } from '../types/program.types.js';
 import { Course } from '@prisma/client';
+import {
+  evaluateCourseFilter,
+  calculateFilterSpecificity,
+} from './courseFilter.service.js';
 
 export interface RuleEvaluation {
   matches: boolean;
@@ -63,12 +66,13 @@ function evaluateTakeAnyCourses(
   rule: TakeAnyCoursesRule,
   course: Course
 ): RuleEvaluation {
-  // For Phase 4, filters are placeholders - always match
-  // TODO: Implement actual filter evaluation in Phase 6
-  const matches = evaluateFilter(rule.filter, course);
+  // Use real filter evaluation (Phase 6)
+  const matches = evaluateCourseFilter(course, rule.filter);
+  const specificityScore = matches ? calculateFilterSpecificity(rule.filter) : 0;
+
   return {
     matches,
-    specificityScore: matches ? 10 : 0,
+    specificityScore,
   };
 }
 
@@ -104,22 +108,3 @@ function evaluateGroup(rule: GroupRule, course: Course): RuleEvaluation {
   }
 }
 
-/**
- * Evaluates if course matches a filter
- * Phase 4: Placeholder implementation (always returns true)
- * Phase 6: Implement actual filter logic
- */
-function evaluateFilter(filter: CourseFilter, course: Course): boolean {
-  // For Phase 4, all filters are placeholders
-  if (filter.type === 'placeholder') {
-    return true;
-  }
-
-  // TODO Phase 6: Implement actual filter evaluation
-  // - Check course attributes (MNS, HCA, etc.)
-  // - Check course number ranges
-  // - Check department codes
-  // - etc.
-
-  return false;
-}

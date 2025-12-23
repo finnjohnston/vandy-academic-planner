@@ -6,6 +6,7 @@ import classRoutes from './classRoutes.js';
 import schoolRoutes from './schoolRoutes.js';
 import planRoutes from './planRoutes.js';
 import programRoutes from './programRoutes.js';
+import courseFilterRoutes from './courseFilterRoutes.js';
 
 const router = Router();
 
@@ -17,5 +18,6 @@ router.use('/classes', classRoutes);
 router.use('/schools', schoolRoutes);
 router.use('/plans', planRoutes);
 router.use('/programs', programRoutes);
+router.use('/course-filters', courseFilterRoutes);
 
 export default router;

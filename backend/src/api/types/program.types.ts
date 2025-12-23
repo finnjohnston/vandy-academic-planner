@@ -51,10 +51,46 @@ export type TakeAnyCoursesRule = {
 };
 
 // Filter Types (Phase 6 implementation)
-export type CourseFilter = PlaceholderFilter; // TODO: Add more filter types in Phase 6
+export type CourseFilter =
+  | PlaceholderFilter
+  | SubjectNumberFilter
+  | AttributeFilter
+  | CourseListFilter
+  | CompositeFilter;
 
 export type PlaceholderFilter = {
   type: "placeholder";
+};
+
+export type SubjectNumberFilter = {
+  type: "subject_number";
+  subjects: string[];
+  numbers?: NumberConstraint[];
+  exclude?: string[];
+};
+
+export type NumberConstraint =
+  | { type: "specific"; values: string[] }
+  | { type: "range"; min: number; max?: number };
+
+export type AttributeFilter = {
+  type: "attribute";
+  attributes: string[];
+  attributeType?: "axle" | "core";
+  exclude?: {
+    subjects?: string[];
+  };
+};
+
+export type CourseListFilter = {
+  type: "course_list";
+  courses: string[];
+};
+
+export type CompositeFilter = {
+  type: "composite";
+  operator: "AND" | "OR";
+  filters: CourseFilter[];
 };
 
 export type RuleType = "group" | "take_courses" | "take_from_list" | "take_any_courses";

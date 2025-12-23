@@ -14,6 +14,7 @@ import {
   TakeAnyCoursesProgressDetails,
   GroupProgressDetails,
 } from '../types/progress.types.js';
+import { evaluateCourseFilter } from './courseFilter.service.js';
 
 /**
  * Evaluate progress for a given rule against a list of courses
@@ -143,13 +144,8 @@ function evaluateTakeAnyCoursesProgress(
   rule: TakeAnyCoursesRule,
   courses: Course[]
 ): RuleProgress {
-  // For now, only placeholder filter is supported
-  let matchingCourses: Course[];
-  if (rule.filter.type === 'placeholder') {
-    matchingCourses = courses;
-  } else {
-    matchingCourses = [];
-  }
+  // Use real filter evaluation for all courses (Phase 6)
+  const matchingCourses = courses.filter((c) => evaluateCourseFilter(c, rule.filter));
 
   const creditsFulfilled = matchingCourses.reduce((sum, c) => sum + c.creditsMin, 0);
   const percentage = Math.min(100, (creditsFulfilled / rule.credits) * 100);
