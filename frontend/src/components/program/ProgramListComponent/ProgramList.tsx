@@ -21,7 +21,17 @@ interface ProgramListProps {
 
 const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCourses }) => {
   const [progressByProgramId, setProgressByProgramId] = useState<
-    Record<number, { fulfilled: number; required: number }>
+    Record<number, {
+      fulfilled: number;
+      required: number;
+      sections: Array<{
+        sectionId: string;
+        title: string;
+        creditsRequired: number;
+        creditsFulfilled: number;
+        percentage: number;
+      }>;
+    }>
   >({});
 
   useEffect(() => {
@@ -45,6 +55,7 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
               id: program.id,
               fulfilled: data.data.totalCreditsFulfilled,
               required: data.data.totalCreditsRequired,
+              sections: data.data.sectionProgress || [],
             };
           } catch (error) {
             console.error('Error fetching program progress:', error);
@@ -52,17 +63,29 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
               id: program.id,
               fulfilled: 0,
               required: program.totalCredits,
+              sections: [],
             };
           }
         })
       );
 
       if (!isMounted) return;
-      const nextProgress: Record<number, { fulfilled: number; required: number }> = {};
+      const nextProgress: Record<number, {
+        fulfilled: number;
+        required: number;
+        sections: Array<{
+          sectionId: string;
+          title: string;
+          creditsRequired: number;
+          creditsFulfilled: number;
+          percentage: number;
+        }>;
+      }> = {};
       results.forEach((result) => {
         nextProgress[result.id] = {
           fulfilled: result.fulfilled,
           required: result.required,
+          sections: result.sections,
         };
       });
       setProgressByProgramId(nextProgress);
@@ -80,6 +103,7 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
       {programs.map((program) => {
         const fulfilled = progressByProgramId[program.id]?.fulfilled ?? 0;
         const required = progressByProgramId[program.id]?.required ?? program.totalCredits;
+        const sections = progressByProgramId[program.id]?.sections ?? [];
         const progressPercent = required > 0 ? (fulfilled / required) * 100 : 0;
 
         return (
@@ -89,6 +113,7 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
             type={program.type}
             progressPercent={progressPercent}
             creditsText={`${fulfilled} / ${required} credits`}
+            sections={sections}
           />
         );
       })}

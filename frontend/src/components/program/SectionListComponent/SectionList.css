@@ -1,0 +1,12 @@
+.section-list {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1175px;
+  align-items: flex-end;
+  margin: 0 auto;
+}
+
+.section-list .section-container:last-child {
+  border-bottom: 0;
+}

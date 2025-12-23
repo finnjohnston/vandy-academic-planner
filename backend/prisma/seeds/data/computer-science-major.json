@@ -172,7 +172,7 @@
     },
     {
       "id": "computer_science_major",
-      "title": "Computer Science Major",
+      "title": "Computer science major",
       "creditsRequired": 44,
       "requirements": [
         {
@@ -411,7 +411,7 @@
     },
     {
       "id": "liberal_arts_core",
-      "title": "Liberal Arts Core",
+      "title": "Liberal arts core",
       "creditsRequired": 18,
       "requirements": [
         {
