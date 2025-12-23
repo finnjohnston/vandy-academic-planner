@@ -81,6 +81,19 @@ const mockCourseWithLabSuffix: Course = {
   title: 'Introductory Physics Lab',
 };
 
+const mockCourseWithMNS2200: Course = {
+  ...mockCourseCS3250,
+  id: 7,
+  courseId: 'ASTR 2200',
+  subjectCode: 'ASTR',
+  courseNumber: '2200',
+  title: 'Stars and Galaxies',
+  attributes: {
+    axle: ['AXLE: Math and Natural Sciences'],
+    core: [],
+  },
+};
+
 describe('courseFilter.service', () => {
   describe('PlaceholderFilter', () => {
     it('should match all courses', () => {
@@ -347,6 +360,52 @@ describe('courseFilter.service', () => {
       };
       expect(validateFilter(filter)).toBe(
         'course_number_suffix filter must have at least one suffix'
+      );
+    });
+  });
+
+  describe('NumberAttributeFilter', () => {
+    it('should match by number range and attribute', () => {
+      const filter: CourseFilter = {
+        type: 'number_attribute',
+        numbers: [{ type: 'range', min: 2000 }],
+        attributes: ['AXLE: Math and Natural Sciences'],
+        attributeType: 'axle',
+      };
+      expect(evaluateCourseFilter(mockCourseWithMNS2200, filter)).toBe(true);
+      expect(evaluateCourseFilter(mockCourseWithMNS, filter)).toBe(false);
+    });
+
+    it('should respect subject restriction when provided', () => {
+      const filter: CourseFilter = {
+        type: 'number_attribute',
+        numbers: [{ type: 'range', min: 2000 }],
+        attributes: ['AXLE: Math and Natural Sciences'],
+        subjects: ['ASTR'],
+      };
+      expect(evaluateCourseFilter(mockCourseWithMNS2200, filter)).toBe(true);
+      expect(evaluateCourseFilter(mockCourseWithMNS, filter)).toBe(false);
+    });
+
+    it('should validate empty numbers', () => {
+      const filter: CourseFilter = {
+        type: 'number_attribute',
+        numbers: [],
+        attributes: ['AXLE: Math and Natural Sciences'],
+      };
+      expect(validateFilter(filter)).toBe(
+        'number_attribute filter must have at least one number constraint'
+      );
+    });
+
+    it('should validate empty attributes', () => {
+      const filter: CourseFilter = {
+        type: 'number_attribute',
+        numbers: [{ type: 'range', min: 2000 }],
+        attributes: [],
+      };
+      expect(validateFilter(filter)).toBe(
+        'number_attribute filter must have at least one attribute'
       );
     });
   });

@@ -87,7 +87,8 @@
             "type": "take_any_courses",
             "credits": 3,
             "filter": {
-              "type": "placeholder"
+              "type": "course_number_suffix",
+              "suffixes": ["W"]
             }
           },
           "constraints": [
@@ -132,7 +133,28 @@
             "type": "take_any_courses",
             "credits": 15,
             "filter": {
-              "type": "placeholder"
+              "type": "composite",
+              "operator": "OR",
+              "filters": [
+                {
+                  "type": "subject_number",
+                  "subjects": ["CS"],
+                  "numbers": [{ "type": "range", "min": 3000 }],
+                  "exclude": ["CS 3262"]
+                },
+                {
+                  "type": "course_list",
+                  "courses": [
+                    "ECE 3258","ECE 3265","ECE 3274","ECE 3452","ECE 4260","ECE 4262",
+                    "ECE 4277","ECE 4278","ECE 4285","ECE 4353","ECE 4354","ECE 4375",
+                    "ECE 4467","ECE 4475","ECE 4484"
+                  ]
+                },
+                {
+                  "type": "course_list",
+                  "courses": ["MATH 3320","MATH 3620","MATH 4600","MATH 4620"]
+                }
+              ]
             }
           },
           "constraints": [

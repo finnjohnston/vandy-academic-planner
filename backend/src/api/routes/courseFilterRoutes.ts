@@ -50,6 +50,19 @@ const filterSchema: z.ZodType<any> = z.lazy(() =>
       exclude: z.array(z.string()).optional(),
     }),
     z.object({
+      type: z.literal('number_attribute'),
+      numbers: z.array(numberConstraintSchema).min(1),
+      attributes: z.array(z.string()).min(1),
+      attributeType: z.enum(['axle', 'core']).optional(),
+      subjects: z.array(z.string()).optional(),
+      exclude: z
+        .object({
+          subjects: z.array(z.string()).optional(),
+          courses: z.array(z.string()).optional(),
+        })
+        .optional(),
+    }),
+    z.object({
       type: z.literal('composite'),
       operator: z.enum(['AND', 'OR']),
       filters: z.array(filterSchema).min(2),

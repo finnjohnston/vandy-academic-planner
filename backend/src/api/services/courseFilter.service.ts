@@ -6,6 +6,8 @@ import {
   AttributeFilter,
   CourseListFilter,
   CourseNumberSuffixFilter,
+  NumberAttributeFilter,
+  NumberConstraint,
   CompositeFilter,
 } from '../types/program.types.js';
 import { prisma } from '../../config/prisma.js';
@@ -28,6 +30,8 @@ export function evaluateCourseFilter(course: Course, filter: CourseFilter): bool
       return evaluateCourseList(course, filter);
     case 'course_number_suffix':
       return evaluateCourseNumberSuffix(course, filter);
+    case 'number_attribute':
+      return evaluateNumberAttribute(course, filter);
     case 'composite':
       return evaluateComposite(course, filter);
     default:
@@ -87,19 +91,10 @@ function evaluateAttribute(course: Course, filter: AttributeFilter): boolean {
   // Step 2: Parse attributes from Course.attributes JSON
   if (!course.attributes) return false;
 
-  const attrs = course.attributes as { axle?: string[]; core?: string[] };
+  const courseAttributes = getCourseAttributes(course, filter.attributeType);
+  if (courseAttributes.length === 0) return false;
 
-  const axleAttributes = attrs.axle ?? [];
-  const coreAttributes = attrs.core ?? [];
-
-  const allAttributes =
-    filter.attributeType === 'axle'
-      ? axleAttributes
-      : filter.attributeType === 'core'
-        ? coreAttributes
-        : [...axleAttributes, ...coreAttributes];
-
-  return filter.attributes.some((attr) => allAttributes.includes(attr));
+  return filter.attributes.some((attr) => courseAttributes.includes(attr));
 }
 
 /**
@@ -118,6 +113,61 @@ function evaluateCourseNumberSuffix(
   }
 
   return filter.suffixes.some((suffix) => course.courseNumber.endsWith(suffix));
+}
+
+/**
+ * Number + attribute filter - matches by number constraints and attribute strings
+ */
+function evaluateNumberAttribute(course: Course, filter: NumberAttributeFilter): boolean {
+  if (filter.subjects && !filter.subjects.includes(course.subjectCode)) {
+    return false;
+  }
+
+  if (filter.exclude?.subjects?.includes(course.subjectCode)) {
+    return false;
+  }
+
+  if (filter.exclude?.courses?.includes(course.courseId)) {
+    return false;
+  }
+
+  if (!matchesNumberConstraints(course.courseNumber, filter.numbers)) {
+    return false;
+  }
+
+  const courseAttributes = getCourseAttributes(course, filter.attributeType);
+  if (courseAttributes.length === 0) return false;
+
+  return filter.attributes.some((attr) => courseAttributes.includes(attr));
+}
+
+function getCourseAttributes(
+  course: Course,
+  attributeType?: 'axle' | 'core'
+): string[] {
+  if (!course.attributes) return [];
+  const attrs = course.attributes as { axle?: string[]; core?: string[] };
+  const axleAttributes = attrs.axle ?? [];
+  const coreAttributes = attrs.core ?? [];
+
+  if (attributeType === 'axle') return axleAttributes;
+  if (attributeType === 'core') return coreAttributes;
+  return [...axleAttributes, ...coreAttributes];
+}
+
+function matchesNumberConstraints(
+  courseNumber: string,
+  constraints: NumberConstraint[]
+): boolean {
+  const courseNum = parseInt(courseNumber);
+  return constraints.some((constraint) => {
+    if (constraint.type === 'specific') {
+      return constraint.values.includes(courseNumber);
+    }
+    const min = constraint.min;
+    const max = constraint.max ?? Infinity;
+    return courseNum >= min && courseNum <= max;
+  });
 }
 
 /**
@@ -202,6 +252,20 @@ export function calculateFilterSpecificity(filter: CourseFilter): number {
         score += 5;
       }
       return Math.min(60, score);
+    }
+
+    case 'number_attribute': {
+      // 55-75 based on constraints and attribute count
+      let score = 55;
+      if (filter.subjects && filter.subjects.length <= 2) {
+        score += 5;
+      }
+      const attributePenalty = Math.min(10, (filter.attributes.length - 1) * 2);
+      score -= attributePenalty;
+      if (filter.numbers.some((c) => c.type === 'specific')) {
+        score += 10;
+      }
+      return Math.min(75, score);
     }
 
     case 'composite': {
@@ -344,6 +408,23 @@ export function validateFilter(filter: CourseFilter): string | null {
     case 'course_number_suffix':
       if (!filter.suffixes || filter.suffixes.length === 0) {
         return 'course_number_suffix filter must have at least one suffix';
+      }
+      return null;
+
+    case 'number_attribute':
+      if (!filter.numbers || filter.numbers.length === 0) {
+        return 'number_attribute filter must have at least one number constraint';
+      }
+      if (!filter.attributes || filter.attributes.length === 0) {
+        return 'number_attribute filter must have at least one attribute';
+      }
+      for (const constraint of filter.numbers) {
+        if (constraint.type === 'specific' && constraint.values.length === 0) {
+          return 'specific number constraint must have at least one value';
+        }
+        if (constraint.type === 'range' && constraint.min < 0) {
+          return 'range min must be non-negative';
+        }
       }
       return null;
 
