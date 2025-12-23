@@ -1,14 +1,19 @@
 .requirement-container {
   width: 100%;
   max-width: 1260px;
-  height: 800px;
+  height: auto;
   background-color: var(--color-card-bg);
   border: 1px solid var(--color-border);
   border-radius: 12px;
   box-sizing: border-box;
   margin-top: 30px;
   flex-shrink: 0;
-  padding: 20px;
+  padding: 20px 20px 40px;
+}
+
+.requirement-container.requirement-empty {
+  min-height: calc(100vh - 120px);
+  margin-bottom: 20px;
 }
 
 .requirement-blurred {
@@ -21,8 +26,11 @@
   font-size: 16px;
   font-weight: 500;
   color: var(--color-gold-light);
-  margin: 0 0 0 0;
+  margin: 0 auto;
   padding: 0;
+  width: 100%;
+  max-width: 1200px;
+  padding-left: 20px;
   text-align: left;
 }
 
@@ -30,4 +38,8 @@
   width: 100%;
   height: 100%;
   box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 16px;
 }

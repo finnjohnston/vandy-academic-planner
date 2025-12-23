@@ -6,7 +6,7 @@ import type { DragStartEvent, DragEndEvent, DragOverEvent } from '@dnd-kit/core'
 import NavBar from '../../components/common/NavBarComponent/NavBar';
 import CourseSearch from '../../components/course/CourseSearchComponent/CourseSearch';
 import Plan from '../../components/plan/PlanComponent/Plan';
-import Requirement from '../../components/requirements/RequirementComponent/Requirement';
+import Requirement from '../../components/program/RequirementComponent/Requirement';
 import CourseDetail from '../../components/course/CourseDetailComponent/CourseDetail';
 import type { Course } from '../../types/Course';
 import type { DragData } from '../../types/DragData';
@@ -35,6 +35,16 @@ interface PlanData {
       subjectCode: string;
       courseNumber: string;
     } | null;
+  }>;
+  programs: Array<{
+    id: number;
+    program: {
+      id: number;
+      programId: string;
+      name: string;
+      type: string;
+      totalCredits: number;
+    };
   }>;
 }
 
@@ -522,7 +532,16 @@ const Planning: React.FC = () => {
             dragOverPosition={dragOverPosition}
             activeDrag={activeDrag}
           />
-          <Requirement isBlurred={isPopupOpen} />
+          <Requirement
+            isBlurred={isPopupOpen}
+            planId={planData.id}
+            programs={planData.programs.map((planProgram) => ({
+              id: planProgram.id,
+              name: planProgram.program.name,
+              type: planProgram.program.type,
+              totalCredits: planProgram.program.totalCredits,
+            }))}
+          />
         </div>
 
         {selectedCourse && ReactDOM.createPortal(

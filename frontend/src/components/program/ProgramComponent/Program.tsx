@@ -1,0 +1,44 @@
+import React from 'react';
+import ProgramProgressBar from '../ProgramProgressBarComponent/ProgramProgressBar';
+import './Program.css';
+
+interface ProgramProps {
+  name: string;
+  type: string;
+  creditsText: string;
+  progressPercent: number;
+}
+
+const Program: React.FC<ProgramProps> = ({
+  name,
+  type,
+  creditsText,
+  progressPercent,
+}) => {
+  const normalizedType = type.trim().toLowerCase();
+  const displayType = normalizedType
+    ? normalizedType.charAt(0).toUpperCase() + normalizedType.slice(1)
+    : '';
+  const displayName =
+    normalizedType && name.toLowerCase().endsWith(` ${normalizedType}`)
+      ? name.slice(0, name.length - (normalizedType.length + 1))
+      : name;
+
+  return (
+    <div className="program-container">
+      <div className="program-info">
+        <span className="program-name">{displayName}</span>
+        {displayType && <span className="program-type">{displayType}</span>}
+        <div className="program-progress-group">
+          <ProgramProgressBar percent={progressPercent} />
+          <span className="program-credits">{creditsText}</span>
+        </div>
+      </div>
+      <svg className="program-dropdown-icon" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </div>
+  );
+};
+
+export default Program;

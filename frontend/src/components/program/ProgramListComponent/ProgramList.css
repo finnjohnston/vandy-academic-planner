@@ -1,0 +1,10 @@
+.program-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.program-list > .program-container:first-child {
+  margin-top: 10px;
+}

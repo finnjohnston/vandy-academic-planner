@@ -1,0 +1,15 @@
+.program-progress {
+  width: 150px;
+  height: 10px;
+  background-color: var(--color-border);
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+}
+
+.program-progress-fill {
+  display: block;
+  height: 10px;
+  background-color: var(--color-text-dark);
+  border-radius: 999px;
+}
