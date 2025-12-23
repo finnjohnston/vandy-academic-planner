@@ -6,7 +6,7 @@ import {
   validateFilter,
 } from '../services/courseFilter.service.js';
 import { sendSuccess } from '../utils/response.utils.js';
-import { BadRequestError, NotFoundError } from '../types/error.types.js';
+import { ValidationError, NotFoundError } from '../types/error.types.js';
 import logger from '../../utils/logger.js';
 import { prisma } from '../../config/prisma.js';
 
