@@ -56,6 +56,7 @@ export type CourseFilter =
   | SubjectNumberFilter
   | AttributeFilter
   | CourseListFilter
+  | CourseNumberSuffixFilter
   | CompositeFilter;
 
 export type PlaceholderFilter = {
@@ -85,6 +86,13 @@ export type AttributeFilter = {
 export type CourseListFilter = {
   type: "course_list";
   courses: string[];
+};
+
+export type CourseNumberSuffixFilter = {
+  type: "course_number_suffix";
+  suffixes: string[];
+  subjects?: string[];
+  exclude?: string[];
 };
 
 export type CompositeFilter = {

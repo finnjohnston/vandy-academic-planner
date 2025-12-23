@@ -5,6 +5,7 @@ import {
   SubjectNumberFilter,
   AttributeFilter,
   CourseListFilter,
+  CourseNumberSuffixFilter,
   CompositeFilter,
 } from '../types/program.types.js';
 import { prisma } from '../../config/prisma.js';
@@ -25,6 +26,8 @@ export function evaluateCourseFilter(course: Course, filter: CourseFilter): bool
       return evaluateAttribute(course, filter);
     case 'course_list':
       return evaluateCourseList(course, filter);
+    case 'course_number_suffix':
+      return evaluateCourseNumberSuffix(course, filter);
     case 'composite':
       return evaluateComposite(course, filter);
     default:
@@ -86,56 +89,35 @@ function evaluateAttribute(course: Course, filter: AttributeFilter): boolean {
 
   const attrs = course.attributes as { axle?: string[]; core?: string[] };
 
-  // Step 3: Extract short codes from attribute strings
-  const axleShortCodes = attrs.axle ? extractShortCodes(attrs.axle) : [];
-  const coreShortCodes = attrs.core ? extractShortCodes(attrs.core) : [];
+  const axleAttributes = attrs.axle ?? [];
+  const coreAttributes = attrs.core ?? [];
 
-  // Step 4: Check if any required attribute matches
-  const allShortCodes =
+  const allAttributes =
     filter.attributeType === 'axle'
-      ? axleShortCodes
+      ? axleAttributes
       : filter.attributeType === 'core'
-        ? coreShortCodes
-        : [...axleShortCodes, ...coreShortCodes];
+        ? coreAttributes
+        : [...axleAttributes, ...coreAttributes];
 
-  return filter.attributes.some((attr) => allShortCodes.includes(attr));
+  return filter.attributes.some((attr) => allAttributes.includes(attr));
 }
 
 /**
- * Extract short codes from full attribute strings
- * "AXLE: Math and Natural Sciences" → "MNS"
- * "AXLE: Humanities and Creative Arts" → "HCA"
+ * Course number suffix filter - matches by suffix with optional subject and exclusions
  */
-function extractShortCodes(attributes: string[]): string[] {
-  const attributeMapping: Record<string, string> = {
-    'Math and Natural Sciences': 'MNS',
-    'Humanities and Creative Arts': 'HCA',
-    'International Cultures': 'INT',
-    'History and Culture of the United States': 'US',
-    'Social and Behavioral Sciences': 'SBS',
-    Perspectives: 'P',
-    // CORE mappings
-    'B-Systemic & Structural Reasoning': 'B-SSR',
-  };
+function evaluateCourseNumberSuffix(
+  course: Course,
+  filter: CourseNumberSuffixFilter
+): boolean {
+  if (filter.subjects && !filter.subjects.includes(course.subjectCode)) {
+    return false;
+  }
 
-  return attributes.map((attr) => {
-    // Extract acronym from parentheses: "Something (ABC)" → "ABC"
-    const parenMatch = attr.match(/\(([A-Z-]+)\)/);
-    if (parenMatch) return parenMatch[1];
+  if (filter.exclude && filter.exclude.includes(course.courseId)) {
+    return false;
+  }
 
-    // Strip "AXLE: " or "CORE: " prefix if present
-    let cleanAttr = attr.replace(/^(AXLE|CORE):\s*/, '');
-
-    // Try exact mapping after cleaning
-    if (attributeMapping[cleanAttr]) return attributeMapping[cleanAttr];
-
-    // Extract short code after colon: "AXLE: XYZ" → "XYZ"
-    const colonMatch = attr.match(/:\s*([A-Z-]+)$/);
-    if (colonMatch) return colonMatch[1];
-
-    // Return original if no pattern matches
-    return attr;
-  });
+  return filter.suffixes.some((suffix) => course.courseNumber.endsWith(suffix));
 }
 
 /**
@@ -210,6 +192,18 @@ export function calculateFilterSpecificity(filter: CourseFilter): number {
       return baseListScore + sizeBonus;
     }
 
+    case 'course_number_suffix': {
+      // 45-60 based on subject scope and suffix count
+      let score = 45;
+      if (filter.subjects && filter.subjects.length <= 2) {
+        score += 5;
+      }
+      if (filter.suffixes.length === 1) {
+        score += 5;
+      }
+      return Math.min(60, score);
+    }
+
     case 'composite': {
       // Use maximum specificity of sub-filters
       // AND increases specificity, OR decreases it
@@ -275,6 +269,33 @@ export async function getCoursesByFilter(
     });
   }
 
+  if (filter.type === 'course_number_suffix' && !filter.exclude) {
+    const suffixClauses = filter.suffixes.map((suffix) => ({
+      courseNumber: { endsWith: suffix },
+    }));
+
+    if (!filter.subjects || filter.subjects.length === 0) {
+      return await prisma.course.findMany({
+        where: {
+          academicYearId,
+          OR: suffixClauses,
+          isCatalogCourse: true,
+        },
+        orderBy: [{ subjectCode: 'asc' }, { courseNumber: 'asc' }],
+      });
+    }
+
+    return await prisma.course.findMany({
+      where: {
+        academicYearId,
+        subjectCode: { in: filter.subjects },
+        OR: suffixClauses,
+        isCatalogCourse: true,
+      },
+      orderBy: [{ subjectCode: 'asc' }, { courseNumber: 'asc' }],
+    });
+  }
+
   // Complex filters: fetch all courses and filter in memory
   const allCourses = await prisma.course.findMany({
     where: { academicYearId, isCatalogCourse: true },
@@ -317,6 +338,12 @@ export function validateFilter(filter: CourseFilter): string | null {
     case 'course_list':
       if (!filter.courses || filter.courses.length === 0) {
         return 'course_list filter must have at least one course';
+      }
+      return null;
+
+    case 'course_number_suffix':
+      if (!filter.suffixes || filter.suffixes.length === 0) {
+        return 'course_number_suffix filter must have at least one suffix';
       }
       return null;
 

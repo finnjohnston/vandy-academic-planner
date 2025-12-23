@@ -52,7 +52,7 @@ const mockCourseWithAxle: Course = {
   courseNumber: '1100',
   title: 'Introduction to Philosophy',
   attributes: {
-    axle: ['AXLE: Humanities and Creative Arts (HCA)'],
+    axle: ['AXLE: Humanities and the Creative Arts'],
     core: [],
   },
 };
@@ -70,6 +70,15 @@ const mockCourseWithMNS: Course = {
     axle: ['AXLE: Math and Natural Sciences'],
     core: [],
   },
+};
+
+const mockCourseWithLabSuffix: Course = {
+  ...mockCourseCS3250,
+  id: 6,
+  courseId: 'PHYS 1601L',
+  subjectCode: 'PHYS',
+  courseNumber: '1601L',
+  title: 'Introductory Physics Lab',
 };
 
 describe('courseFilter.service', () => {
@@ -192,7 +201,7 @@ describe('courseFilter.service', () => {
     it('should match courses by AXLE attribute', () => {
       const filter: CourseFilter = {
         type: 'attribute',
-        attributes: ['HCA'],
+        attributes: ['AXLE: Humanities and the Creative Arts'],
         attributeType: 'axle',
       };
       expect(evaluateCourseFilter(mockCourseWithAxle, filter)).toBe(true);
@@ -202,7 +211,7 @@ describe('courseFilter.service', () => {
     it('should match courses with MNS attribute', () => {
       const filter: CourseFilter = {
         type: 'attribute',
-        attributes: ['MNS'],
+        attributes: ['AXLE: Math and Natural Sciences'],
         attributeType: 'axle',
       };
       expect(evaluateCourseFilter(mockCourseWithMNS, filter)).toBe(true);
@@ -212,7 +221,7 @@ describe('courseFilter.service', () => {
     it('should exclude subjects', () => {
       const filter: CourseFilter = {
         type: 'attribute',
-        attributes: ['HCA'],
+        attributes: ['AXLE: Humanities and the Creative Arts'],
         exclude: { subjects: ['PHIL'] },
       };
       expect(evaluateCourseFilter(mockCourseWithAxle, filter)).toBe(false);
@@ -221,7 +230,10 @@ describe('courseFilter.service', () => {
     it('should match multiple attributes', () => {
       const filter: CourseFilter = {
         type: 'attribute',
-        attributes: ['HCA', 'MNS'],
+        attributes: [
+          'AXLE: Humanities and the Creative Arts',
+          'AXLE: Math and Natural Sciences',
+        ],
       };
       expect(evaluateCourseFilter(mockCourseWithAxle, filter)).toBe(true);
       expect(evaluateCourseFilter(mockCourseWithMNS, filter)).toBe(true);
@@ -230,13 +242,17 @@ describe('courseFilter.service', () => {
     it('should calculate specificity based on attribute count', () => {
       const singleAttr: CourseFilter = {
         type: 'attribute',
-        attributes: ['HCA'],
+        attributes: ['AXLE: Humanities and the Creative Arts'],
       };
       expect(calculateFilterSpecificity(singleAttr)).toBe(40);
 
       const multipleAttrs: CourseFilter = {
         type: 'attribute',
-        attributes: ['HCA', 'INT', 'US'],
+        attributes: [
+          'AXLE: Humanities and the Creative Arts',
+          'AXLE: International Cultures',
+          'AXLE: History and Culture of the United States',
+        ],
       };
       expect(calculateFilterSpecificity(multipleAttrs)).toBeLessThan(40);
     });
@@ -244,7 +260,7 @@ describe('courseFilter.service', () => {
     it('should add bonus for exclusions', () => {
       const withExclusion: CourseFilter = {
         type: 'attribute',
-        attributes: ['HCA'],
+        attributes: ['AXLE: Humanities and the Creative Arts'],
         exclude: { subjects: ['CMST'] },
       };
       expect(calculateFilterSpecificity(withExclusion)).toBe(50); // 40 + 10
@@ -292,6 +308,46 @@ describe('courseFilter.service', () => {
         courses: [],
       };
       expect(validateFilter(filter)).toBe('course_list filter must have at least one course');
+    });
+  });
+
+  describe('CourseNumberSuffixFilter', () => {
+    it('should match courses by suffix', () => {
+      const filter: CourseFilter = {
+        type: 'course_number_suffix',
+        suffixes: ['L'],
+      };
+      expect(evaluateCourseFilter(mockCourseWithLabSuffix, filter)).toBe(true);
+      expect(evaluateCourseFilter(mockCourseCS3250, filter)).toBe(false);
+    });
+
+    it('should filter by subject when provided', () => {
+      const filter: CourseFilter = {
+        type: 'course_number_suffix',
+        suffixes: ['L'],
+        subjects: ['PHYS'],
+      };
+      expect(evaluateCourseFilter(mockCourseWithLabSuffix, filter)).toBe(true);
+      expect(evaluateCourseFilter(mockCourseCS3250, filter)).toBe(false);
+    });
+
+    it('should exclude specific courses', () => {
+      const filter: CourseFilter = {
+        type: 'course_number_suffix',
+        suffixes: ['L'],
+        exclude: ['PHYS 1601L'],
+      };
+      expect(evaluateCourseFilter(mockCourseWithLabSuffix, filter)).toBe(false);
+    });
+
+    it('should validate empty suffixes', () => {
+      const filter: CourseFilter = {
+        type: 'course_number_suffix',
+        suffixes: [],
+      };
+      expect(validateFilter(filter)).toBe(
+        'course_number_suffix filter must have at least one suffix'
+      );
     });
   });
 

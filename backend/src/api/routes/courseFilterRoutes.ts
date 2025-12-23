@@ -44,6 +44,12 @@ const filterSchema: z.ZodType<any> = z.lazy(() =>
       courses: z.array(z.string()).min(1),
     }),
     z.object({
+      type: z.literal('course_number_suffix'),
+      suffixes: z.array(z.string()).min(1),
+      subjects: z.array(z.string()).optional(),
+      exclude: z.array(z.string()).optional(),
+    }),
+    z.object({
       type: z.literal('composite'),
       operator: z.enum(['AND', 'OR']),
       filters: z.array(filterSchema).min(2),
