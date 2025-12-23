@@ -193,11 +193,11 @@ describe('ruleProgressEvaluator.service', () => {
   });
 
   describe('take_any_courses Rule', () => {
-    it('should calculate progress for placeholder filter', () => {
+    it('should calculate progress for any filter', () => {
       const rule: TakeAnyCoursesRule = {
         type: 'take_any_courses',
         credits: 9,
-        filter: { type: 'placeholder' },
+        filter: { type: 'any' },
       };
 
       const progress = evaluateRuleProgress(rule, [
@@ -218,7 +218,7 @@ describe('ruleProgressEvaluator.service', () => {
       const rule: TakeAnyCoursesRule = {
         type: 'take_any_courses',
         credits: 12,
-        filter: { type: 'placeholder' },
+        filter: { type: 'any' },
       };
 
       const progress = evaluateRuleProgress(rule, [mockCourseCS1101, mockCourseCS2201]);
@@ -234,7 +234,7 @@ describe('ruleProgressEvaluator.service', () => {
       const rule: TakeAnyCoursesRule = {
         type: 'take_any_courses',
         credits: 9,
-        filter: { type: 'placeholder' },
+        filter: { type: 'any' },
       };
 
       const progress = evaluateRuleProgress(rule, []);

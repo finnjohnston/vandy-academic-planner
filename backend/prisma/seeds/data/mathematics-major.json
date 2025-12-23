@@ -75,7 +75,15 @@
             "type": "take_any_courses",
             "credits": 12,
             "filter": {
-              "type": "placeholder"
+              "type": "subject_number",
+              "subjects": ["MATH"],
+              "numbers": [
+                {
+                  "type": "range",
+                  "min": 2800
+                }
+              ],
+              "exclude": ["MATH 3000"]
             }
           },
           "constraints": []

@@ -52,7 +52,7 @@ export type TakeAnyCoursesRule = {
 
 // Filter Types (Phase 6 implementation)
 export type CourseFilter =
-  | PlaceholderFilter
+  | AnyFilter
   | SubjectNumberFilter
   | AttributeFilter
   | CourseListFilter
@@ -60,8 +60,8 @@ export type CourseFilter =
   | NumberAttributeFilter
   | CompositeFilter;
 
-export type PlaceholderFilter = {
-  type: "placeholder";
+export type AnyFilter = {
+  type: "any";
 };
 
 export type SubjectNumberFilter = {

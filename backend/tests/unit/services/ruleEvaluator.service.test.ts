@@ -169,11 +169,11 @@ describe('ruleEvaluator.service', () => {
   });
 
   describe('take_any_courses Rule', () => {
-    it('should match with placeholder filter (Phase 4)', () => {
+    it('should match with any filter (Phase 4)', () => {
       const rule: TakeAnyCoursesRule = {
         type: 'take_any_courses',
         credits: 3,
-        filter: { type: 'placeholder' },
+        filter: { type: 'any' },
       };
 
       const result = evaluateRule(rule, mockCourseCS1101);
@@ -182,11 +182,11 @@ describe('ruleEvaluator.service', () => {
       expect(result.specificityScore).toBe(10);
     });
 
-    it('should match different courses with placeholder filter', () => {
+    it('should match different courses with any filter', () => {
       const rule: TakeAnyCoursesRule = {
         type: 'take_any_courses',
         credits: 3,
-        filter: { type: 'placeholder' },
+        filter: { type: 'any' },
       };
 
       const resultCS = evaluateRule(rule, mockCourseCS1101);
@@ -201,7 +201,7 @@ describe('ruleEvaluator.service', () => {
       expect(resultHIST.specificityScore).toBe(10);
     });
 
-    it('should not match with non-placeholder filter type', () => {
+    it('should not match with non-any filter type', () => {
       const rule: TakeAnyCoursesRule = {
         type: 'take_any_courses',
         credits: 3,
@@ -320,7 +320,7 @@ describe('ruleEvaluator.service', () => {
         rules: [
           { type: 'take_courses', courses: ['MATH 1300'] },
           { type: 'take_from_list', count: 1, countType: 'courses', courses: ['MATH 1300', 'MATH 1301'] },
-          { type: 'take_any_courses', credits: 3, filter: { type: 'placeholder' } },
+          { type: 'take_any_courses', credits: 3, filter: { type: 'any' } },
         ],
       };
 
@@ -353,7 +353,7 @@ describe('ruleEvaluator.service', () => {
         rules: [
           { type: 'take_courses', courses: ['CS 1101'] },
           { type: 'take_from_list', count: 1, countType: 'courses', courses: ['CS 1101', 'CS 2201'] },
-          { type: 'take_any_courses', credits: 3, filter: { type: 'placeholder' } },
+          { type: 'take_any_courses', credits: 3, filter: { type: 'any' } },
         ],
       };
 

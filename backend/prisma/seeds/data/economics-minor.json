@@ -71,7 +71,8 @@
             "type": "take_any_courses",
             "credits": 9,
             "filter": {
-              "type": "placeholder"
+              "type": "subject_number",
+              "subjects": ["ECON"]
             }
           },
           "constraints": [

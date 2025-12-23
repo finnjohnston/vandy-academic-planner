@@ -95,21 +95,21 @@ const mockCourseWithMNS2200: Course = {
 };
 
 describe('courseFilter.service', () => {
-  describe('PlaceholderFilter', () => {
+  describe('AnyFilter', () => {
     it('should match all courses', () => {
-      const filter: CourseFilter = { type: 'placeholder' };
+      const filter: CourseFilter = { type: 'any' };
       expect(evaluateCourseFilter(mockCourseCS3250, filter)).toBe(true);
       expect(evaluateCourseFilter(mockCourseMATH3320, filter)).toBe(true);
       expect(evaluateCourseFilter(mockCourseWithAxle, filter)).toBe(true);
     });
 
     it('should have specificity of 10', () => {
-      const filter: CourseFilter = { type: 'placeholder' };
+      const filter: CourseFilter = { type: 'any' };
       expect(calculateFilterSpecificity(filter)).toBe(10);
     });
 
     it('should always be valid', () => {
-      const filter: CourseFilter = { type: 'placeholder' };
+      const filter: CourseFilter = { type: 'any' };
       expect(validateFilter(filter)).toBeNull();
     });
   });
@@ -466,7 +466,7 @@ describe('courseFilter.service', () => {
       const filter: CourseFilter = {
         type: 'composite',
         operator: 'AND',
-        filters: [{ type: 'placeholder' }],
+        filters: [{ type: 'any' }],
       };
       expect(validateFilter(filter)).toBe('composite filter must have at least two sub-filters');
     });
@@ -476,7 +476,7 @@ describe('courseFilter.service', () => {
         type: 'composite',
         operator: 'AND',
         filters: [
-          { type: 'placeholder' },
+          { type: 'any' },
           { type: 'subject_number', subjects: [] }, // Invalid
         ],
       };

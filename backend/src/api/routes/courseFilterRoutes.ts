@@ -22,7 +22,7 @@ const numberConstraintSchema = z.discriminatedUnion('type', [
 
 const filterSchema: z.ZodType<any> = z.lazy(() =>
   z.discriminatedUnion('type', [
-    z.object({ type: z.literal('placeholder') }),
+    z.object({ type: z.literal('any') }),
     z.object({
       type: z.literal('subject_number'),
       subjects: z.array(z.string()).min(1),

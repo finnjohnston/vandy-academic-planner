@@ -1,7 +1,7 @@
 import { Course } from '@prisma/client';
 import {
   CourseFilter,
-  PlaceholderFilter,
+  AnyFilter,
   SubjectNumberFilter,
   AttributeFilter,
   CourseListFilter,
@@ -20,8 +20,8 @@ import { prisma } from '../../config/prisma.js';
  */
 export function evaluateCourseFilter(course: Course, filter: CourseFilter): boolean {
   switch (filter.type) {
-    case 'placeholder':
-      return evaluatePlaceholder(course, filter);
+    case 'any':
+      return evaluateAny(course, filter);
     case 'subject_number':
       return evaluateSubjectNumber(course, filter);
     case 'attribute':
@@ -42,7 +42,7 @@ export function evaluateCourseFilter(course: Course, filter: CourseFilter): bool
 /**
  * Placeholder filter - always matches
  */
-function evaluatePlaceholder(course: Course, filter: PlaceholderFilter): boolean {
+function evaluateAny(course: Course, filter: AnyFilter): boolean {
   return true;
 }
 
@@ -195,7 +195,7 @@ function evaluateComposite(course: Course, filter: CompositeFilter): boolean {
  */
 export function calculateFilterSpecificity(filter: CourseFilter): number {
   switch (filter.type) {
-    case 'placeholder':
+    case 'any':
       return 10; // Least specific (matches everything)
 
     case 'attribute': {
@@ -301,7 +301,7 @@ export async function getCoursesByFilter(
 ): Promise<Course[]> {
   // Strategy: Use Prisma queries for simple filters, in-memory for complex
 
-  if (filter.type === 'placeholder') {
+  if (filter.type === 'any') {
     // Fetch all courses
     return await prisma.course.findMany({
       where: { academicYearId, isCatalogCourse: true },
@@ -374,7 +374,7 @@ export async function getCoursesByFilter(
  */
 export function validateFilter(filter: CourseFilter): string | null {
   switch (filter.type) {
-    case 'placeholder':
+    case 'any':
       return null; // Always valid
 
     case 'subject_number':

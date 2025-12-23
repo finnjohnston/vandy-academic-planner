@@ -202,7 +202,75 @@
             "type": "take_any_courses",
             "credits": 6,
             "filter": {
-              "type": "placeholder"
+              "type": "composite",
+              "operator": "OR",
+              "filters": [
+                {
+                  "type": "subject_number",
+                  "subjects": ["CS"],
+                  "numbers": [
+                    {
+                      "type": "range",
+                      "min": 3000
+                    }
+                  ],
+                  "exclude": ["CS 2860"]
+                },
+                {
+                  "type": "subject_number",
+                  "subjects": [
+                    "BME",
+                    "CHBE",
+                    "CE",
+                    "DF",
+                    "DS",
+                    "ECE",
+                    "ENGM",
+                    "ENVE",
+                    "ES",
+                    "ME",
+                    "MSE",
+                    "NANO",
+                    "SC"
+                  ],
+                  "numbers": [
+                    {
+                      "type": "range",
+                      "min": 2000
+                    }
+                  ],
+                  "exclude": [
+                    "BME 2860",
+                    "CHBE 2860",
+                    "CE 2860",
+                    "DF 2860",
+                    "DS 2860",
+                    "ECE 2860",
+                    "ENGM 2860",
+                    "ENVE 2860",
+                    "ES 2860",
+                    "ME 2860",
+                    "MSE 2860",
+                    "NANO 2860",
+                    "SC 2860",
+                    "ENGM 2440",
+                    "ENGM 4800",
+                    "ES 2700",
+                    "ES 3884"
+                  ]
+                },
+                {
+                  "type": "number_attribute",
+                  "numbers": [
+                    {
+                      "type": "range",
+                      "min": 2000
+                    }
+                  ],
+                  "attributes": ["AXLE: Math and Natural Sciences"],
+                  "attributeType": "axle"
+                }
+              ]
             }
           },
           "constraints": []
@@ -223,7 +291,11 @@
             "type": "take_any_courses",
             "credits": 3,
             "filter": {
-              "type": "placeholder"
+              "type": "attribute",
+              "attributes": [
+                "AXLE: Humanities and the Creative Arts",
+                "LE: HFA-Humanities and Fine Arts"
+              ]
             }
           },
           "constraints": []
@@ -237,7 +309,11 @@
             "type": "take_any_courses",
             "credits": 3,
             "filter": {
-              "type": "placeholder"
+              "type": "attribute",
+              "attributes": [
+                "AXLE: Social and Behavioral Sciences",
+                "LE: SBS-Social and Behavioral Sciences"
+              ]
             }
           },
           "constraints": []
@@ -251,7 +327,24 @@
             "type": "take_any_courses",
             "credits": 12,
             "filter": {
-              "type": "placeholder"
+              "type": "composite",
+              "operator": "OR",
+              "filters": [
+                {
+                  "type": "attribute",
+                  "attributes": [
+                    "AXLE: Humanities and the Creative Arts",
+                    "AXLE: International Cultures",
+                    "AXLE: History and Culture of the United States",
+                    "AXLE: Social and Behavioral Sciences",
+                    "AXLE: Perspectives"
+                  ]
+                },
+                {
+                  "type": "course_list",
+                  "courses": ["CS 1151"]
+                }
+              ]
             }
           },
           "constraints": []
@@ -272,7 +365,7 @@
             "type": "take_any_courses",
             "credits": 20,
             "filter": {
-              "type": "placeholder"
+              "type": "any"
             }
           },
           "constraints": []

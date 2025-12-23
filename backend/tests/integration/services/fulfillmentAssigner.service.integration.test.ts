@@ -128,7 +128,7 @@ const mathMajorRequirements: ProgramRequirements = {
           rule: {
             type: 'take_any_courses',
             credits: 12,
-            filter: { type: 'placeholder' },
+            filter: { type: 'any' },
           },
           constraints: [],
         },
@@ -452,7 +452,7 @@ describe('fulfillmentAssigner.service - Integration Tests', () => {
     expect(fulfillments.every(f => f.requirementId === 'general_degree_requirements.basic_science')).toBe(true);
   });
 
-  it('should handle take_any_courses with placeholder filter', async () => {
+  it('should handle take_any_courses with any filter', async () => {
     const plan = await prisma.plan.create({
       data: {
         name: 'Test Plan',
