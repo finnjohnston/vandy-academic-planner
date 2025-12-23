@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.middleware.js';
-import { getProgramProgress, getSectionProgress } from '../controllers/progressController.js';
+import {
+  getProgramProgress,
+  getSectionProgress,
+  getProgramRequirementsProgress,
+} from '../controllers/progressController.js';
 
 const router = Router({ mergeParams: true });
 
@@ -18,6 +22,13 @@ const sectionIdParamSchema = z.object({
 
 // GET /api/plans/:planId/programs/:planProgramId/progress
 router.get('/', validate({ params: planProgramIdParamSchema }), getProgramProgress);
+
+// GET /api/plans/:planId/programs/:planProgramId/progress/requirements
+router.get(
+  '/requirements',
+  validate({ params: planProgramIdParamSchema }),
+  getProgramRequirementsProgress
+);
 
 // GET /api/plans/:planId/programs/:planProgramId/progress/sections/:sectionId
 router.get('/sections/:sectionId', validate({ params: sectionIdParamSchema }), getSectionProgress);

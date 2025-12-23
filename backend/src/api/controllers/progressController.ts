@@ -5,6 +5,7 @@ import { NotFoundError } from '../types/error.types.js';
 import { sendSuccess } from '../utils/response.utils.js';
 import logger from '../../utils/logger.js';
 import { prisma } from '../../config/prisma.js';
+import { ProgramRequirements } from '../types/program.types.js';
 
 /**
  * GET /api/plans/:planId/programs/:planProgramId/progress
@@ -85,6 +86,95 @@ export async function getPlanProgressOverview(
 
     const overview = await aggregatePlanProgress(Number(planId));
     sendSuccess(res, overview);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/plans/:planId/programs/:planProgramId/progress/requirements
+ */
+export async function getProgramRequirementsProgress(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { planId, planProgramId } = req.params;
+    logger.http(
+      `GET /api/plans/${planId}/programs/${planProgramId}/progress/requirements`
+    );
+
+    const planProgram = await prisma.planProgram.findUnique({
+      where: { id: Number(planProgramId) },
+      include: { program: true },
+    });
+
+    if (!planProgram || planProgram.planId !== Number(planId)) {
+      throw new NotFoundError('Program association not found');
+    }
+
+    const programProgress = await calculateProgramProgress(Number(planProgramId));
+    const requirements =
+      planProgram.program.requirements as unknown as ProgramRequirements;
+
+    const sectionProgressById = new Map(
+      programProgress.sectionProgress.map((section) => [section.sectionId, section])
+    );
+
+    const enrichedSections = requirements.sections.map((section) => {
+      const sectionProgress = sectionProgressById.get(section.id);
+      const requirementProgressById = new Map(
+        (sectionProgress?.requirementProgress ?? []).map((req) => [
+          req.requirementId,
+          req,
+        ])
+      );
+
+      const enrichedRequirements = section.requirements.map((req) => {
+        const requirementId = `${section.id}.${req.id}`;
+        const progress = requirementProgressById.get(requirementId) ?? null;
+        return {
+          ...req,
+          progress,
+        };
+      });
+
+      return {
+        ...section,
+        requirements: enrichedRequirements,
+        progress: sectionProgress
+          ? {
+              status: sectionProgress.status,
+              creditsRequired: sectionProgress.creditsRequired,
+              creditsFulfilled: sectionProgress.creditsFulfilled,
+              percentage: sectionProgress.percentage,
+            }
+          : null,
+      };
+    });
+
+    sendSuccess(res, {
+      planProgramId: planProgram.id,
+      program: {
+        id: planProgram.program.id,
+        programId: planProgram.program.programId,
+        name: planProgram.program.name,
+        type: planProgram.program.type,
+        totalCredits: planProgram.program.totalCredits,
+      },
+      requirements: {
+        sections: enrichedSections,
+        constraints: requirements.constraints,
+      },
+      progress: {
+        status: programProgress.status,
+        totalCreditsRequired: programProgress.totalCreditsRequired,
+        totalCreditsFulfilled: programProgress.totalCreditsFulfilled,
+        percentage: programProgress.percentage,
+        lastUpdated: programProgress.lastUpdated,
+      },
+    });
   } catch (err) {
     next(err);
   }
