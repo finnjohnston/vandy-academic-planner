@@ -11,6 +11,30 @@
   overflow-y: auto;
 }
 
+.plan-requirements-container {
+  position: fixed;
+  left: 340px;
+  top: 60px;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+
+  /* Hide scrollbar for all browsers */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.plan-requirements-container::-webkit-scrollbar {
+  display: none;
+}
+
 /* Drag Preview */
 .drag-preview {
   width: 300px;

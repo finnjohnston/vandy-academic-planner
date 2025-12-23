@@ -6,6 +6,7 @@ import type { DragStartEvent, DragEndEvent, DragOverEvent } from '@dnd-kit/core'
 import NavBar from '../../components/common/NavBarComponent/NavBar';
 import CourseSearch from '../../components/course/CourseSearchComponent/CourseSearch';
 import Plan from '../../components/plan/PlanComponent/Plan';
+import Requirement from '../../components/requirements/RequirementComponent/Requirement';
 import CourseDetail from '../../components/course/CourseDetailComponent/CourseDetail';
 import type { Course } from '../../types/Course';
 import type { DragData } from '../../types/DragData';
@@ -509,17 +510,20 @@ const Planning: React.FC = () => {
           onPopupClose={() => setIsPopupOpen(false)}
           isBlurred={isPopupOpen}
         />
-        <Plan
-          planId={planData.id}
-          planName={planData.name}
-          academicYear={planData.academicYear}
-          plannedCourses={planData.plannedCourses}
-          isBlurred={isPopupOpen}
-          onCourseDetailsClick={handlePlannedCourseClick}
-          onDeleteCourseClick={handleDeleteCourse}
-          dragOverPosition={dragOverPosition}
-          activeDrag={activeDrag}
-        />
+        <div className="plan-requirements-container">
+          <Plan
+            planId={planData.id}
+            planName={planData.name}
+            academicYear={planData.academicYear}
+            plannedCourses={planData.plannedCourses}
+            isBlurred={isPopupOpen}
+            onCourseDetailsClick={handlePlannedCourseClick}
+            onDeleteCourseClick={handleDeleteCourse}
+            dragOverPosition={dragOverPosition}
+            activeDrag={activeDrag}
+          />
+          <Requirement isBlurred={isPopupOpen} />
+        </div>
 
         {selectedCourse && ReactDOM.createPortal(
           <CourseDetail course={selectedCourse} onClose={handleClosePopup} />,

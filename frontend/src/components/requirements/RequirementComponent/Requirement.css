@@ -1,0 +1,33 @@
+.requirement-container {
+  width: 100%;
+  max-width: 1260px;
+  height: 800px;
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-sizing: border-box;
+  margin-top: 30px;
+  flex-shrink: 0;
+  padding: 20px;
+}
+
+.requirement-blurred {
+  filter: blur(2px);
+  -webkit-filter: blur(2px);
+}
+
+.requirement-header {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-gold-light);
+  margin: 0 0 0 0;
+  padding: 0;
+  text-align: left;
+}
+
+.requirement-content {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
