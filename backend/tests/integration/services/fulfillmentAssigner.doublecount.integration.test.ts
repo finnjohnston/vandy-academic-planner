@@ -361,4 +361,123 @@ describe('fulfillmentAssigner.service - Double Counting Integration', () => {
       'section2.req2',
     ]);
   });
+
+  it('should allow courses to count across multiple programs (cross-program fulfillment)', async () => {
+    // Create a second program (Mathematics) that also accepts PHIL 1100
+    const mathProgramRequirements: ProgramRequirements = {
+      sections: [
+        {
+          id: 'math_core',
+          title: 'Mathematics Core',
+          creditsRequired: 6,
+          requirements: [
+            {
+              id: 'philosophy_elective',
+              title: 'Philosophy Elective',
+              description: 'Take PHIL 1100',
+              creditsRequired: 3,
+              rule: {
+                type: 'take_courses',
+                courses: ['PHIL 1100'],
+              },
+            },
+          ],
+        },
+      ],
+      constraintsStructured: [],
+    };
+
+    const mathProgram = await prisma.program.create({
+      data: {
+        programId: 'MATH-MAJOR-TEST',
+        name: 'Mathematics Major (Test)',
+        type: 'Major',
+        totalCredits: 120,
+        schoolId,
+        academicYearId,
+        requirements: mathProgramRequirements as any,
+      },
+    });
+
+    // Add Mathematics program to the plan
+    const mathPlanProgram = await prisma.planProgram.create({
+      data: {
+        planId,
+        programId: mathProgram.id,
+      },
+    });
+
+    // Update CS program to also accept PHIL 1100
+    const program = await prisma.program.findFirst({
+      where: { programId: 'CS-MAJOR-TEST' },
+    });
+
+    if (program) {
+      const updatedRequirements: ProgramRequirements = {
+        sections: [
+          {
+            id: 'general_degree_requirements',
+            title: 'General degree requirements',
+            creditsRequired: 6,
+            requirements: [
+              {
+                id: 'philosophy',
+                title: 'Philosophy',
+                description: 'Take PHIL 1100',
+                creditsRequired: 3,
+                rule: {
+                  type: 'take_courses',
+                  courses: ['PHIL 1100'],
+                },
+              },
+            ],
+          },
+        ],
+        constraintsStructured: [],
+      };
+
+      await prisma.program.update({
+        where: { id: program.id },
+        data: { requirements: updatedRequirements as any },
+      });
+    }
+
+    // Add PHIL 1100 to plan
+    await createPlannedCourses([{ courseId: 'PHIL 1100', semesterNumber: 1 }]);
+
+    // Run auto-assignment
+    await autoAssignFulfillments(planId);
+
+    // Verify PHIL 1100 was assigned to BOTH programs
+    const allFulfillments = await prisma.requirementFulfillment.findMany({
+      where: {
+        planProgramId: { in: [planProgramId, mathPlanProgram.id] },
+      },
+      include: {
+        plannedCourse: { include: { course: true } },
+      },
+    });
+
+    const phil1100Fulfillments = allFulfillments.filter(
+      (f) => f.plannedCourse.course.courseId === 'PHIL 1100'
+    );
+
+    // Should have 2 fulfillments: one for CS program, one for Math program
+    expect(phil1100Fulfillments).toHaveLength(2);
+
+    // Check that each program has one fulfillment
+    const csFulfillments = phil1100Fulfillments.filter(
+      (f) => f.planProgramId === planProgramId
+    );
+    const mathFulfillments = phil1100Fulfillments.filter(
+      (f) => f.planProgramId === mathPlanProgram.id
+    );
+
+    expect(csFulfillments).toHaveLength(1);
+    expect(mathFulfillments).toHaveLength(1);
+
+    // Verify requirement IDs
+    expect(csFulfillments[0].requirementId).toBe('general_degree_requirements.philosophy');
+    expect(mathFulfillments[0].requirementId).toBe('math_core.philosophy_elective');
+  });
 });

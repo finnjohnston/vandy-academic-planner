@@ -126,6 +126,13 @@ const Planning: React.FC = () => {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Failed to delete course');
       }
+
+      // Refetch the plan to get updated data
+      const planResponse = await fetch(`${API_BASE_URL}/api/plans/${planData.id}`);
+      if (planResponse.ok) {
+        const planResult = await planResponse.json();
+        setPlanData(planResult.data);
+      }
     } catch (err) {
       console.error('Error deleting course:', err);
       setPlanData(originalPlanData);
@@ -541,6 +548,7 @@ const Planning: React.FC = () => {
               type: planProgram.program.type,
               totalCredits: planProgram.program.totalCredits,
             }))}
+            plannedCourses={planData.plannedCourses}
           />
         </div>
 

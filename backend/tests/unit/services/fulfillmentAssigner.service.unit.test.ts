@@ -87,6 +87,25 @@ const mockPlan = {
         schoolId: 1,
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
+        requirements: {
+          sections: [
+            {
+              id: 'cs_core',
+              title: 'CS Core',
+              creditsRequired: 3,
+              requirements: [
+                {
+                  id: 'cs_intro',
+                  title: 'Intro CS',
+                  description: 'Introduction to CS',
+                  creditsRequired: 3,
+                  rule: { type: 'take_courses', courses: ['CS 1101'] },
+                },
+              ],
+            },
+          ],
+          constraintsStructured: [],
+        },
       },
     },
   ],
@@ -139,7 +158,66 @@ describe('fulfillmentAssigner.service', () => {
     });
 
     it('should select best match when single course has multiple matches', async () => {
-      vi.mocked(prisma.plan.findUnique).mockResolvedValue(mockPlan as any);
+      const planWithMultipleSections = {
+        ...mockPlan,
+        planPrograms: [
+          {
+            ...mockPlan.planPrograms[0],
+            program: {
+              ...mockPlan.planPrograms[0].program,
+              requirements: {
+                sections: [
+                  {
+                    id: 'section1',
+                    title: 'Section 1',
+                    creditsRequired: 3,
+                    requirements: [
+                      {
+                        id: 'req1',
+                        title: 'Requirement 1',
+                        description: 'Requirement 1',
+                        creditsRequired: 3,
+                        rule: { type: 'take_courses', courses: ['CS 1101'] },
+                      },
+                    ],
+                  },
+                  {
+                    id: 'section2',
+                    title: 'Section 2',
+                    creditsRequired: 3,
+                    requirements: [
+                      {
+                        id: 'req2',
+                        title: 'Requirement 2',
+                        description: 'Requirement 2',
+                        creditsRequired: 3,
+                        rule: { type: 'take_courses', courses: ['CS 1101'] },
+                      },
+                    ],
+                  },
+                  {
+                    id: 'section3',
+                    title: 'Section 3',
+                    creditsRequired: 3,
+                    requirements: [
+                      {
+                        id: 'req3',
+                        title: 'Requirement 3',
+                        description: 'Requirement 3',
+                        creditsRequired: 3,
+                        rule: { type: 'take_courses', courses: ['CS 1101'] },
+                      },
+                    ],
+                  },
+                ],
+                constraintsStructured: [],
+              },
+            },
+          },
+        ],
+      };
+
+      vi.mocked(prisma.plan.findUnique).mockResolvedValue(planWithMultipleSections as any);
       vi.mocked(requirementMatcher.findMatchingRequirements).mockReturnValue([
         { sectionId: 'section1', requirementId: 'req1', specificityScore: 100 },
         { sectionId: 'section2', requirementId: 'req2', specificityScore: 80 },
@@ -198,7 +276,31 @@ describe('fulfillmentAssigner.service', () => {
       const planWith2Programs = {
         ...mockPlan,
         planPrograms: [
-          mockPlan.planPrograms[0],
+          {
+            ...mockPlan.planPrograms[0],
+            program: {
+              ...mockPlan.planPrograms[0].program,
+              requirements: {
+                sections: [
+                  {
+                    id: 'section1',
+                    title: 'Section 1',
+                    creditsRequired: 3,
+                    requirements: [
+                      {
+                        id: 'req1',
+                        title: 'Requirement 1',
+                        description: 'Requirement 1',
+                        creditsRequired: 3,
+                        rule: { type: 'take_courses', courses: ['CS 1101'] },
+                      },
+                    ],
+                  },
+                ],
+                constraintsStructured: [],
+              },
+            },
+          },
           {
             ...mockPlan.planPrograms[0],
             id: 2,
@@ -208,6 +310,25 @@ describe('fulfillmentAssigner.service', () => {
               id: 2,
               programId: 'mathematics_major',
               name: 'Mathematics Major',
+              requirements: {
+                sections: [
+                  {
+                    id: 'section1',
+                    title: 'Section 1',
+                    creditsRequired: 3,
+                    requirements: [
+                      {
+                        id: 'req1',
+                        title: 'Requirement 1',
+                        description: 'Requirement 1',
+                        creditsRequired: 3,
+                        rule: { type: 'take_courses', courses: ['CS 1101'] },
+                      },
+                    ],
+                  },
+                ],
+                constraintsStructured: [],
+              },
             },
           },
         ],
@@ -331,6 +452,40 @@ describe('fulfillmentAssigner.service', () => {
     it('should handle multiple courses where some match and some do not', async () => {
       const planWith4Courses = {
         ...mockPlan,
+        planPrograms: [
+          {
+            ...mockPlan.planPrograms[0],
+            program: {
+              ...mockPlan.planPrograms[0].program,
+              requirements: {
+                sections: [
+                  {
+                    id: 'cs_core',
+                    title: 'CS Core',
+                    creditsRequired: 6,
+                    requirements: [
+                      {
+                        id: 'req1',
+                        title: 'Requirement 1',
+                        description: 'Requirement 1',
+                        creditsRequired: 3,
+                        rule: { type: 'take_courses', courses: ['CS 1101'] },
+                      },
+                      {
+                        id: 'req2',
+                        title: 'Requirement 2',
+                        description: 'Requirement 2',
+                        creditsRequired: 3,
+                        rule: { type: 'take_courses', courses: ['CS 2201'] },
+                      },
+                    ],
+                  },
+                ],
+                constraintsStructured: [],
+              },
+            },
+          },
+        ],
         plannedCourses: [
           mockPlan.plannedCourses[0],
           {

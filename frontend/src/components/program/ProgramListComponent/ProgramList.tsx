@@ -12,9 +12,14 @@ interface ProgramListProps {
     type: string;
     totalCredits: number;
   }>;
+  plannedCourses?: Array<{
+    id: number;
+    courseId: string | null;
+    semesterNumber: number;
+  }>;
 }
 
-const ProgramList: React.FC<ProgramListProps> = ({ planId, programs }) => {
+const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCourses }) => {
   const [progressByProgramId, setProgressByProgramId] = useState<
     Record<number, { fulfilled: number; required: number }>
   >({});
@@ -68,7 +73,7 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs }) => {
     return () => {
       isMounted = false;
     };
-  }, [planId, programs]);
+  }, [planId, programs, plannedCourses]);
 
   return (
     <div className="program-list">

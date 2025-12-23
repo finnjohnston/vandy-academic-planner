@@ -17,6 +17,25 @@ export interface RuleEvaluation {
 }
 
 /**
+ * Helper function to check if a course matches a course identifier
+ * Supports both "SUBJ NUM" format (e.g., "MATH 1300") and raw courseId
+ */
+function courseMatchesIdentifier(course: Course, identifier: string): boolean {
+  // First try direct courseId match
+  if (course.courseId === identifier) {
+    return true;
+  }
+
+  // Then try matching by subjectCode + courseNumber (e.g., "MATH 1300")
+  const courseCode = `${course.subjectCode} ${course.courseNumber}`;
+  if (courseCode === identifier) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Evaluates if a course matches a rule and returns specificity score
  */
 export function evaluateRule(rule: Rule, course: Course): RuleEvaluation {
@@ -42,8 +61,10 @@ function evaluateTakeCourses(
   rule: TakeCoursesRule,
   course: Course
 ): RuleEvaluation {
-  // Course matches if it's in the required list
-  const matches = rule.courses.includes(course.courseId);
+  // Course matches if it's in the required list (by courseId or subjectCode + courseNumber)
+  const matches = rule.courses.some((identifier) =>
+    courseMatchesIdentifier(course, identifier)
+  );
   return {
     matches,
     specificityScore: matches ? 100 : 0,
@@ -54,8 +75,10 @@ function evaluateTakeFromList(
   rule: TakeFromListRule,
   course: Course
 ): RuleEvaluation {
-  // Course matches if it's one of the options
-  const matches = rule.courses.includes(course.courseId);
+  // Course matches if it's one of the options (by courseId or subjectCode + courseNumber)
+  const matches = rule.courses.some((identifier) =>
+    courseMatchesIdentifier(course, identifier)
+  );
   return {
     matches,
     specificityScore: matches ? 80 : 0,

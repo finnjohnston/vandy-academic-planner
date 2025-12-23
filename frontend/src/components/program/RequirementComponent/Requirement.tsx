@@ -11,12 +11,18 @@ interface RequirementProps {
     type: string;
     totalCredits: number;
   }>;
+  plannedCourses?: Array<{
+    id: number;
+    courseId: string | null;
+    semesterNumber: number;
+  }>;
 }
 
 const Requirement: React.FC<RequirementProps> = ({
   isBlurred = false,
   planId,
   programs,
+  plannedCourses,
 }) => {
   const isEmpty = programs.length === 0;
   return (
@@ -27,7 +33,7 @@ const Requirement: React.FC<RequirementProps> = ({
     >
       <h1 className="requirement-header">Requirements</h1>
       <div className="requirement-content">
-        <ProgramList planId={planId} programs={programs} />
+        <ProgramList planId={planId} programs={programs} plannedCourses={plannedCourses} />
       </div>
     </div>
   );
