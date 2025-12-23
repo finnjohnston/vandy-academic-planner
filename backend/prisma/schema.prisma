@@ -21,6 +21,7 @@ model AcademicYear {
   courses               Course[]
   terms                 Term[]
   plans                 Plan[]
+  programs              Program[]
 
   @@map("academic_years")
 }
@@ -135,6 +136,7 @@ model School {
   updatedAt             DateTime              @updatedAt @map("updated_at")
 
   plans                 Plan[]
+  programs              Program[]
 
   @@map("schools")
 }
@@ -152,6 +154,7 @@ model Plan {
   school                School?               @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   academicYear          AcademicYear          @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
   plannedCourses        PlannedCourse[]
+  planPrograms          PlanProgram[]
 
   @@index([schoolId])
   @@index([academicYearId])
@@ -172,6 +175,7 @@ model PlannedCourse {
   plan                  Plan                  @relation(fields: [planId], references: [id], onDelete: Cascade)
   course                Course?               @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
   class                 Class?                @relation(fields: [classId], references: [classId], onDelete: Cascade)
+  fulfillments          RequirementFulfillment[]
 
   @@unique([planId, courseId, classId])
   @@index([planId])
@@ -179,4 +183,59 @@ model PlannedCourse {
   @@index([classId])
   @@index([planId, semesterNumber, position])
   @@map("planned_courses")
+}
+
+model Program {
+  id                    Int                   @id @default(autoincrement())
+  programId             String                @unique @map("program_id") @db.VarChar(50)
+  name                  String                @db.VarChar(255)
+  type                  String                @db.VarChar(50)
+  totalCredits          Int                   @map("total_credits")
+  requirements          Json                  @db.JsonB
+  academicYearId        Int                   @map("academic_year_id")
+  schoolId              Int                   @map("school_id")
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+
+  academicYear          AcademicYear          @relation(fields: [academicYearId], references: [id])
+  school                School                @relation(fields: [schoolId], references: [id])
+  planPrograms          PlanProgram[]
+
+  @@index([academicYearId])
+  @@index([schoolId])
+  @@map("programs")
+}
+
+model PlanProgram {
+  id                    Int                   @id @default(autoincrement())
+  planId                Int                   @map("plan_id")
+  programId             Int                   @map("program_id")
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+
+  plan                  Plan                  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  program               Program               @relation(fields: [programId], references: [id], onDelete: Cascade)
+  fulfillments          RequirementFulfillment[]
+
+  @@unique([planId, programId])
+  @@index([planId])
+  @@index([programId])
+  @@map("plan_programs")
+}
+
+model RequirementFulfillment {
+  id                    Int                   @id @default(autoincrement())
+  planProgramId         Int                   @map("plan_program_id")
+  requirementId         String                @map("requirement_id") @db.VarChar(255)
+  plannedCourseId       Int                   @map("planned_course_id")
+  creditsApplied        Int                   @map("credits_applied")
+  createdAt             DateTime              @default(now()) @map("created_at")
+
+  planProgram           PlanProgram           @relation(fields: [planProgramId], references: [id], onDelete: Cascade)
+  plannedCourse         PlannedCourse         @relation(fields: [plannedCourseId], references: [id], onDelete: Cascade)
+
+  @@unique([planProgramId, requirementId, plannedCourseId])
+  @@index([planProgramId])
+  @@index([plannedCourseId])
+  @@map("requirement_fulfillments")
 }

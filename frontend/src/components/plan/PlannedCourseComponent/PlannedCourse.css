@@ -38,6 +38,15 @@
   border-radius: 4px;
 }
 
+.planned-course:last-child:not(.planned-course-dragging) {
+  border-bottom: none !important;
+}
+
+/* When last child is being dragged, remove border from the course before it */
+.planned-course:not(.planned-course-dragging):has(+ .planned-course-dragging:last-child) {
+  border-bottom: none !important;
+}
+
 .planned-course:active {
   cursor: grabbing;
 }

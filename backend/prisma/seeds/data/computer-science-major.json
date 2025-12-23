@@ -1,0 +1,517 @@
+{
+  "sections": [
+    {
+      "id": "general_degree_requirements",
+      "title": "General degree requirements",
+      "creditsRequired": 38,
+      "requirements": [
+        {
+          "id": "calculus",
+          "title": "Calculus",
+          "description": "Choose a calculus sequence",
+          "creditsRequired": 11,
+          "rule": {
+            "type": "group",
+            "operator": "OR",
+            "rules": [
+              {
+                "type": "take_courses",
+                "courses": [
+                  "MATH 1300",
+                  "MATH 1301",
+                  "MATH 2300"
+                ]
+              },
+              {
+                "type": "take_courses",
+                "courses": [
+                  "MATH 1300",
+                  "MATH 1301",
+                  "MATH 2500",
+                  "MATH 2501"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "linear_algebra",
+          "title": "Linear algebra",
+          "description": "Choose a course",
+          "creditsRequired": 3,
+          "rule": {
+            "type": "take_from_list",
+            "count": 1,
+            "countType": "courses",
+            "courses": [
+              "MATH 2410",
+              "MATH 2600",
+              "MATH 2501"
+            ]
+          }
+        },
+        {
+          "id": "statistics",
+          "title": "Statistics",
+          "description": "Choose a course",
+          "creditsRequired": 3,
+          "rule": {
+            "type": "take_from_list",
+            "count": 1,
+            "countType": "courses",
+            "courses": [
+              "MATH 2810",
+              "MATH 2820",
+              "MATH 3640"
+            ]
+          }
+        },
+        {
+          "id": "basic_science",
+          "title": "Basic science",
+          "description": "Choose 12 credits of courses",
+          "creditsRequired": 12,
+          "rule": {
+            "type": "take_from_list",
+            "count": 12,
+            "countType": "credits",
+            "courses": [
+              "BSCI 1100",
+              "BSCI 1100L",
+              "BSCI 1510",
+              "BSCI 1510L",
+              "BSCI 1511",
+              "BSCI 1511L",
+              "BSCI 2218",
+              "BSCI 2219",
+              "CHEM 1601",
+              "CHEM 1601L",
+              "CHEM 1602",
+              "CHEM 1602L",
+              "EES 1510",
+              "EES 1510L",
+              "MSE 1500",
+              "MSE 1500L",
+              "PHYS 1601",
+              "PHYS 1601L",
+              "PHYS 1602",
+              "PHYS 1602L"
+            ]
+          },
+          "constraintsStructured": [
+            {
+              "id": "min_course_count_choose_at_least_one_lab_course",
+              "type": "min_course_count",
+              "description": "Choose at least one lab course",
+              "count": 1,
+              "filter": {
+                "type": "course_number_suffix",
+                "suffixes": [
+                  "L"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "introduction_to_engineering",
+          "title": "Introduction to Engineering",
+          "description": "Take the following courses",
+          "creditsRequired": 3,
+          "rule": {
+            "type": "take_courses",
+            "courses": [
+              "ES 1401",
+              "ES 1402",
+              "ES 1403"
+            ]
+          }
+        },
+        {
+          "id": "writing_component",
+          "title": "Writing component",
+          "description": "Choose at least one W-designated course from the Liberal Arts Core, Technical Electives, or Open Electives",
+          "creditsRequired": 3,
+          "rule": {
+            "type": "take_any_courses",
+            "credits": 3,
+            "filter": {
+              "type": "course_number_suffix",
+              "suffixes": [
+                "W"
+              ]
+            }
+          },
+          "constraintsStructured": [
+            {
+              "id": "require_course_from_sections_course_must_come_from_liberal_a",
+              "type": "require_course_from_sections",
+              "description": "Course must come from Liberal Arts Core, Technical Electives, or Open Electives",
+              "allowedSectionIds": [
+                "liberal_arts_core",
+                "technical_electives",
+                "open_electives"
+              ],
+              "operator": "OR"
+            }
+          ]
+        },
+        {
+          "id": "ethics",
+          "title": "Ethics",
+          "description": "Take the following course",
+          "creditsRequired": 3,
+          "rule": {
+            "type": "take_courses",
+            "courses": [
+              "CS 1151"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "computer_science_major",
+      "title": "Computer Science Major",
+      "creditsRequired": 44,
+      "requirements": [
+        {
+          "id": "computer_science_core",
+          "title": "Computer Science Core",
+          "description": "Take the following courses",
+          "creditsRequired": 25,
+          "rule": {
+            "type": "take_courses",
+            "courses": [
+              "CS 1101",
+              "CS 2201",
+              "CS 2212",
+              "CS 2281",
+              "CS 2281L",
+              "CS 3250",
+              "CS 3251",
+              "CS 3270",
+              "CS 3281"
+            ]
+          }
+        },
+        {
+          "id": "computer_science_depth",
+          "title": "Computer science depth",
+          "description": "Choose from CS courses numbered 3000 or higher (except CS 3262); ECE 3258, 3265, 3274, 3452, 4260, 4262, 4277, 4278, 4285, 4353, 4354, 4375, 4467, 4475, 4484; MATH 3320, 3620, 4600, 4620",
+          "creditsRequired": 15,
+          "rule": {
+            "type": "take_any_courses",
+            "credits": 15,
+            "filter": {
+              "type": "composite",
+              "operator": "OR",
+              "filters": [
+                {
+                  "type": "subject_number",
+                  "subjects": [
+                    "CS"
+                  ],
+                  "numbers": [
+                    {
+                      "type": "range",
+                      "min": 3000
+                    }
+                  ],
+                  "exclude": [
+                    "CS 3262"
+                  ]
+                },
+                {
+                  "type": "course_list",
+                  "courses": [
+                    "ECE 3258",
+                    "ECE 3265",
+                    "ECE 3274",
+                    "ECE 3452",
+                    "ECE 4260",
+                    "ECE 4262",
+                    "ECE 4277",
+                    "ECE 4278",
+                    "ECE 4285",
+                    "ECE 4353",
+                    "ECE 4354",
+                    "ECE 4375",
+                    "ECE 4467",
+                    "ECE 4475",
+                    "ECE 4484"
+                  ]
+                },
+                {
+                  "type": "course_list",
+                  "courses": [
+                    "MATH 3320",
+                    "MATH 3620",
+                    "MATH 4600",
+                    "MATH 4620"
+                  ]
+                }
+              ]
+            }
+          },
+          "constraintsStructured": [
+            {
+              "id": "max_credits_from_courses_a_maximum_of_six_credits_may_come_f",
+              "type": "max_credits_from_courses",
+              "description": "A maximum of six credits may come from CS 3860, 3861",
+              "maxCredits": 6,
+              "courseIds": [
+                "CS 3860",
+                "CS 3861"
+              ]
+            },
+            {
+              "id": "max_credits_from_courses_a_maximum_of_six_credits_may_come_f",
+              "type": "max_credits_from_courses",
+              "description": "A maximum of six credits may come from MATH 3320, 3620, 4600, 4620",
+              "maxCredits": 6,
+              "courseIds": [
+                "MATH 3320",
+                "MATH 3620",
+                "MATH 4600",
+                "MATH 4620"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "computer_science_project",
+          "title": "Computer science project",
+          "description": "Choose a course",
+          "creditsRequired": 3,
+          "rule": {
+            "type": "take_from_list",
+            "count": 1,
+            "countType": "courses",
+            "courses": [
+              "CS 3862",
+              "CS 3892",
+              "CS 4239",
+              "CS 4249",
+              "CS 4269",
+              "CS 4279",
+              "CS 4287",
+              "CS 4289",
+              "CS 4359"
+            ]
+          }
+        },
+        {
+          "id": "computer_science_seminar",
+          "title": "Computer science seminar",
+          "description": "Take the following course",
+          "creditsRequired": 1,
+          "rule": {
+            "type": "take_courses",
+            "courses": [
+              "CS 4959"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "technical_electives",
+      "title": "Technical electives",
+      "creditsRequired": 6,
+      "requirements": [
+        {
+          "id": "technical_electives",
+          "title": "Technical electives",
+          "description": "Choose from courses numbered 2000 or higher in BME, CHBE, CE, CS, DF, DS, ECE, ENGM, ENVE, ES, ME, MSE, NANO, and SC (except 2860 in any program, ENGM 2440, ENGM 4800, ES 2700, ES 3884, and CS courses numbered below 3000); or courses numbered 2000 or higher in the College of Arts and Science with a mathematics and natural science (MNS) attribute",
+          "creditsRequired": 6,
+          "rule": {
+            "type": "take_any_courses",
+            "credits": 6,
+            "filter": {
+              "type": "composite",
+              "operator": "OR",
+              "filters": [
+                {
+                  "type": "subject_number",
+                  "subjects": [
+                    "CS"
+                  ],
+                  "numbers": [
+                    {
+                      "type": "range",
+                      "min": 3000
+                    }
+                  ],
+                  "exclude": [
+                    "CS 2860"
+                  ]
+                },
+                {
+                  "type": "subject_number",
+                  "subjects": [
+                    "BME",
+                    "CHBE",
+                    "CE",
+                    "DF",
+                    "DS",
+                    "ECE",
+                    "ENGM",
+                    "ENVE",
+                    "ES",
+                    "ME",
+                    "MSE",
+                    "NANO",
+                    "SC"
+                  ],
+                  "numbers": [
+                    {
+                      "type": "range",
+                      "min": 2000
+                    }
+                  ],
+                  "exclude": [
+                    "BME 2860",
+                    "CHBE 2860",
+                    "CE 2860",
+                    "DF 2860",
+                    "DS 2860",
+                    "ECE 2860",
+                    "ENGM 2860",
+                    "ENVE 2860",
+                    "ES 2860",
+                    "ME 2860",
+                    "MSE 2860",
+                    "NANO 2860",
+                    "SC 2860",
+                    "ENGM 2440",
+                    "ENGM 4800",
+                    "ES 2700",
+                    "ES 3884"
+                  ]
+                },
+                {
+                  "type": "number_attribute",
+                  "numbers": [
+                    {
+                      "type": "range",
+                      "min": 2000
+                    }
+                  ],
+                  "attributes": [
+                    "AXLE: Math and Natural Sciences"
+                  ],
+                  "attributeType": "axle"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "liberal_arts_core",
+      "title": "Liberal Arts Core",
+      "creditsRequired": 18,
+      "requirements": [
+        {
+          "id": "3_credits_hca_or_le_hfa",
+          "title": "3 credits from HCA or LE-HFA",
+          "description": "Choose from courses with HCA or LE-HFA attributes, except CMST 1500, 2100, 2110, and 2120",
+          "creditsRequired": 3,
+          "rule": {
+            "type": "take_any_courses",
+            "credits": 3,
+            "filter": {
+              "type": "attribute",
+              "attributes": [
+                "AXLE: Humanities and the Creative Arts",
+                "LE: HFA-Humanities and Fine Arts"
+              ]
+            }
+          }
+        },
+        {
+          "id": "3_credits_sbs_or_le_sbs",
+          "title": "3 credits from SBS or LE-SBS",
+          "description": "Choose from courses with SBS or LE-SBS attributes",
+          "creditsRequired": 3,
+          "rule": {
+            "type": "take_any_courses",
+            "credits": 3,
+            "filter": {
+              "type": "attribute",
+              "attributes": [
+                "AXLE: Social and Behavioral Sciences",
+                "LE: SBS-Social and Behavioral Sciences"
+              ]
+            }
+          }
+        },
+        {
+          "id": "12_credits_liberal_arts_core",
+          "title": "12 credits from liberal arts core",
+          "description": "Choose from courses with HCA, INT, US, SBS, or P attributes; and CS 1151",
+          "creditsRequired": 12,
+          "rule": {
+            "type": "take_any_courses",
+            "credits": 12,
+            "filter": {
+              "type": "composite",
+              "operator": "OR",
+              "filters": [
+                {
+                  "type": "attribute",
+                  "attributes": [
+                    "AXLE: Humanities and the Creative Arts",
+                    "AXLE: International Cultures",
+                    "AXLE: History and Culture of the United States",
+                    "AXLE: Social and Behavioral Sciences",
+                    "AXLE: Perspectives"
+                  ]
+                },
+                {
+                  "type": "course_list",
+                  "courses": [
+                    "CS 1151"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "open_electives",
+      "title": "Open electives",
+      "creditsRequired": 20,
+      "requirements": [
+        {
+          "id": "open_electives",
+          "title": "Open Electives",
+          "description": "Choose any courses",
+          "creditsRequired": 20,
+          "rule": {
+            "type": "take_any_courses",
+            "credits": 20,
+            "filter": {
+              "type": "any"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "constraintsStructured": [
+    {
+      "id": "allow_double_count_cs_1151_general_degree_requirements_ethic",
+      "type": "allow_double_count",
+      "courseId": "CS 1151",
+      "requirementIds": [
+        "general_degree_requirements.ethics",
+        "liberal_arts_core.12_credits_liberal_arts_core"
+      ]
+    }
+  ]
+}

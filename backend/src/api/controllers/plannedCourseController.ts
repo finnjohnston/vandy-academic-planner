@@ -10,6 +10,7 @@ import {
   validatePosition,
   reorderWithinSemester,
 } from '../utils/position.utils.js';
+import { autoAssignFulfillments } from '../services/fulfillmentAssigner.service.js';
 
 /**
  * GET /api/plans/:planId/courses
@@ -184,6 +185,9 @@ export async function addPlannedCourse(
       });
     });
 
+    // PHASE 4: Auto-assign fulfillments
+    await autoAssignFulfillments(Number(planId));
+
     // Transform data - return relevant fields
     const transformedPlannedCourse = {
       id: plannedCourse.id,
@@ -323,6 +327,9 @@ export async function updatePlannedCourse(
       }
     });
 
+    // PHASE 4: Re-assign fulfillments after update
+    await autoAssignFulfillments(Number(planId));
+
     // Transform data - return relevant fields
     const transformedPlannedCourse = {
       id: plannedCourse!.id,
@@ -384,6 +391,9 @@ export async function deletePlannedCourse(
         existingPlannedCourse.position
       );
     });
+
+    // PHASE 4: Re-assign fulfillments after deletion
+    await autoAssignFulfillments(Number(planId));
 
     res.status(204).send();
   } catch (err) {
