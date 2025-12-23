@@ -14,6 +14,15 @@ import {
 } from '../types/progress.types.js';
 import { evaluateRuleProgress } from './ruleProgressEvaluator.service.js';
 import { Course } from '@prisma/client';
+import {
+  validateRequirementConstraints,
+  validateSectionConstraints,
+  validateProgramConstraints,
+} from './constraint.service.js';
+import {
+  ConstraintValidationContext,
+  FulfillmentRecord,
+} from '../types/constraint.types.js';
 
 /**
  * Calculate complete progress for a program in a plan
@@ -51,13 +60,22 @@ export async function calculateProgramProgress(
       courseId: f.plannedCourse.course.courseId,
       title: f.plannedCourse.course.title,
       credits: f.plannedCourse.credits,
+      subjectCode: f.plannedCourse.course.subjectCode,
+      courseNumber: f.plannedCourse.course.courseNumber,
+      attributes: f.plannedCourse.course.attributes,
     },
     creditsApplied: f.creditsApplied,
   }));
 
   // Calculate progress for each section
   const sectionProgress = requirements.sections.map((section) =>
-    calculateSectionProgress(section, section.id, enrichedFulfillments)
+    calculateSectionProgress(
+      section,
+      section.id,
+      enrichedFulfillments,
+      requirements,
+      planProgramId
+    )
   );
 
   // Aggregate to program level
@@ -79,6 +97,30 @@ export async function calculateProgramProgress(
     status = 'in_progress';
   }
 
+  const programConstraintValidation =
+    requirements.constraintsStructured && requirements.constraintsStructured.length > 0
+      ? validateProgramConstraints(requirements, {
+          requirementId: '',
+          sectionId: '',
+          planProgramId,
+          programRequirements: requirements,
+          allFulfillments: enrichedFulfillments.map((f) => ({
+            requirementId: f.requirementId,
+            sectionId: f.requirementId.split('.')[0],
+            course: {
+              id: f.course.id,
+              courseId: f.course.courseId,
+              title: f.course.title,
+              credits: f.course.credits,
+              subjectCode: f.course.subjectCode,
+              courseNumber: f.course.courseNumber,
+              attributes: f.course.attributes,
+            },
+            creditsApplied: f.creditsApplied,
+          })),
+        })
+      : undefined;
+
   return {
     planProgramId: planProgram.id,
     programId: planProgram.program.id,
@@ -90,6 +132,12 @@ export async function calculateProgramProgress(
     percentage,
     sectionProgress,
     lastUpdated: new Date(),
+    constraintValidation: programConstraintValidation
+      ? {
+          results: programConstraintValidation.results,
+          allSatisfied: programConstraintValidation.allSatisfied,
+        }
+      : undefined,
   };
 }
 
@@ -99,11 +147,19 @@ export async function calculateProgramProgress(
 function calculateSectionProgress(
   section: Section,
   sectionId: string,
-  fulfillments: EnrichedFulfillment[]
+  fulfillments: EnrichedFulfillment[],
+  programRequirements: ProgramRequirements,
+  planProgramId: number
 ): SectionProgress {
   // Calculate progress for each requirement in the section
   const requirementProgress = section.requirements.map((req) =>
-    calculateRequirementProgress(req, sectionId, fulfillments)
+    calculateRequirementProgress(
+      req,
+      sectionId,
+      fulfillments,
+      programRequirements,
+      planProgramId
+    )
   );
 
   // Aggregate credits
@@ -124,6 +180,30 @@ function calculateSectionProgress(
     status = 'in_progress';
   }
 
+  const sectionConstraintValidation =
+    section.constraintsStructured && section.constraintsStructured.length > 0
+      ? validateSectionConstraints(section, {
+          requirementId: '',
+          sectionId,
+          planProgramId,
+          programRequirements,
+          allFulfillments: fulfillments.map((f) => ({
+            requirementId: f.requirementId,
+            sectionId: f.requirementId.split('.')[0],
+            course: {
+              id: f.course.id,
+              courseId: f.course.courseId,
+              title: f.course.title,
+              credits: f.course.credits,
+              subjectCode: f.course.subjectCode,
+              courseNumber: f.course.courseNumber,
+              attributes: f.course.attributes,
+            },
+            creditsApplied: f.creditsApplied,
+          })),
+        })
+      : undefined;
+
   return {
     sectionId,
     title: section.title,
@@ -132,6 +212,12 @@ function calculateSectionProgress(
     creditsFulfilled,
     percentage,
     requirementProgress,
+    constraintValidation: sectionConstraintValidation
+      ? {
+          results: sectionConstraintValidation.results,
+          allSatisfied: sectionConstraintValidation.allSatisfied,
+        }
+      : undefined,
   };
 }
 
@@ -141,7 +227,9 @@ function calculateSectionProgress(
 function calculateRequirementProgress(
   requirement: Requirement,
   sectionId: string,
-  fulfillments: EnrichedFulfillment[]
+  fulfillments: EnrichedFulfillment[],
+  programRequirements: ProgramRequirements,
+  planProgramId: number
 ): RequirementProgress {
   const fullRequirementId = `${sectionId}.${requirement.id}`;
 
@@ -155,15 +243,15 @@ function calculateRequirementProgress(
     id: f.course.id,
     courseId: f.course.courseId,
     academicYearId: 0, // Not needed for progress calculation
-    subjectCode: f.course.courseId.split(' ')[0],
-    courseNumber: f.course.courseId.split(' ')[1],
+    subjectCode: f.course.subjectCode,
+    courseNumber: f.course.courseNumber,
     title: f.course.title,
     school: '',
     creditsMin: f.course.credits,
     creditsMax: f.course.credits,
     typicallyOffered: null,
     description: null,
-    attributes: null,
+    attributes: f.course.attributes,
     requirements: null,
     isCatalogCourse: true,
     createdAt: new Date(),
@@ -188,6 +276,46 @@ function calculateRequirementProgress(
     status = 'in_progress';
   }
 
+  // Validate constraints if they exist
+  let constraintValidation;
+  if (requirement.constraintsStructured && requirement.constraintsStructured.length > 0) {
+    // Convert all fulfillments to FulfillmentRecord format for constraint validation
+    const allFulfillmentRecords: FulfillmentRecord[] = fulfillments.map((f) => {
+      const courseId = f.course.courseId;
+      const parts = f.requirementId.split('.');
+      return {
+        requirementId: f.requirementId,
+        sectionId: parts[0],
+        course: {
+          id: f.course.id,
+          courseId: courseId,
+          title: f.course.title,
+          credits: f.course.credits,
+          subjectCode: f.course.subjectCode,
+          courseNumber: f.course.courseNumber,
+          attributes: f.course.attributes,
+        },
+        creditsApplied: f.creditsApplied,
+      };
+    });
+
+    // Build validation context
+    const context: ConstraintValidationContext = {
+      requirementId: fullRequirementId,
+      sectionId,
+      planProgramId,
+      programRequirements,
+      allFulfillments: allFulfillmentRecords,
+    };
+
+    // Validate constraints
+    const validation = validateRequirementConstraints(requirement, context);
+    constraintValidation = {
+      results: validation.results,
+      allSatisfied: validation.allSatisfied,
+    };
+  }
+
   return {
     requirementId: fullRequirementId,
     sectionId,
@@ -204,5 +332,6 @@ function calculateRequirementProgress(
       credits: f.course.credits,
       creditsApplied: f.creditsApplied,
     })),
+    constraintValidation,
   };
 }

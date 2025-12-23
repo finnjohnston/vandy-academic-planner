@@ -149,6 +149,7 @@ export async function getProgramRequirementsProgress(
               creditsRequired: sectionProgress.creditsRequired,
               creditsFulfilled: sectionProgress.creditsFulfilled,
               percentage: sectionProgress.percentage,
+              constraintValidation: sectionProgress.constraintValidation ?? null,
             }
           : null,
       };
@@ -165,7 +166,7 @@ export async function getProgramRequirementsProgress(
       },
       requirements: {
         sections: enrichedSections,
-        constraints: requirements.constraints,
+        constraintsStructured: requirements.constraintsStructured ?? [],
       },
       progress: {
         status: programProgress.status,
@@ -173,6 +174,7 @@ export async function getProgramRequirementsProgress(
         totalCreditsFulfilled: programProgress.totalCreditsFulfilled,
         percentage: programProgress.percentage,
         lastUpdated: programProgress.lastUpdated,
+        constraintValidation: programProgress.constraintValidation ?? null,
       },
     });
   } catch (err) {

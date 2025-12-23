@@ -1,6 +1,8 @@
+import { Constraint } from './constraint.types.js';
+
 export type ProgramRequirements = {
   sections: Section[];
-  constraints: string[];
+  constraintsStructured?: Constraint[]; // Machine-readable constraints
 };
 
 export type Section = {
@@ -8,7 +10,7 @@ export type Section = {
   title: string;
   creditsRequired: number;
   requirements: Requirement[];
-  constraints: string[];
+  constraintsStructured?: Constraint[]; // Machine-readable constraints
 };
 
 export type Requirement = {
@@ -17,7 +19,7 @@ export type Requirement = {
   description: string;
   creditsRequired: number;
   rule: Rule;
-  constraints: string[];
+  constraintsStructured?: Constraint[]; // Machine-readable constraints
 };
 
 export type Rule =

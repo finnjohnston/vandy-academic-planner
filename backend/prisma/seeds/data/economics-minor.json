@@ -12,9 +12,11 @@
           "creditsRequired": 6,
           "rule": {
             "type": "take_courses",
-            "courses": ["ECON 1010", "ECON 1020"]
-          },
-          "constraints": []
+            "courses": [
+              "ECON 1010",
+              "ECON 1020"
+            ]
+          }
         },
         {
           "id": "statistics",
@@ -29,7 +31,10 @@
                 "type": "take_from_list",
                 "count": 1,
                 "countType": "courses",
-                "courses": ["ECON 1500", "ECON 1510"]
+                "courses": [
+                  "ECON 1500",
+                  "ECON 1510"
+                ]
               },
               {
                 "type": "group",
@@ -37,19 +42,23 @@
                 "rules": [
                   {
                     "type": "take_courses",
-                    "courses": ["MATH 2820L"]
+                    "courses": [
+                      "MATH 2820L"
+                    ]
                   },
                   {
                     "type": "take_from_list",
                     "count": 1,
                     "countType": "courses",
-                    "courses": ["MATH 2810", "MATH 2820"]
+                    "courses": [
+                      "MATH 2810",
+                      "MATH 2820"
+                    ]
                   }
                 ]
               }
             ]
-          },
-          "constraints": []
+          }
         },
         {
           "id": "microeconomics",
@@ -58,9 +67,10 @@
           "creditsRequired": 3,
           "rule": {
             "type": "take_courses",
-            "courses": ["ECON 3012"]
-          },
-          "constraints": []
+            "courses": [
+              "ECON 3012"
+            ]
+          }
         },
         {
           "id": "economics_electives",
@@ -72,15 +82,24 @@
             "credits": 9,
             "filter": {
               "type": "subject_number",
-              "subjects": ["ECON"]
+              "subjects": [
+                "ECON"
+              ]
             }
           },
-          "constraints": [
-            "At least one course must be above ECON 3015"
+          "constraintsStructured": [
+            {
+              "id": "course_number_range_at_least_one_course_must_be_above_econ_3",
+              "type": "course_number_range",
+              "description": "At least one course must be above ECON 3015",
+              "subjectCode": "ECON",
+              "minNumber": 3015,
+              "minCount": 1,
+              "operator": "above"
+            }
           ]
         }
       ]
     }
-  ],
-  "constraints": []
+  ]
 }

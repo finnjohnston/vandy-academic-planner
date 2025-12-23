@@ -16,19 +16,31 @@
             "rules": [
               {
                 "type": "take_courses",
-                "courses": ["MATH 1300", "MATH 1301", "MATH 2300"]
+                "courses": [
+                  "MATH 1300",
+                  "MATH 1301",
+                  "MATH 2300"
+                ]
               },
               {
                 "type": "take_courses",
-                "courses": ["MATH 1300", "MATH 1301", "MATH 2310"]
+                "courses": [
+                  "MATH 1300",
+                  "MATH 1301",
+                  "MATH 2310"
+                ]
               },
               {
                 "type": "take_courses",
-                "courses": ["MATH 1300", "MATH 1301", "MATH 2500", "MATH 2501"]
+                "courses": [
+                  "MATH 1300",
+                  "MATH 1301",
+                  "MATH 2500",
+                  "MATH 2501"
+                ]
               }
             ]
-          },
-          "constraints": []
+          }
         },
         {
           "id": "linear_algebra",
@@ -43,15 +55,20 @@
                 "type": "take_from_list",
                 "count": 1,
                 "countType": "courses",
-                "courses": ["MATH 2410", "MATH 2600"]
+                "courses": [
+                  "MATH 2410",
+                  "MATH 2600"
+                ]
               },
               {
                 "type": "take_courses",
-                "courses": ["MATH 2500", "MATH 2501"]
+                "courses": [
+                  "MATH 2500",
+                  "MATH 2501"
+                ]
               }
             ]
-          },
-          "constraints": []
+          }
         },
         {
           "id": "differential_equations",
@@ -62,9 +79,11 @@
             "type": "take_from_list",
             "count": 1,
             "countType": "courses",
-            "courses": ["MATH 2420", "MATH 2610"]
-          },
-          "constraints": []
+            "courses": [
+              "MATH 2420",
+              "MATH 2610"
+            ]
+          }
         },
         {
           "id": "upper_level_mathematics",
@@ -76,20 +95,22 @@
             "credits": 12,
             "filter": {
               "type": "subject_number",
-              "subjects": ["MATH"],
+              "subjects": [
+                "MATH"
+              ],
               "numbers": [
                 {
                   "type": "range",
                   "min": 2800
                 }
               ],
-              "exclude": ["MATH 3000"]
+              "exclude": [
+                "MATH 3000"
+              ]
             }
-          },
-          "constraints": []
+          }
         }
       ]
     }
-  ],
-  "constraints": []
+  ]
 }

@@ -1,4 +1,5 @@
 import { CourseFilter } from './program.types.js';
+import { Constraint } from './constraint.types.js';
 
 /**
  * Progress status for requirements, sections, programs, and plans
@@ -92,6 +93,13 @@ export type RequirementProgress = {
     credits: number;
     creditsApplied: number;
   }>;
+  constraintValidation?: {
+    results: Array<{
+      constraint: Constraint;
+      satisfied: boolean;
+    }>;
+    allSatisfied: boolean;
+  };
 };
 
 /**
@@ -105,6 +113,13 @@ export type SectionProgress = {
   creditsFulfilled: number;
   percentage: number;
   requirementProgress: RequirementProgress[];
+  constraintValidation?: {
+    results: Array<{
+      constraint: Constraint;
+      satisfied: boolean;
+    }>;
+    allSatisfied: boolean;
+  };
 };
 
 /**
@@ -121,6 +136,13 @@ export type ProgramProgress = {
   percentage: number;
   sectionProgress: SectionProgress[];
   lastUpdated: Date;
+  constraintValidation?: {
+    results: Array<{
+      constraint: Constraint;
+      satisfied: boolean;
+    }>;
+    allSatisfied: boolean;
+  };
 };
 
 /**
@@ -154,6 +176,9 @@ export type EnrichedFulfillment = {
     courseId: string;
     title: string;
     credits: number;
+    subjectCode: string;
+    courseNumber: string;
+    attributes: any;
   };
   creditsApplied: number;
 };

@@ -83,7 +83,6 @@ const mockPlan = {
         name: 'Computer Science Major',
         type: 'major',
         totalCredits: 120,
-        requirements: { sections: [], constraints: [] },
         academicYearId: 869,
         schoolId: 1,
         createdAt: new Date('2024-01-01'),

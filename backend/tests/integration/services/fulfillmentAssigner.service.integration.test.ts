@@ -33,7 +33,6 @@ const csMajorRequirements: ProgramRequirements = {
               },
             ],
           },
-          constraints: [],
         },
         {
           id: 'basic_science',
@@ -46,7 +45,6 @@ const csMajorRequirements: ProgramRequirements = {
             countType: 'credits',
             courses: ['PHYS 1601', 'PHYS 1601L', 'PHYS 1602', 'PHYS 1602L'],
           },
-          constraints: [],
         },
         {
           id: 'introduction_to_engineering',
@@ -57,7 +55,6 @@ const csMajorRequirements: ProgramRequirements = {
             type: 'take_courses',
             courses: ['ES 1401', 'ES 1402', 'ES 1403'],
           },
-          constraints: [],
         },
         {
           id: 'ethics',
@@ -68,10 +65,8 @@ const csMajorRequirements: ProgramRequirements = {
             type: 'take_courses',
             courses: ['CS 1151'],
           },
-          constraints: [],
         },
       ],
-      constraints: [],
     },
     {
       id: 'computer_science_major',
@@ -87,13 +82,10 @@ const csMajorRequirements: ProgramRequirements = {
             type: 'take_courses',
             courses: ['CS 1101', 'CS 2201', 'CS 2212'],
           },
-          constraints: [],
         },
       ],
-      constraints: [],
     },
   ],
-  constraints: [],
 };
 
 const mathMajorRequirements: ProgramRequirements = {
@@ -118,7 +110,6 @@ const mathMajorRequirements: ProgramRequirements = {
               },
             ],
           },
-          constraints: [],
         },
         {
           id: 'upper_level_mathematics',
@@ -130,13 +121,10 @@ const mathMajorRequirements: ProgramRequirements = {
             credits: 12,
             filter: { type: 'any' },
           },
-          constraints: [],
         },
       ],
-      constraints: [],
     },
   ],
-  constraints: [],
 };
 
 // Helper to create test data
@@ -697,5 +685,306 @@ describe('fulfillmentAssigner.service - Integration Tests', () => {
     expect(calculusCount).toBe(3); // MATH 1300, 1301, 2300
     expect(basicScienceCount).toBe(2); // PHYS 1601, 1601L
     expect(introEngCount).toBe(3); // ES 1401, 1402, 1403
+  });
+
+  it('should allow double counting when configured', async () => {
+    const programRequirements: ProgramRequirements = {
+      sections: [
+        {
+          id: 'core',
+          title: 'Core',
+          creditsRequired: 6,
+          requirements: [
+            {
+              id: 'ethics',
+              title: 'Ethics',
+              description: 'Take CS 1151',
+              creditsRequired: 3,
+              rule: { type: 'take_courses', courses: ['CS 1151'] },
+            },
+            {
+              id: 'liberal_arts_core',
+              title: 'Liberal Arts Core',
+              description: 'Take CS 1151',
+              creditsRequired: 3,
+              rule: { type: 'take_courses', courses: ['CS 1151'] },
+            },
+          ],
+        },
+      ],
+      constraintsStructured: [
+        {
+          id: 'allow_double_count_cs1151',
+          type: 'allow_double_count',
+          courseId: 'CS 1151',
+          requirementIds: ['core.ethics', 'core.liberal_arts_core'],
+        },
+      ],
+    };
+
+    const program = await prisma.program.create({
+      data: {
+        programId: 'double_count_major',
+        name: 'Double Count Major',
+        type: 'major',
+        totalCredits: 6,
+        requirements: programRequirements as any,
+        academicYearId,
+        schoolId: schoolEngineering,
+      },
+    });
+
+    const plan = await prisma.plan.create({
+      data: {
+        name: 'Double Count Plan',
+        academicYearId,
+        schoolId: schoolEngineering,
+      },
+    });
+
+    const planProgram = await prisma.planProgram.create({
+      data: {
+        planId: plan.id,
+        programId: program.id,
+      },
+    });
+
+    await prisma.plannedCourse.create({
+      data: {
+        planId: plan.id,
+        courseId: 'CS 1151',
+        semesterNumber: 1,
+        position: 0,
+        credits: 3,
+      },
+    });
+
+    await autoAssignFulfillments(plan.id);
+
+    const fulfillments = await prisma.requirementFulfillment.findMany({
+      where: { planProgramId: planProgram.id },
+      orderBy: { requirementId: 'asc' },
+    });
+
+    expect(fulfillments).toHaveLength(2);
+    expect(fulfillments.map((f) => f.requirementId)).toEqual([
+      'core.ethics',
+      'core.liberal_arts_core',
+    ]);
+  });
+
+  it('should enforce require_course_from_sections constraints', async () => {
+    const programRequirements: ProgramRequirements = {
+      sections: [
+        {
+          id: 'restricted',
+          title: 'Restricted',
+          creditsRequired: 3,
+          requirements: [
+            {
+              id: 'writing',
+              title: 'Writing',
+              description: 'Any course, but must be from allowed section',
+              creditsRequired: 3,
+              rule: { type: 'take_courses', courses: ['CS 1101'] },
+              constraintsStructured: [
+                {
+                  id: 'require_course_from_sections_allowed',
+                  type: 'require_course_from_sections',
+                  description: 'Must come from allowed section',
+                  allowedSectionIds: ['allowed'],
+                  operator: 'OR',
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'allowed',
+          title: 'Allowed',
+          creditsRequired: 3,
+          requirements: [
+            {
+              id: 'core',
+              title: 'Core',
+              description: 'Any course',
+              creditsRequired: 3,
+              rule: {
+                type: 'take_any_courses',
+                credits: 3,
+                filter: { type: 'any' },
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const program = await prisma.program.create({
+      data: {
+        programId: 'enforcement_major',
+        name: 'Enforcement Major',
+        type: 'major',
+        totalCredits: 6,
+        requirements: programRequirements as any,
+        academicYearId,
+        schoolId: schoolEngineering,
+      },
+    });
+
+    const plan = await prisma.plan.create({
+      data: {
+        name: 'Enforcement Plan',
+        academicYearId,
+        schoolId: schoolEngineering,
+      },
+    });
+
+    const planProgram = await prisma.planProgram.create({
+      data: {
+        planId: plan.id,
+        programId: program.id,
+      },
+    });
+
+    await prisma.plannedCourse.create({
+      data: {
+        planId: plan.id,
+        courseId: 'CS 1101',
+        semesterNumber: 1,
+        position: 0,
+        credits: 3,
+      },
+    });
+
+    await autoAssignFulfillments(plan.id);
+
+    const fulfillments = await prisma.requirementFulfillment.findMany({
+      where: { planProgramId: planProgram.id },
+    });
+
+    expect(fulfillments).toHaveLength(1);
+    expect(fulfillments[0].requirementId).toBe('allowed.core');
+  });
+
+  it('should enforce require_course_from_sections with AND operator', async () => {
+    const programRequirements: ProgramRequirements = {
+      sections: [
+        {
+          id: 'restricted',
+          title: 'Restricted',
+          creditsRequired: 3,
+          requirements: [
+            {
+              id: 'writing',
+              title: 'Writing',
+              description: 'Must also be in both allowed sections',
+              creditsRequired: 3,
+              rule: { type: 'take_courses', courses: ['CS 1101'] },
+              constraintsStructured: [
+                {
+                  id: 'require_course_from_sections_and',
+                  type: 'require_course_from_sections',
+                  description: 'Must be in both allowed sections',
+                  allowedSectionIds: ['allowed_a', 'allowed_b'],
+                  operator: 'AND',
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'allowed_a',
+          title: 'Allowed A',
+          creditsRequired: 3,
+          requirements: [
+            {
+              id: 'core',
+              title: 'Core A',
+              description: 'Take CS 1101',
+              creditsRequired: 3,
+              rule: { type: 'take_courses', courses: ['CS 1101'] },
+            },
+          ],
+        },
+        {
+          id: 'allowed_b',
+          title: 'Allowed B',
+          creditsRequired: 3,
+          requirements: [
+            {
+              id: 'core',
+              title: 'Core B',
+              description: 'Take CS 1101',
+              creditsRequired: 3,
+              rule: { type: 'take_courses', courses: ['CS 1101'] },
+            },
+          ],
+        },
+      ],
+      constraintsStructured: [
+        {
+          id: 'allow_double_count_cs1101',
+          type: 'allow_double_count',
+          courseId: 'CS 1101',
+          requirementIds: [
+            'restricted.writing',
+            'allowed_a.core',
+            'allowed_b.core',
+          ],
+        },
+      ],
+    };
+
+    const program = await prisma.program.create({
+      data: {
+        programId: 'enforcement_major_and',
+        name: 'Enforcement Major AND',
+        type: 'major',
+        totalCredits: 9,
+        requirements: programRequirements as any,
+        academicYearId,
+        schoolId: schoolEngineering,
+      },
+    });
+
+    const plan = await prisma.plan.create({
+      data: {
+        name: 'Enforcement Plan AND',
+        academicYearId,
+        schoolId: schoolEngineering,
+      },
+    });
+
+    const planProgram = await prisma.planProgram.create({
+      data: {
+        planId: plan.id,
+        programId: program.id,
+      },
+    });
+
+    await prisma.plannedCourse.create({
+      data: {
+        planId: plan.id,
+        courseId: 'CS 1101',
+        semesterNumber: 1,
+        position: 0,
+        credits: 3,
+      },
+    });
+
+    await autoAssignFulfillments(plan.id);
+
+    const fulfillments = await prisma.requirementFulfillment.findMany({
+      where: { planProgramId: planProgram.id },
+      orderBy: { requirementId: 'asc' },
+    });
+
+    expect(fulfillments).toHaveLength(3);
+    expect(fulfillments.map((f) => f.requirementId)).toEqual([
+      'allowed_a.core',
+      'allowed_b.core',
+      'restricted.writing',
+    ]);
   });
 });

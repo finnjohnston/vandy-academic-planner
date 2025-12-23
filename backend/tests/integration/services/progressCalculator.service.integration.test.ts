@@ -47,13 +47,10 @@ describe('progressCalculator.service integration', () => {
                       type: 'take_courses',
                       courses: ['CS 1101', 'CS 2201'],
                     },
-                    constraints: [],
                   },
                 ],
-                constraints: [],
               },
             ],
-            constraints: [],
           } as ProgramRequirements,
         },
       });
@@ -139,13 +136,10 @@ describe('progressCalculator.service integration', () => {
                       type: 'take_courses',
                       courses: ['CS 1101', 'CS 2201'],
                     },
-                    constraints: [],
                   },
                 ],
-                constraints: [],
               },
             ],
-            constraints: [],
           } as ProgramRequirements,
         },
       });
@@ -201,6 +195,169 @@ describe('progressCalculator.service integration', () => {
       expect(requirement.fulfillingCourses[0].courseId).toBe('CS 1101');
     });
 
+    it('should validate requirement constraints', async () => {
+      const cs1101 = await prisma.course.create({
+        data: {
+          courseId: 'CS 1101',
+          academicYearId: academicYear.id,
+          subjectCode: 'CS',
+          courseNumber: '1101',
+          title: 'Programming',
+          school: 'SOE',
+          creditsMin: 3,
+          creditsMax: 3,
+        },
+      });
+
+      const cs2201 = await prisma.course.create({
+        data: {
+          courseId: 'CS 2201',
+          academicYearId: academicYear.id,
+          subjectCode: 'CS',
+          courseNumber: '2201',
+          title: 'Data Structures',
+          school: 'SOE',
+          creditsMin: 3,
+          creditsMax: 3,
+        },
+      });
+
+      const phys1601L = await prisma.course.create({
+        data: {
+          courseId: 'PHYS 1601L',
+          academicYearId: academicYear.id,
+          subjectCode: 'PHYS',
+          courseNumber: '1601L',
+          title: 'Physics Lab',
+          school: 'SOE',
+          creditsMin: 1,
+          creditsMax: 1,
+        },
+      });
+
+      const program = await prisma.program.create({
+        data: {
+          programId: 'constraints_major',
+          name: 'Constraints Major',
+          type: 'major',
+          totalCredits: 9,
+          academicYearId: academicYear.id,
+          schoolId: school.id,
+          requirements: {
+            sections: [
+              {
+                id: 'core',
+                title: 'Core',
+                creditsRequired: 9,
+                requirements: [
+                  {
+                    id: 'all_courses',
+                    title: 'All Courses',
+                    description: 'Any courses',
+                    creditsRequired: 9,
+                    rule: {
+                      type: 'take_any_courses',
+                      credits: 9,
+                      filter: { type: 'any' },
+                    },
+                    constraintsStructured: [
+                      {
+                        id: 'min_course_count_lab',
+                        type: 'min_course_count',
+                        description: 'At least one lab course',
+                        count: 1,
+                        filter: { type: 'course_number_suffix', suffixes: ['L'] },
+                      },
+                      {
+                        id: 'max_credits_cs_core',
+                        type: 'max_credits_from_courses',
+                        description: 'Max 3 credits from CS 1101/2201',
+                        maxCredits: 3,
+                        courseIds: ['CS 1101', 'CS 2201'],
+                      },
+                      {
+                        id: 'course_number_range_cs_above_2000',
+                        type: 'course_number_range',
+                        description: 'At least one CS course above 2000',
+                        subjectCode: 'CS',
+                        minNumber: 2000,
+                        minCount: 1,
+                        operator: 'above',
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          } as ProgramRequirements,
+        },
+      });
+
+      const plan = await prisma.plan.create({
+        data: {
+          name: 'Constraint Plan',
+          academicYearId: academicYear.id,
+          schoolId: school.id,
+        },
+      });
+
+      const planProgram = await prisma.planProgram.create({
+        data: {
+          planId: plan.id,
+          programId: program.id,
+        },
+      });
+
+      await prisma.plannedCourse.createMany({
+        data: [
+          {
+            planId: plan.id,
+            courseId: cs1101.courseId,
+            semesterNumber: 1,
+            position: 0,
+            credits: 3,
+          },
+          {
+            planId: plan.id,
+            courseId: cs2201.courseId,
+            semesterNumber: 1,
+            position: 1,
+            credits: 3,
+          },
+          {
+            planId: plan.id,
+            courseId: phys1601L.courseId,
+            semesterNumber: 1,
+            position: 2,
+            credits: 1,
+          },
+        ],
+      });
+
+      await autoAssignFulfillments(plan.id);
+
+      const progress = await calculateProgramProgress(planProgram.id);
+      const requirement = progress.sectionProgress[0].requirementProgress[0];
+
+      expect(requirement.constraintValidation).toBeDefined();
+      expect(requirement.constraintValidation?.allSatisfied).toBe(false);
+      const results = requirement.constraintValidation?.results ?? [];
+
+      const minCourseResult = results.find(
+        (r) => r.constraint.type === 'min_course_count'
+      );
+      const maxCreditsResult = results.find(
+        (r) => r.constraint.type === 'max_credits_from_courses'
+      );
+      const numberRangeResult = results.find(
+        (r) => r.constraint.type === 'course_number_range'
+      );
+
+      expect(minCourseResult?.satisfied).toBe(true);
+      expect(maxCreditsResult?.satisfied).toBe(false);
+      expect(numberRangeResult?.satisfied).toBe(true);
+    });
+
     it('should calculate progress for completed requirement', async () => {
       // Create courses
       const cs1101 = await prisma.course.create({
@@ -254,13 +411,10 @@ describe('progressCalculator.service integration', () => {
                       type: 'take_courses',
                       courses: ['CS 1101', 'CS 2201'],
                     },
-                    constraints: [],
                   },
                 ],
-                constraints: [],
               },
             ],
-            constraints: [],
           } as ProgramRequirements,
         },
       });
@@ -357,13 +511,10 @@ describe('progressCalculator.service integration', () => {
                       countType: 'courses',
                       courses: ['MATH 1300', 'MATH 1301', 'MATH 2300'],
                     },
-                    constraints: [],
                   },
                 ],
-                constraints: [],
               },
             ],
-            constraints: [],
           } as ProgramRequirements,
         },
       });
@@ -455,13 +606,10 @@ describe('progressCalculator.service integration', () => {
                         { type: 'take_courses', courses: ['MATH 1300'] },
                       ],
                     },
-                    constraints: [],
                   },
                 ],
-                constraints: [],
               },
             ],
-            constraints: [],
           } as ProgramRequirements,
         },
       });
@@ -562,13 +710,10 @@ describe('progressCalculator.service integration', () => {
                     description: 'Take CS 1101',
                     creditsRequired: 3,
                     rule: { type: 'take_courses', courses: ['CS 1101'] },
-                    constraints: [],
                   },
                 ],
-                constraints: [],
               },
             ],
-            constraints: [],
           } as ProgramRequirements,
         },
       });
@@ -594,13 +739,10 @@ describe('progressCalculator.service integration', () => {
                     description: 'Take MATH 1300',
                     creditsRequired: 4,
                     rule: { type: 'take_courses', courses: ['MATH 1300'] },
-                    constraints: [],
                   },
                 ],
-                constraints: [],
               },
             ],
-            constraints: [],
           } as ProgramRequirements,
         },
       });
@@ -674,7 +816,6 @@ describe('progressCalculator.service integration', () => {
           schoolId: school.id,
           requirements: {
             sections: [],
-            constraints: [],
           } as ProgramRequirements,
         },
       });

@@ -60,7 +60,6 @@ const mockProgramRequirements: ProgramRequirements = {
             type: 'take_courses',
             courses: ['MATH 1300', 'MATH 1301', 'MATH 2300'],
           },
-          constraints: [],
         },
         {
           id: 'math_elective',
@@ -73,10 +72,8 @@ const mockProgramRequirements: ProgramRequirements = {
             countType: 'courses',
             courses: ['MATH 1300', 'MATH 2410', 'MATH 3000'],
           },
-          constraints: [],
         },
       ],
-      constraints: [],
     },
     {
       id: 'cs_core',
@@ -92,13 +89,10 @@ const mockProgramRequirements: ProgramRequirements = {
             type: 'take_courses',
             courses: ['CS 1101'],
           },
-          constraints: [],
         },
       ],
-      constraints: [],
     },
   ],
-  constraints: [],
 };
 
 describe('requirementMatcher.service', () => {
@@ -154,10 +148,8 @@ describe('requirementMatcher.service', () => {
                   type: 'take_courses',
                   courses: ['CS 1101'],
                 },
-                constraints: [],
               },
             ],
-            constraints: [],
           },
           {
             id: 'section_b',
@@ -175,13 +167,10 @@ describe('requirementMatcher.service', () => {
                   countType: 'courses',
                   courses: ['CS 1101', 'CS 2201'],
                 },
-                constraints: [],
               },
             ],
-            constraints: [],
           },
         ],
-        constraints: [],
       };
 
       const matches = findMatchingRequirements(mockCourseCS1101, programWithMultipleSections);
@@ -198,7 +187,6 @@ describe('requirementMatcher.service', () => {
     it('should return empty array for empty program requirements', () => {
       const emptyProgram: ProgramRequirements = {
         sections: [],
-        constraints: [],
       };
 
       const matches = findMatchingRequirements(mockCourseCS1101, emptyProgram);
@@ -215,10 +203,8 @@ describe('requirementMatcher.service', () => {
             title: 'Empty Section',
             creditsRequired: 0,
             requirements: [],
-            constraints: [],
           },
         ],
-        constraints: [],
       };
 
       const matches = findMatchingRequirements(mockCourseCS1101, programWithEmptySection);
@@ -244,7 +230,6 @@ describe('requirementMatcher.service', () => {
                   type: 'take_courses',
                   courses: ['CS 1101'],
                 },
-                constraints: [],
               },
               {
                 id: 'req_2',
@@ -255,13 +240,10 @@ describe('requirementMatcher.service', () => {
                   type: 'take_courses',
                   courses: ['CS 1101'],
                 },
-                constraints: [],
               },
             ],
-            constraints: [],
           },
         ],
-        constraints: [],
       };
 
       const matches = findMatchingRequirements(mockCourseCS1101, programWithEqualScores);
@@ -300,13 +282,10 @@ describe('requirementMatcher.service', () => {
                     },
                   ],
                 },
-                constraints: [],
               },
             ],
-            constraints: [],
           },
         ],
-        constraints: [],
       };
 
       const matches = findMatchingRequirements(mockCourseMATH1300, programWithGroupRules);

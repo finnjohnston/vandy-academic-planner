@@ -66,13 +66,10 @@ describe('progressController', () => {
                     description: 'Take CS 1101',
                     creditsRequired: 3,
                     rule: { type: 'take_courses', courses: ['CS 1101'] },
-                    constraints: [],
                   },
                 ],
-                constraints: [],
               },
             ],
-            constraints: [],
           },
         },
       } as any);
@@ -188,7 +185,6 @@ describe('progressController', () => {
       vi.mocked(prisma.planProgram.findUnique).mockResolvedValue({
         id: 10,
         planId: 1,
-        program: { requirements: { sections: [], constraints: [] } },
       } as any);
 
       await getProgramRequirementsProgress(req as Request, res as Response, next);

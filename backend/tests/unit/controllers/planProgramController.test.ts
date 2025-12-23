@@ -64,7 +64,6 @@ describe('planProgramController', () => {
     totalCredits: 120,
     requirements: {
       sections: [],
-      constraints: [],
     },
     academicYearId: 869,
     schoolId: 1,
