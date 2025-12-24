@@ -33,6 +33,7 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
         requirementProgress?: Array<{
           requirementId: string;
           title: string;
+          description: string;
           creditsRequired: number;
           creditsFulfilled: number;
         }>;
@@ -88,6 +89,7 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
           requirementProgress?: Array<{
             requirementId: string;
             title: string;
+            description: string;
             creditsRequired: number;
             creditsFulfilled: number;
           }>;

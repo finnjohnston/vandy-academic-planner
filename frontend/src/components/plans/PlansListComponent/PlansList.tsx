@@ -31,7 +31,6 @@ const PlansList: React.FC = () => {
   }, []);
 
   const handleEditPlan = (planId: number) => {
-    console.log('Edit plan:', planId);
     // TODO: Implement edit functionality
   };
 

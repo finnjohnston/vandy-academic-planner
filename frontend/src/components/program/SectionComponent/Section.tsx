@@ -13,6 +13,7 @@ interface SectionProps {
     name: string;
     creditsRequired: number;
     creditsFulfilled: number;
+    description?: string;
   }>;
   onToggle?: (isExpanded: boolean) => void;
 }

@@ -194,18 +194,6 @@ const Planning: React.FC = () => {
         isSwapMode,
         hoveredPlannedCourseId: overData.plannedCourseId
       });
-
-      // DEBUG LOGGING
-      console.log('=== DRAG OVER ===', {
-        activePosition: dragData.currentPosition,
-        hoveredPosition,
-        activeSemester,
-        hoveredSemester: overData.currentSemester,
-        isSameSemester,
-        indicatorPosition,
-        draggedCourseId: dragData.plannedCourseId,
-        hoveredCourseId: overData.plannedCourseId
-      });
     }
     // Hovering over semester body - append to end
     else if (overData?.semesterNumber !== undefined) {
@@ -268,16 +256,6 @@ const Planning: React.FC = () => {
     const isSameSemester = activeSemester === semesterNumber;
     const activePosition = dragData.currentPosition;
 
-    // DEBUG LOGGING
-    console.log('=== DRAG END (pre-calc) ===', {
-      activePosition,
-      hoveredPosition,
-      indicatorDirection,
-      isSameSemester,
-      oldSemester: dragData.currentSemester,
-      newSemester: semesterNumber
-    });
-
     let insertPosition: number;
 
     // In swap mode, insert at the exact position of the deleted course
@@ -316,13 +294,6 @@ const Planning: React.FC = () => {
       // Ensure position doesn't exceed valid range
       insertPosition = Math.min(insertPosition, maxPosition);
     }
-
-    // DEBUG LOGGING
-    console.log('=== DRAG END (post-calc) ===', {
-      calculatedInsertPosition: insertPosition,
-      isSwapMode: targetPosition.isSwapMode,
-      hoveredPlannedCourseId: targetPosition.hoveredPlannedCourseId
-    });
 
     // Handle swap mode: delete the hovered course before inserting
     if (targetPosition.isSwapMode && targetPosition.hoveredPlannedCourseId) {

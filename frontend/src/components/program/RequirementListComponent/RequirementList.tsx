@@ -8,6 +8,7 @@ interface RequirementListProps {
     name: string;
     creditsRequired: number;
     creditsFulfilled: number;
+    description?: string;
   }>;
 }
 
@@ -20,6 +21,7 @@ const RequirementList: React.FC<RequirementListProps> = ({ requirements }) => {
           name={requirement.name}
           creditsText={`${requirement.creditsFulfilled} / ${requirement.creditsRequired} credits`}
           isLast={index === requirements.length - 1}
+          description={requirement.description}
         />
       ))}
     </div>

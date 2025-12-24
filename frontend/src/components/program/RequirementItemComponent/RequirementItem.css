@@ -59,4 +59,9 @@
   color: var(--color-text-light);
   margin-right: 8px;
   cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.requirement-item-dropdown-icon.expanded {
+  transform: rotate(180deg);
 }

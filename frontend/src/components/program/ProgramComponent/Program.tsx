@@ -17,6 +17,7 @@ interface ProgramProps {
     requirementProgress?: Array<{
       requirementId: string;
       title: string;
+      description: string;
       creditsRequired: number;
       creditsFulfilled: number;
     }>;

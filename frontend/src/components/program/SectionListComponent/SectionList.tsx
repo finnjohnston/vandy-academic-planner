@@ -12,6 +12,7 @@ interface SectionListProps {
     requirementProgress?: Array<{
       requirementId: string;
       title: string;
+      description: string;
       creditsRequired: number;
       creditsFulfilled: number;
     }>;
@@ -39,6 +40,7 @@ const SectionList: React.FC<SectionListProps> = ({ sections }) => {
         const requirements = section.requirementProgress?.map(req => ({
           requirementId: req.requirementId,
           name: req.title,
+          description: req.description,
           creditsRequired: req.creditsRequired,
           creditsFulfilled: req.creditsFulfilled,
         }));
