@@ -13,6 +13,18 @@
   cursor: pointer;
 }
 
+.section-container.section-last {
+  border-bottom: none;
+}
+
+.section-container.section-last.section-expanded {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.section-container.section-border-top {
+  border-top: 1px solid var(--color-border);
+}
+
 .section-info {
   display: grid;
   grid-template-columns: 260px 1fr 378px auto;
@@ -53,6 +65,10 @@
 
 .section-dropdown-icon {
   color: var(--color-text-white);
-  padding-right: 8px;
+  margin-right: 8px;
   cursor: pointer;
+}
+
+.section-dropdown-icon.expanded {
+  transform: rotate(180deg);
 }

@@ -30,6 +30,12 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
         creditsRequired: number;
         creditsFulfilled: number;
         percentage: number;
+        requirementProgress?: Array<{
+          requirementId: string;
+          title: string;
+          creditsRequired: number;
+          creditsFulfilled: number;
+        }>;
       }>;
     }>
   >({});
@@ -79,6 +85,12 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
           creditsRequired: number;
           creditsFulfilled: number;
           percentage: number;
+          requirementProgress?: Array<{
+            requirementId: string;
+            title: string;
+            creditsRequired: number;
+            creditsFulfilled: number;
+          }>;
         }>;
       }> = {};
       results.forEach((result) => {

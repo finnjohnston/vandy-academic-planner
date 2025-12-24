@@ -1,5 +1,5 @@
 import React from 'react';
-import ProgramList from '../../program/ProgramListComponent/ProgramList';
+import ProgramList from '../ProgramListComponent/ProgramList';
 import './Requirement.css';
 
 interface RequirementProps {
