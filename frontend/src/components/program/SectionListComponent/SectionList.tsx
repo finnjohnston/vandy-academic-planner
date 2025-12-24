@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Section from '../SectionComponent/Section';
+import type { RequirementProgress } from '../../../types/RequirementProgress';
 import './SectionList.css';
 
 interface SectionListProps {
@@ -9,17 +10,12 @@ interface SectionListProps {
     creditsRequired: number;
     creditsFulfilled: number;
     percentage: number;
-    requirementProgress?: Array<{
-      requirementId: string;
-      title: string;
-      description: string;
-      creditsRequired: number;
-      creditsFulfilled: number;
-    }>;
+    requirementProgress?: RequirementProgress[];
   }>;
+  academicYearId: number;
 }
 
-const SectionList: React.FC<SectionListProps> = ({ sections }) => {
+const SectionList: React.FC<SectionListProps> = ({ sections, academicYearId }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
   const handleToggleSection = (sectionId: string, isExpanded: boolean) => {
@@ -37,13 +33,7 @@ const SectionList: React.FC<SectionListProps> = ({ sections }) => {
   return (
     <div className="section-list">
       {sections.map((section, index) => {
-        const requirements = section.requirementProgress?.map(req => ({
-          requirementId: req.requirementId,
-          name: req.title,
-          description: req.description,
-          creditsRequired: req.creditsRequired,
-          creditsFulfilled: req.creditsFulfilled,
-        }));
+        const requirements = section.requirementProgress;
 
         const isPreviousExpanded = index > 0 && expandedSections.has(sections[index - 1].sectionId);
 
@@ -56,6 +46,7 @@ const SectionList: React.FC<SectionListProps> = ({ sections }) => {
             isLast={index === sections.length - 1}
             hasBorderTop={isPreviousExpanded}
             requirements={requirements}
+            academicYearId={academicYearId}
             onToggle={(isExpanded) => handleToggleSection(section.sectionId, isExpanded)}
           />
         );

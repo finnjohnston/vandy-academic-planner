@@ -16,6 +16,7 @@ interface RequirementProps {
     courseId: string | null;
     semesterNumber: number;
   }>;
+  academicYearId: number;
 }
 
 const Requirement: React.FC<RequirementProps> = ({
@@ -23,6 +24,7 @@ const Requirement: React.FC<RequirementProps> = ({
   planId,
   programs,
   plannedCourses,
+  academicYearId,
 }) => {
   const isEmpty = programs.length === 0;
   return (
@@ -33,7 +35,12 @@ const Requirement: React.FC<RequirementProps> = ({
     >
       <h1 className="requirement-header">Requirements</h1>
       <div className="requirement-content">
-        <ProgramList planId={planId} programs={programs} plannedCourses={plannedCourses} />
+        <ProgramList
+          planId={planId}
+          programs={programs}
+          plannedCourses={plannedCourses}
+          academicYearId={academicYearId}
+        />
       </div>
     </div>
   );

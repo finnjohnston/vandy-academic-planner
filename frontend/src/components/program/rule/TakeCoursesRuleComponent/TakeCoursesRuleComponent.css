@@ -1,0 +1,6 @@
+.take-courses-rule-component {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-card-bg);
+}

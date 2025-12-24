@@ -519,6 +519,7 @@ const Planning: React.FC = () => {
               totalCredits: planProgram.program.totalCredits,
             }))}
             plannedCourses={planData.plannedCourses}
+            academicYearId={planData.academicYearId}
           />
         </div>
 

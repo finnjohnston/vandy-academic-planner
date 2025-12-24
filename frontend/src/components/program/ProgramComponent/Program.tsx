@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ProgramProgressBar from '../ProgramProgressBarComponent/ProgramProgressBar';
 import SectionList from '../SectionListComponent/SectionList';
+import type { RequirementProgress } from '../../../types/RequirementProgress';
 import './Program.css';
 
 interface ProgramProps {
@@ -8,19 +9,14 @@ interface ProgramProps {
   type: string;
   creditsText: string;
   progressPercent: number;
+  academicYearId: number;
   sections?: Array<{
     sectionId: string;
     title: string;
     creditsRequired: number;
     creditsFulfilled: number;
     percentage: number;
-    requirementProgress?: Array<{
-      requirementId: string;
-      title: string;
-      description: string;
-      creditsRequired: number;
-      creditsFulfilled: number;
-    }>;
+    requirementProgress?: RequirementProgress[];
   }>;
 }
 
@@ -29,6 +25,7 @@ const Program: React.FC<ProgramProps> = ({
   type,
   creditsText,
   progressPercent,
+  academicYearId,
   sections,
 }) => {
   const [expanded, setExpanded] = useState(false);
@@ -64,7 +61,7 @@ const Program: React.FC<ProgramProps> = ({
         </svg>
       </div>
       {expanded && sections && sections.length > 0 && (
-        <SectionList sections={sections} />
+        <SectionList sections={sections} academicYearId={academicYearId} />
       )}
     </>
   );

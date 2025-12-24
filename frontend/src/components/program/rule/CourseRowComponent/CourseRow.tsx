@@ -22,7 +22,7 @@ const CourseRow: React.FC<CourseRowProps> = ({
     <div className={`course-row${isLast ? ' course-row-last' : ''}`}>
       <span className="course-row-course">{subjectCode} {courseNumber}</span>
       <span className="course-row-title">{title}</span>
-      <span className="course-row-term">{term || '-'}</span>
+      <span className="course-row-term">{term || ''}</span>
       <span className="course-row-credits">{credits}</span>
     </div>
   );

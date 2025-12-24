@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Program from '../ProgramComponent/Program';
+import type { RequirementProgress } from '../../../types/RequirementProgress';
 import './ProgramList.css';
 
 const API_BASE_URL = 'http://localhost:3000';
@@ -17,9 +18,10 @@ interface ProgramListProps {
     courseId: string | null;
     semesterNumber: number;
   }>;
+  academicYearId: number;
 }
 
-const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCourses }) => {
+const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCourses, academicYearId }) => {
   const [progressByProgramId, setProgressByProgramId] = useState<
     Record<number, {
       fulfilled: number;
@@ -30,13 +32,7 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
         creditsRequired: number;
         creditsFulfilled: number;
         percentage: number;
-        requirementProgress?: Array<{
-          requirementId: string;
-          title: string;
-          description: string;
-          creditsRequired: number;
-          creditsFulfilled: number;
-        }>;
+        requirementProgress?: RequirementProgress[];
       }>;
     }>
   >({});
@@ -86,13 +82,7 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
           creditsRequired: number;
           creditsFulfilled: number;
           percentage: number;
-          requirementProgress?: Array<{
-            requirementId: string;
-            title: string;
-            description: string;
-            creditsRequired: number;
-            creditsFulfilled: number;
-          }>;
+          requirementProgress?: RequirementProgress[];
         }>;
       }> = {};
       results.forEach((result) => {
@@ -128,6 +118,7 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
             progressPercent={progressPercent}
             creditsText={`${fulfilled} / ${required} credits`}
             sections={sections}
+            academicYearId={academicYearId}
           />
         );
       })}

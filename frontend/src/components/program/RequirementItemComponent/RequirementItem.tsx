@@ -1,24 +1,23 @@
 import React, { useState } from 'react';
-import RuleDescriptionField from '../rule/RuleDescriptionFieldComponent/RuleDescriptionField';
-import CourseTableHeader from '../rule/CourseTableHeaderComponent/CourseTableHeader';
-import CourseRow from '../rule/CourseRowComponent/CourseRow';
-import ConstraintField from '../rule/ConstraintFieldComponent/ConstraintField';
+import TakeCoursesRuleComponent from '../rule/TakeCoursesRuleComponent/TakeCoursesRuleComponent';
+import type { RequirementProgress } from '../../../types/RequirementProgress';
 import './RequirementItem.css';
 
 interface RequirementItemProps {
-  name: string;
-  creditsText: string;
+  requirementProgress: RequirementProgress;
+  academicYearId: number;
   isLast?: boolean;
-  description?: string;
 }
 
 const RequirementItem: React.FC<RequirementItemProps> = ({
-  name,
-  creditsText,
-  isLast = false,
-  description
+  requirementProgress,
+  academicYearId,
+  isLast = false
 }) => {
   const [expanded, setExpanded] = useState(false);
+
+  const name = requirementProgress.title;
+  const creditsText = `${requirementProgress.creditsFulfilled} / ${requirementProgress.creditsRequired} credits`;
 
   const handleToggle = () => {
     setExpanded(!expanded);
@@ -41,8 +40,11 @@ const RequirementItem: React.FC<RequirementItemProps> = ({
           <path d="M1 1.5L5 5.5L9 1.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </div>
-      {expanded && description && (
-        <RuleDescriptionField description={description} />
+      {expanded && (
+        <TakeCoursesRuleComponent
+          requirementProgress={requirementProgress}
+          academicYearId={academicYearId}
+        />
       )}
     </>
   );

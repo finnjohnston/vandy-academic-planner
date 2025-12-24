@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import RequirementList from '../RequirementListComponent/RequirementList';
+import type { RequirementProgress } from '../../../types/RequirementProgress';
 import './Section.css';
 
 interface SectionProps {
@@ -8,13 +9,8 @@ interface SectionProps {
   progressPercent: number;
   isLast?: boolean;
   hasBorderTop?: boolean;
-  requirements?: Array<{
-    requirementId: string;
-    name: string;
-    creditsRequired: number;
-    creditsFulfilled: number;
-    description?: string;
-  }>;
+  requirements?: RequirementProgress[];
+  academicYearId: number;
   onToggle?: (isExpanded: boolean) => void;
 }
 
@@ -24,6 +20,7 @@ const Section: React.FC<SectionProps> = ({
   isLast = false,
   hasBorderTop = false,
   requirements,
+  academicYearId,
   onToggle
 }) => {
   const [expanded, setExpanded] = useState(false);
@@ -52,7 +49,7 @@ const Section: React.FC<SectionProps> = ({
         </svg>
       </div>
       {expanded && requirements && requirements.length > 0 && (
-        <RequirementList requirements={requirements} />
+        <RequirementList requirements={requirements} academicYearId={academicYearId} />
       )}
     </>
   );
