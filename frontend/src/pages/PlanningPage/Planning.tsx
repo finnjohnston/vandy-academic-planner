@@ -245,7 +245,6 @@ const Planning: React.FC = () => {
     const dragData = active.data.current as DragData;
     const semesterNumber = targetPosition.semesterNumber;
     const hoveredPosition = targetPosition.position;
-    const indicatorDirection = targetPosition.indicatorPosition;
 
     if (!semesterNumber || typeof semesterNumber !== 'number') {
       return;
