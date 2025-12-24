@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import RuleDescriptionField from '../rule/RuleDescriptionFieldComponent/RuleDescriptionField';
+import CourseTableHeader from '../rule/CourseTableHeaderComponent/CourseTableHeader';
 import './RequirementItem.css';
 
 interface RequirementItemProps {
@@ -39,7 +40,10 @@ const RequirementItem: React.FC<RequirementItemProps> = ({
         </svg>
       </div>
       {expanded && description && (
-        <RuleDescriptionField description={description} />
+        <>
+          <RuleDescriptionField description={description} />
+          <CourseTableHeader />
+        </>
       )}
     </>
   );
