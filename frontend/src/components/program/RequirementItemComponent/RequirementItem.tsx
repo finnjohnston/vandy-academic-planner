@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import RuleDescriptionField from '../rule/RuleDescriptionFieldComponent/RuleDescriptionField';
 import CourseTableHeader from '../rule/CourseTableHeaderComponent/CourseTableHeader';
 import CourseRow from '../rule/CourseRowComponent/CourseRow';
+import ConstraintField from '../rule/ConstraintFieldComponent/ConstraintField';
 import './RequirementItem.css';
 
 interface RequirementItemProps {
@@ -41,17 +42,7 @@ const RequirementItem: React.FC<RequirementItemProps> = ({
         </svg>
       </div>
       {expanded && description && (
-        <>
-          <RuleDescriptionField description={description} />
-          <CourseTableHeader />
-          <CourseRow
-            subjectCode="CS"
-            courseNumber="1101"
-            title="Programming and Problem Solving"
-            term="Fall 2024"
-            credits={3}
-          />
-        </>
+        <RuleDescriptionField description={description} />
       )}
     </>
   );
