@@ -12,6 +12,10 @@
   padding: 0;
 }
 
+.course-row.course-row-last {
+  border-bottom: none;
+}
+
 .course-row-course {
   font-family: 'Inter', sans-serif;
   font-size: 12px;

@@ -7,6 +7,7 @@ interface CourseRowProps {
   title: string;
   term?: string;
   credits: number;
+  isLast?: boolean;
 }
 
 const CourseRow: React.FC<CourseRowProps> = ({
@@ -14,10 +15,11 @@ const CourseRow: React.FC<CourseRowProps> = ({
   courseNumber,
   title,
   term,
-  credits
+  credits,
+  isLast = false
 }) => {
   return (
-    <div className="course-row">
+    <div className={`course-row${isLast ? ' course-row-last' : ''}`}>
       <span className="course-row-course">{subjectCode} {courseNumber}</span>
       <span className="course-row-title">{title}</span>
       <span className="course-row-term">{term || '-'}</span>
