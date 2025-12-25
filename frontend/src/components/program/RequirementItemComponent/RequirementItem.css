@@ -13,8 +13,12 @@
   cursor: pointer;
 }
 
-.requirement-item-container.requirement-item-last {
+.requirement-item-container.requirement-item-last:not(.requirement-item-expanded) {
   border-bottom: none;
+}
+
+.requirement-item-container.requirement-item-border-top {
+  border-top: 1px solid var(--color-border);
 }
 
 .requirement-item-info {
