@@ -11,6 +11,7 @@ const API_BASE_URL = 'http://localhost:3000';
 interface TakeCoursesRuleComponentProps {
   requirementProgress: RequirementProgress;
   academicYearId: number;
+  nestingLevel?: number;
 }
 
 interface CourseData {
@@ -25,7 +26,8 @@ const isTakeCoursesRule = (details: any): details is TakeCoursesProgressDetails 
 
 const TakeCoursesRuleComponent: React.FC<TakeCoursesRuleComponentProps> = ({
   requirementProgress,
-  academicYearId
+  academicYearId,
+  nestingLevel = 0
 }) => {
   // Always call hooks first (Rules of Hooks)
   const [courseData, setCourseData] = useState<Map<string, CourseData>>(new Map());
@@ -114,12 +116,15 @@ const TakeCoursesRuleComponent: React.FC<TakeCoursesRuleComponentProps> = ({
   return (
     <div className="take-courses-rule-component">
       {requirementProgress.description && (
-        <RuleDescriptionField description={requirementProgress.description} />
+        <RuleDescriptionField
+          description={requirementProgress.description}
+          nestingLevel={nestingLevel}
+        />
       )}
       {courses.length > 0 && (
         <>
-          <CourseTableHeader />
-          <CourseList courses={courses} />
+          <CourseTableHeader nestingLevel={nestingLevel} />
+          <CourseList courses={courses} nestingLevel={nestingLevel} />
         </>
       )}
       {requirementProgress.constraintValidation &&

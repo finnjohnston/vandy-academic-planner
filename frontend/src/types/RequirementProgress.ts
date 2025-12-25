@@ -33,10 +33,9 @@ export type TakeAnyCoursesProgressDetails = {
 
 export type GroupProgressDetails = {
   type: 'group';
-  childRequirements: string[];
-  completedRequirements: string[];
-  requirementsRequired: number;
-  requirementsCompleted: number;
+  operator: 'AND' | 'OR';
+  subRuleProgress: RuleProgress[];
+  activeOptionIndex?: number;
 };
 
 export type RuleProgressDetails =

@@ -12,6 +12,7 @@ const API_BASE_URL = 'http://localhost:3000';
 interface TakeAnyCoursesRuleComponentProps {
   requirementProgress: RequirementProgress;
   academicYearId: number;
+  nestingLevel?: number;
 }
 
 interface CourseData {
@@ -26,7 +27,8 @@ const isTakeAnyCoursesRule = (details: any): details is TakeAnyCoursesProgressDe
 
 const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = ({
   requirementProgress,
-  academicYearId
+  academicYearId,
+  nestingLevel = 0
 }) => {
   const [courseData, setCourseData] = useState<Map<string, CourseData>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -34,17 +36,13 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
 
   const isTakeAnyCourses = isTakeAnyCoursesRule(requirementProgress.ruleProgress.details);
   const details = isTakeAnyCourses ? (requirementProgress.ruleProgress.details as TakeAnyCoursesProgressDetails) : null;
+  const indent = 60 * nestingLevel;
 
   useEffect(() => {
     if (!isTakeAnyCourses || !details) {
       setLoading(false);
       return;
     }
-
-    console.log('Toggle state:', filterToggle);
-    console.log('Details:', details);
-    console.log('Matching courses:', details.matchingCourses);
-    console.log('Fulfilling courses:', requirementProgress.fulfillingCourses);
 
     const fetchCourseData = async () => {
       setLoading(true);
@@ -53,8 +51,6 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
       const courseIds = filterToggle
         ? details.matchingCourses.map(mc => mc.courseId)  // All matching courses
         : requirementProgress.fulfillingCourses.map(fc => fc.courseId);  // Only planned courses
-
-      console.log('Course IDs to fetch:', courseIds);
 
       const coursePromises = courseIds.map(async (courseId: string) => {
         try {
@@ -169,9 +165,20 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
 
   return (
     <div className="take-any-courses-rule-component">
-      <RuleDescriptionField description={requirementProgress.description} />
+      <RuleDescriptionField
+        description={requirementProgress.description}
+        nestingLevel={nestingLevel}
+      />
       <div className="take-any-courses-header-wrapper">
-        <div className={`take-any-courses-header${filterToggle ? ' take-any-courses-header-no-term' : ''}`}>
+        <div
+          className={`take-any-courses-header${filterToggle ? ' take-any-courses-header-no-term' : ''}`}
+          style={{
+            width: `calc(100% - ${60 * (nestingLevel + 1)}px)`,
+            gridTemplateColumns: filterToggle
+              ? `${260 - indent}px 1fr auto`
+              : `${260 - indent}px 1fr 507px auto`
+          }}
+        >
           <span className="take-any-courses-header-course">Course</span>
           <span className="take-any-courses-header-title">Title</span>
           {!filterToggle && <span className="take-any-courses-header-term">Term</span>}
@@ -190,7 +197,7 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
           <span className="take-any-courses-empty-text">No courses planned</span>
         </div>
       ) : (
-        <CourseList courses={courses} hideTerm={filterToggle} />
+        <CourseList courses={courses} hideTerm={filterToggle} nestingLevel={nestingLevel} />
       )}
       <ConstraintField constraintValidation={requirementProgress.constraintValidation} />
     </div>

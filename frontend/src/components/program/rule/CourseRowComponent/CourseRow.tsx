@@ -10,6 +10,7 @@ interface CourseRowProps {
   isLast?: boolean;
   isTaken?: boolean;
   hideTerm?: boolean;
+  nestingLevel?: number;
 }
 
 const CourseRow: React.FC<CourseRowProps> = ({
@@ -20,12 +21,22 @@ const CourseRow: React.FC<CourseRowProps> = ({
   credits,
   isLast = false,
   isTaken = false,
-  hideTerm = false
+  hideTerm = false,
+  nestingLevel = 0
 }) => {
+  const indent = 60 * nestingLevel;
   const rowClass = `course-row${isLast ? ' course-row-last' : ''}${hideTerm ? ' course-row-no-term' : ''}`;
 
   return (
-    <div className={rowClass}>
+    <div
+      className={rowClass}
+      style={{
+        width: `calc(100% - ${60 * (nestingLevel + 1)}px)`,
+        gridTemplateColumns: hideTerm
+          ? `${260 - indent}px 1fr auto`
+          : `${260 - indent}px 1fr 507px auto`
+      }}
+    >
       <span className={`course-row-course${isTaken ? ' course-row-course-taken' : ''}`}>
         {subjectCode} {courseNumber}
       </span>

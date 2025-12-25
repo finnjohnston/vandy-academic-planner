@@ -1,7 +1,5 @@
 import React from 'react';
-import TakeCoursesRuleComponent from '../rule/TakeCoursesRuleComponent/TakeCoursesRuleComponent';
-import TakeFromListRuleComponent from '../rule/TakeFromListRuleComponent/TakeFromListRuleComponent';
-import TakeAnyCoursesRuleComponent from '../rule/TakeAnyCoursesRuleComponent/TakeAnyCoursesRuleComponent';
+import RuleRenderer from '../rule/RuleRendererComponent/RuleRenderer';
 import type { RequirementProgress } from '../../../types/RequirementProgress';
 import './RequirementItem.css';
 
@@ -47,20 +45,14 @@ const RequirementItem: React.FC<RequirementItemProps> = ({
         </svg>
       </div>
       {isExpanded && (
-        <>
-          <TakeCoursesRuleComponent
-            requirementProgress={requirementProgress}
-            academicYearId={academicYearId}
-          />
-          <TakeFromListRuleComponent
-            requirementProgress={requirementProgress}
-            academicYearId={academicYearId}
-          />
-          <TakeAnyCoursesRuleComponent
-            requirementProgress={requirementProgress}
-            academicYearId={academicYearId}
-          />
-        </>
+        <RuleRenderer
+          ruleProgress={requirementProgress.ruleProgress}
+          description={requirementProgress.description}
+          fulfillingCourses={requirementProgress.fulfillingCourses}
+          constraintValidation={requirementProgress.constraintValidation}
+          academicYearId={academicYearId}
+          nestingLevel={0}
+        />
       )}
     </>
   );
