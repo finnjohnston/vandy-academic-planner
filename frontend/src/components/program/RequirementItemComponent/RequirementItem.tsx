@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import TakeCoursesRuleComponent from '../rule/TakeCoursesRuleComponent/TakeCoursesRuleComponent';
+import TakeFromListRuleComponent from '../rule/TakeFromListRuleComponent/TakeFromListRuleComponent';
 import type { RequirementProgress } from '../../../types/RequirementProgress';
 import './RequirementItem.css';
 
@@ -41,10 +42,16 @@ const RequirementItem: React.FC<RequirementItemProps> = ({
         </svg>
       </div>
       {expanded && (
-        <TakeCoursesRuleComponent
-          requirementProgress={requirementProgress}
-          academicYearId={academicYearId}
-        />
+        <>
+          <TakeCoursesRuleComponent
+            requirementProgress={requirementProgress}
+            academicYearId={academicYearId}
+          />
+          <TakeFromListRuleComponent
+            requirementProgress={requirementProgress}
+            academicYearId={academicYearId}
+          />
+        </>
       )}
     </>
   );

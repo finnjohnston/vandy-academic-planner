@@ -92,6 +92,8 @@ export type RequirementProgress = {
     title: string;
     credits: number;
     creditsApplied: number;
+    semesterNumber?: number;
+    termLabel?: string;
   }>;
   constraintValidation?: {
     results: Array<{
@@ -181,4 +183,5 @@ export type EnrichedFulfillment = {
     attributes: any;
   };
   creditsApplied: number;
+  semesterNumber: number;
 };

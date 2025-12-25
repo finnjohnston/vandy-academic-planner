@@ -24,6 +24,10 @@
   text-align: left;
 }
 
+.course-row-course-taken {
+  color: var(--color-text-green);
+}
+
 .course-row-title {
   font-family: 'Inter', sans-serif;
   font-size: 12px;

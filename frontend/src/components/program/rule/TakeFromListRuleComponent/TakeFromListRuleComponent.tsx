@@ -3,12 +3,12 @@ import RuleDescriptionField from '../RuleDescriptionFieldComponent/RuleDescripti
 import CourseTableHeader from '../CourseTableHeaderComponent/CourseTableHeader';
 import CourseList from '../CourseListComponent/CourseList';
 import ConstraintField from '../ConstraintFieldComponent/ConstraintField';
-import type { RequirementProgress, TakeCoursesProgressDetails } from '../../../../types/RequirementProgress';
-import './TakeCoursesRuleComponent.css';
+import type { RequirementProgress, TakeFromListProgressDetails } from '../../../../types/RequirementProgress';
+import './TakeFromListRuleComponent.css';
 
 const API_BASE_URL = 'http://localhost:3000';
 
-interface TakeCoursesRuleComponentProps {
+interface TakeFromListRuleComponentProps {
   requirementProgress: RequirementProgress;
   academicYearId: number;
 }
@@ -19,11 +19,11 @@ interface CourseData {
   creditsMin: number;
 }
 
-const isTakeCoursesRule = (details: any): details is TakeCoursesProgressDetails => {
-  return details.type === 'take_courses';
+const isTakeFromListRule = (details: any): details is TakeFromListProgressDetails => {
+  return details.type === 'take_from_list';
 };
 
-const TakeCoursesRuleComponent: React.FC<TakeCoursesRuleComponentProps> = ({
+const TakeFromListRuleComponent: React.FC<TakeFromListRuleComponentProps> = ({
   requirementProgress,
   academicYearId
 }) => {
@@ -31,19 +31,19 @@ const TakeCoursesRuleComponent: React.FC<TakeCoursesRuleComponentProps> = ({
   const [courseData, setCourseData] = useState<Map<string, CourseData>>(new Map());
   const [loading, setLoading] = useState(true);
 
-  // Check if this is a take_courses rule
-  const isTakeCourses = isTakeCoursesRule(requirementProgress.ruleProgress.details);
-  const details = isTakeCourses ? (requirementProgress.ruleProgress.details as TakeCoursesProgressDetails) : null;
+  // Check if this is a take_from_list rule
+  const isTakeFromList = isTakeFromListRule(requirementProgress.ruleProgress.details);
+  const details = isTakeFromList ? (requirementProgress.ruleProgress.details as TakeFromListProgressDetails) : null;
 
   useEffect(() => {
-    if (!isTakeCourses || !details) {
+    if (!isTakeFromList || !details) {
       setLoading(false);
       return;
     }
 
     const fetchCourseData = async () => {
       setLoading(true);
-      const coursePromises = details.requiredCourses.map(async (courseId: string) => {
+      const coursePromises = details.availableCourses.map(async (courseId: string) => {
         try {
           const response = await fetch(`${API_BASE_URL}/api/courses/by-course-id/${encodeURIComponent(courseId)}?academicYearId=${academicYearId}`);
           if (!response.ok) throw new Error('Failed to fetch course');
@@ -76,20 +76,20 @@ const TakeCoursesRuleComponent: React.FC<TakeCoursesRuleComponentProps> = ({
       setLoading(false);
     };
 
-    if (details.requiredCourses.length > 0) {
+    if (details.availableCourses.length > 0) {
       fetchCourseData();
     } else {
       setLoading(false);
     }
-  }, [isTakeCourses, details?.requiredCourses]);
+  }, [isTakeFromList, details?.availableCourses]);
 
-  // Return null if not take_courses rule (after all hooks have been called)
-  if (!isTakeCourses || !details) {
+  // Return null if not take_from_list rule (after all hooks have been called)
+  if (!isTakeFromList || !details) {
     return null;
   }
 
   const transformCoursesForDisplay = () => {
-    return details.requiredCourses.map((courseId: string) => {
+    const coursesWithTakenStatus = details.availableCourses.map((courseId: string) => {
       const course = courseData.get(courseId);
       const fulfillment = requirementProgress.fulfillingCourses.find(
         (fc) => fc.courseId === courseId
@@ -107,12 +107,19 @@ const TakeCoursesRuleComponent: React.FC<TakeCoursesRuleComponentProps> = ({
         isTaken: !!fulfillment,
       };
     });
+
+    // Sort: taken courses first, then untaken courses
+    return coursesWithTakenStatus.sort((a, b) => {
+      if (a.isTaken && !b.isTaken) return -1;
+      if (!a.isTaken && b.isTaken) return 1;
+      return 0;
+    });
   };
 
   const courses = transformCoursesForDisplay();
 
   return (
-    <div className="take-courses-rule-component">
+    <div className="take-from-list-rule-component">
       {requirementProgress.description && (
         <RuleDescriptionField description={requirementProgress.description} />
       )}
@@ -137,4 +144,4 @@ const TakeCoursesRuleComponent: React.FC<TakeCoursesRuleComponentProps> = ({
   );
 };
 
-export default TakeCoursesRuleComponent;
+export default TakeFromListRuleComponent;

@@ -61,6 +61,8 @@ export interface FulfillingCourse {
   title: string;
   credits: number;
   creditsApplied: number;
+  semesterNumber?: number;
+  termLabel?: string;
 }
 
 export interface RequirementProgress {

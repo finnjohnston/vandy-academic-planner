@@ -10,6 +10,7 @@ interface CourseListProps {
     title: string;
     term?: string;
     credits: number;
+    isTaken?: boolean;
   }>;
 }
 
@@ -24,6 +25,7 @@ const CourseList: React.FC<CourseListProps> = ({ courses }) => {
           title={course.title}
           term={course.term}
           credits={course.credits}
+          isTaken={course.isTaken}
           isLast={index === courses.length - 1}
         />
       ))}

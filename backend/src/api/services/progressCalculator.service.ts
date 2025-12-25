@@ -24,6 +24,13 @@ import {
   FulfillmentRecord,
 } from '../types/constraint.types.js';
 
+const getTermLabel = (semesterNumber: number, academicYearStart: number): string => {
+  const season = semesterNumber % 2 === 1 ? 'Fall' : 'Spring';
+  const yearOffset = Math.floor(semesterNumber / 2);
+  const year = academicYearStart + yearOffset;
+  return `${season} ${year}`;
+};
+
 /**
  * Calculate complete progress for a program in a plan
  */
@@ -35,6 +42,11 @@ export async function calculateProgramProgress(
     where: { id: planProgramId },
     include: {
       program: true,
+      plan: {
+        include: {
+          academicYear: true,
+        },
+      },
       fulfillments: {
         include: {
           plannedCourse: {
@@ -53,6 +65,8 @@ export async function calculateProgramProgress(
   const requirements = planProgram.program.requirements as unknown as ProgramRequirements;
 
   // Transform fulfillments into EnrichedFulfillment format
+  const academicYearStart = planProgram.plan.academicYear.start;
+
   const enrichedFulfillments: EnrichedFulfillment[] = planProgram.fulfillments.map((f) => ({
     requirementId: f.requirementId,
     course: {
@@ -65,6 +79,7 @@ export async function calculateProgramProgress(
       attributes: f.plannedCourse.course.attributes,
     },
     creditsApplied: f.creditsApplied,
+    semesterNumber: f.plannedCourse.semesterNumber,
   }));
 
   // Calculate progress for each section
@@ -74,7 +89,8 @@ export async function calculateProgramProgress(
       section.id,
       enrichedFulfillments,
       requirements,
-      planProgramId
+      planProgramId,
+      academicYearStart
     )
   );
 
@@ -149,7 +165,8 @@ function calculateSectionProgress(
   sectionId: string,
   fulfillments: EnrichedFulfillment[],
   programRequirements: ProgramRequirements,
-  planProgramId: number
+  planProgramId: number,
+  academicYearStart: number
 ): SectionProgress {
   // Calculate progress for each requirement in the section
   const requirementProgress = section.requirements.map((req) =>
@@ -158,7 +175,8 @@ function calculateSectionProgress(
       sectionId,
       fulfillments,
       programRequirements,
-      planProgramId
+      planProgramId,
+      academicYearStart
     )
   );
 
@@ -229,7 +247,8 @@ function calculateRequirementProgress(
   sectionId: string,
   fulfillments: EnrichedFulfillment[],
   programRequirements: ProgramRequirements,
-  planProgramId: number
+  planProgramId: number,
+  academicYearStart: number
 ): RequirementProgress {
   const fullRequirementId = `${sectionId}.${requirement.id}`;
 
@@ -331,6 +350,8 @@ function calculateRequirementProgress(
       title: f.course.title,
       credits: f.course.credits,
       creditsApplied: f.creditsApplied,
+      semesterNumber: f.semesterNumber,
+      termLabel: getTermLabel(f.semesterNumber, academicYearStart),
     })),
     constraintValidation,
   };
