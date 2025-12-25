@@ -12,6 +12,10 @@
   padding: 0;
 }
 
+.course-row.course-row-no-term {
+  grid-template-columns: 260px 1fr auto;
+}
+
 .course-row.course-row-last {
   border-bottom: none;
 }
@@ -35,6 +39,10 @@
   color: var(--color-text-white);
   text-align: left;
   margin-left: -50px;
+  padding-right: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .course-row-term {

@@ -12,9 +12,10 @@ interface CourseListProps {
     credits: number;
     isTaken?: boolean;
   }>;
+  hideTerm?: boolean;
 }
 
-const CourseList: React.FC<CourseListProps> = ({ courses }) => {
+const CourseList: React.FC<CourseListProps> = ({ courses, hideTerm = false }) => {
   return (
     <div className="course-list">
       {courses.map((course, index) => (
@@ -27,6 +28,7 @@ const CourseList: React.FC<CourseListProps> = ({ courses }) => {
           credits={course.credits}
           isTaken={course.isTaken}
           isLast={index === courses.length - 1}
+          hideTerm={hideTerm}
         />
       ))}
     </div>

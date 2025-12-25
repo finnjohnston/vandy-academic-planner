@@ -1,6 +1,7 @@
 import React from 'react';
 import TakeCoursesRuleComponent from '../rule/TakeCoursesRuleComponent/TakeCoursesRuleComponent';
 import TakeFromListRuleComponent from '../rule/TakeFromListRuleComponent/TakeFromListRuleComponent';
+import TakeAnyCoursesRuleComponent from '../rule/TakeAnyCoursesRuleComponent/TakeAnyCoursesRuleComponent';
 import type { RequirementProgress } from '../../../types/RequirementProgress';
 import './RequirementItem.css';
 
@@ -52,6 +53,10 @@ const RequirementItem: React.FC<RequirementItemProps> = ({
             academicYearId={academicYearId}
           />
           <TakeFromListRuleComponent
+            requirementProgress={requirementProgress}
+            academicYearId={academicYearId}
+          />
+          <TakeAnyCoursesRuleComponent
             requirementProgress={requirementProgress}
             academicYearId={academicYearId}
           />

@@ -19,9 +19,16 @@ export type TakeFromListProgressDetails = {
 
 export type TakeAnyCoursesProgressDetails = {
   type: 'take_any_courses';
-  takenCourses: string[];
   coursesRequired: number;
   coursesTaken: number;
+  creditsRequired: number;
+  creditsFulfilled: number;
+  matchingCourses: Array<{
+    courseId: string;
+    title: string;
+    credits: number;
+  }>;
+  filter: any;
 };
 
 export type GroupProgressDetails = {
@@ -45,10 +52,68 @@ export interface RuleProgress {
   details: RuleProgressDetails;
 }
 
+export interface MinCourseCountConstraint {
+  id: string;
+  type: 'min_course_count';
+  description: string;
+  count: number;
+  filter: any;
+}
+
+export interface MaxCourseCountConstraint {
+  id: string;
+  type: 'max_course_count';
+  description: string;
+  count: number;
+  filter: any;
+}
+
+export interface MaxCreditsFromCoursesConstraint {
+  id: string;
+  type: 'max_credits_from_courses';
+  description: string;
+  maxCredits: number;
+  courseIds: string[];
+}
+
+export interface MinCreditsFromCoursesConstraint {
+  id: string;
+  type: 'min_credits_from_courses';
+  description: string;
+  minCredits: number;
+  courseIds: string[];
+}
+
+export interface CourseNumberRangeConstraint {
+  id: string;
+  type: 'course_number_range';
+  description: string;
+  subjectCode: string;
+  minNumber: number;
+  minCount: number;
+  operator: 'above' | 'below' | 'between';
+  maxNumber?: number;
+}
+
+export interface RequireCourseFromSectionsConstraint {
+  id: string;
+  type: 'require_course_from_sections';
+  description: string;
+  allowedSectionIds: string[];
+  operator: 'AND' | 'OR';
+}
+
+export type Constraint =
+  | MinCourseCountConstraint
+  | MaxCourseCountConstraint
+  | MaxCreditsFromCoursesConstraint
+  | MinCreditsFromCoursesConstraint
+  | CourseNumberRangeConstraint
+  | RequireCourseFromSectionsConstraint;
+
 export interface ConstraintResult {
-  constraintType: string;
+  constraint: Constraint;
   satisfied: boolean;
-  message: string;
 }
 
 export interface ConstraintValidation {
