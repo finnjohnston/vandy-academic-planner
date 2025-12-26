@@ -1,0 +1,162 @@
+.new-plan-popup-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(2px);
+}
+
+.new-plan-popup-content {
+  width: 650px;
+  height: 550px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  position: relative;
+  box-sizing: border-box;
+  padding: 20px 24px;
+}
+
+.new-plan-popup-close-icon {
+  position: absolute;
+  top: 27px;
+  right: 20px;
+  width: 12px;
+  height: 12px;
+  cursor: pointer;
+  filter: brightness(0) invert(1);
+  transition: opacity 0.2s;
+}
+
+.new-plan-popup-header {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-text-white);
+  margin: 0;
+  font-family: inherit;
+}
+
+.new-plan-popup-form {
+  margin-top: 45px;
+}
+
+.new-plan-popup-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-dark);
+  margin: 0 0 5px 0;
+  font-family: inherit;
+  text-align: left;
+}
+
+.new-plan-popup-input {
+  width: 100%;
+  height: 30px;
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-btn-border);
+  border-radius: 4px;
+  color: var(--color-text-white);
+  font-size: 14px;
+  font-family: inherit;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+.new-plan-popup-input:focus {
+  outline: none;
+  border-color: var(--color-btn-border);
+}
+
+.new-plan-popup-input.error {
+  border-color: var(--color-text-red);
+}
+
+.new-plan-popup-error-text {
+  position: absolute;
+  top: 34px;
+  left: 0;
+  font-size: 10px;
+  color: var(--color-text-red);
+  font-family: inherit;
+  text-align: left;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.new-plan-popup-error-text.visible {
+  opacity: 1;
+}
+
+.new-plan-popup-buttons {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.new-plan-popup-cancel-button {
+  height: 35px;
+  padding: 0 20px;
+  background-color: transparent;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  outline: none;
+}
+
+.new-plan-popup-cancel-button:hover {
+  background-color: var(--color-btn-bg);
+}
+
+.new-plan-popup-cancel-button:focus {
+  outline: none;
+}
+
+.new-plan-popup-cancel-button:active {
+  outline: none;
+}
+
+.new-plan-popup-create-button {
+  width: auto;
+  height: 35px;
+  padding: 0 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.new-plan-popup-create-button.disabled {
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-btn-border);
+  color: var(--color-text-dark);
+  cursor: not-allowed;
+}
+
+.new-plan-popup-create-button.ready {
+  background-color: var(--color-btn-bg);
+  border: 1px solid var(--color-btn-border);
+  color: var(--color-text-white);
+}
+
+.new-plan-popup-create-button.ready:hover {
+  background-color: var(--color-btn-border);
+}
