@@ -13,6 +13,7 @@ interface TakeAnyCoursesRuleComponentProps {
   requirementProgress: RequirementProgress;
   academicYearId: number;
   nestingLevel?: number;
+  onCourseClick?: (courseId: string) => void;
 }
 
 interface CourseData {
@@ -28,7 +29,8 @@ const isTakeAnyCoursesRule = (details: any): details is TakeAnyCoursesProgressDe
 const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = ({
   requirementProgress,
   academicYearId,
-  nestingLevel = 0
+  nestingLevel = 0,
+  onCourseClick
 }) => {
   const [courseData, setCourseData] = useState<Map<string, CourseData>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -199,7 +201,7 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
           <span className="take-any-courses-empty-text">No courses planned</span>
         </div>
       ) : (
-        <CourseList courses={courses} hideTerm={filterToggle} nestingLevel={nestingLevel} />
+        <CourseList courses={courses} hideTerm={filterToggle} nestingLevel={nestingLevel} onCourseClick={onCourseClick} />
       )}
       <ConstraintField constraintValidation={requirementProgress.constraintValidation} />
     </div>

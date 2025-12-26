@@ -14,9 +14,10 @@ interface CourseListProps {
   }>;
   hideTerm?: boolean;
   nestingLevel?: number;
+  onCourseClick?: (courseId: string) => void;
 }
 
-const CourseList: React.FC<CourseListProps> = ({ courses, hideTerm = false, nestingLevel = 0 }) => {
+const CourseList: React.FC<CourseListProps> = ({ courses, hideTerm = false, nestingLevel = 0, onCourseClick }) => {
   return (
     <div className="course-list">
       {courses.map((course, index) => (
@@ -31,6 +32,7 @@ const CourseList: React.FC<CourseListProps> = ({ courses, hideTerm = false, nest
           isLast={index === courses.length - 1}
           hideTerm={hideTerm}
           nestingLevel={nestingLevel}
+          onClick={onCourseClick ? () => onCourseClick(course.courseId) : undefined}
         />
       ))}
     </div>

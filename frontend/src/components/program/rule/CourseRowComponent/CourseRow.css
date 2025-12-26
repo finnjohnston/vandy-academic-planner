@@ -62,3 +62,12 @@
   text-align: left;
   margin-left: -300px;
 }
+
+.course-row-clickable {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.course-row-clickable:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}

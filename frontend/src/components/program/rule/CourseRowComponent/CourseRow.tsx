@@ -11,6 +11,7 @@ interface CourseRowProps {
   isTaken?: boolean;
   hideTerm?: boolean;
   nestingLevel?: number;
+  onClick?: () => void;
 }
 
 const CourseRow: React.FC<CourseRowProps> = ({
@@ -22,10 +23,11 @@ const CourseRow: React.FC<CourseRowProps> = ({
   isLast = false,
   isTaken = false,
   hideTerm = false,
-  nestingLevel = 0
+  nestingLevel = 0,
+  onClick
 }) => {
   const indent = 60 * nestingLevel;
-  const rowClass = `course-row${isLast ? ' course-row-last' : ''}${hideTerm ? ' course-row-no-term' : ''}`;
+  const rowClass = `course-row${isLast ? ' course-row-last' : ''}${hideTerm ? ' course-row-no-term' : ''}${onClick ? ' course-row-clickable' : ''}`;
 
   return (
     <div
@@ -36,6 +38,7 @@ const CourseRow: React.FC<CourseRowProps> = ({
           ? `${260 - indent}px 1fr auto`
           : `${260 - indent}px 1fr 507px auto`
       }}
+      onClick={onClick}
     >
       <span className={`course-row-course${isTaken ? ' course-row-course-taken' : ''}`}>
         {subjectCode} {courseNumber}

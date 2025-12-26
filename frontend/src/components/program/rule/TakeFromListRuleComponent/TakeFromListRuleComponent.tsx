@@ -12,6 +12,7 @@ interface TakeFromListRuleComponentProps {
   requirementProgress: RequirementProgress;
   academicYearId: number;
   nestingLevel?: number;
+  onCourseClick?: (courseId: string) => void;
 }
 
 interface CourseData {
@@ -27,7 +28,8 @@ const isTakeFromListRule = (details: any): details is TakeFromListProgressDetail
 const TakeFromListRuleComponent: React.FC<TakeFromListRuleComponentProps> = ({
   requirementProgress,
   academicYearId,
-  nestingLevel = 0
+  nestingLevel = 0,
+  onCourseClick
 }) => {
   // Always call hooks first (Rules of Hooks)
   const [courseData, setCourseData] = useState<Map<string, CourseData>>(new Map());
@@ -131,7 +133,7 @@ const TakeFromListRuleComponent: React.FC<TakeFromListRuleComponentProps> = ({
       {courses.length > 0 && (
         <>
           <CourseTableHeader nestingLevel={nestingLevel} />
-          <CourseList courses={courses} nestingLevel={nestingLevel} />
+          <CourseList courses={courses} nestingLevel={nestingLevel} onCourseClick={onCourseClick} />
         </>
       )}
       {requirementProgress.constraintValidation &&

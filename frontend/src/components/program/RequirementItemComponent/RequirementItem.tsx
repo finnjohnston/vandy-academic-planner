@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import RuleRenderer from '../rule/RuleRendererComponent/RuleRenderer';
+import CourseDetail from '../../course/CourseDetailComponent/CourseDetail';
 import type { RequirementProgress } from '../../../types/RequirementProgress';
+import type { Course } from '../../../types/Course';
 import './RequirementItem.css';
 
 interface RequirementItemProps {
@@ -23,8 +25,36 @@ const RequirementItem: React.FC<RequirementItemProps> = ({
   const name = requirementProgress.title;
   const creditsText = `${requirementProgress.creditsFulfilled} / ${requirementProgress.creditsRequired} credits`;
 
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [courseData, setCourseData] = useState<Course | null>(null);
+  const [isLoadingCourse, setIsLoadingCourse] = useState(false);
+
   const handleToggle = () => {
     onToggle?.(!isExpanded);
+  };
+
+  const handleCourseClick = async (courseId: string) => {
+    setIsLoadingCourse(true);
+    setSelectedCourseId(courseId);
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/courses/by-course-id/${encodeURIComponent(courseId)}?academicYearId=${academicYearId}`
+      );
+      if (!response.ok) throw new Error('Failed to fetch course');
+      const data = await response.json();
+      setCourseData(data.data);
+    } catch (error) {
+      console.error('Error fetching course:', error);
+      setSelectedCourseId(null);
+    } finally {
+      setIsLoadingCourse(false);
+    }
+  };
+
+  const handleClosePopup = () => {
+    setSelectedCourseId(null);
+    setCourseData(null);
   };
 
   return (
@@ -52,6 +82,13 @@ const RequirementItem: React.FC<RequirementItemProps> = ({
           constraintValidation={requirementProgress.constraintValidation}
           academicYearId={academicYearId}
           nestingLevel={0}
+          onCourseClick={handleCourseClick}
+        />
+      )}
+      {selectedCourseId && courseData && (
+        <CourseDetail
+          course={courseData}
+          onClose={handleClosePopup}
         />
       )}
     </>

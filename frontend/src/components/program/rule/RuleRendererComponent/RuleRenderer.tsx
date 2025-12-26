@@ -12,6 +12,7 @@ interface RuleRendererProps {
   constraintValidation?: ConstraintValidation;
   academicYearId: number;
   nestingLevel?: number;
+  onCourseClick?: (courseId: string) => void;
 }
 
 const RuleRenderer: React.FC<RuleRendererProps> = ({
@@ -20,7 +21,8 @@ const RuleRenderer: React.FC<RuleRendererProps> = ({
   fulfillingCourses,
   constraintValidation,
   academicYearId,
-  nestingLevel = 0
+  nestingLevel = 0,
+  onCourseClick
 }) => {
   // Extract rule-level description from details (if it exists)
   const ruleDescription = (ruleProgress.details as any).description;
@@ -51,6 +53,7 @@ const RuleRenderer: React.FC<RuleRendererProps> = ({
         requirementProgress={requirementProgress}
         academicYearId={academicYearId}
         nestingLevel={nestingLevel}
+        onCourseClick={onCourseClick}
       />
     );
   }
@@ -61,6 +64,7 @@ const RuleRenderer: React.FC<RuleRendererProps> = ({
         requirementProgress={requirementProgress}
         academicYearId={academicYearId}
         nestingLevel={nestingLevel}
+        onCourseClick={onCourseClick}
       />
     );
   }
@@ -71,6 +75,7 @@ const RuleRenderer: React.FC<RuleRendererProps> = ({
         requirementProgress={requirementProgress}
         academicYearId={academicYearId}
         nestingLevel={nestingLevel}
+        onCourseClick={onCourseClick}
       />
     );
   }
@@ -81,6 +86,7 @@ const RuleRenderer: React.FC<RuleRendererProps> = ({
         requirementProgress={requirementProgress}
         academicYearId={academicYearId}
         nestingLevel={nestingLevel}
+        onCourseClick={onCourseClick}
       />
     );
   }

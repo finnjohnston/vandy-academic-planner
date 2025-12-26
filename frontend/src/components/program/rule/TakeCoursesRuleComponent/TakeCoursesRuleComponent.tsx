@@ -12,6 +12,7 @@ interface TakeCoursesRuleComponentProps {
   requirementProgress: RequirementProgress;
   academicYearId: number;
   nestingLevel?: number;
+  onCourseClick?: (courseId: string) => void;
 }
 
 interface CourseData {
@@ -27,7 +28,8 @@ const isTakeCoursesRule = (details: any): details is TakeCoursesProgressDetails 
 const TakeCoursesRuleComponent: React.FC<TakeCoursesRuleComponentProps> = ({
   requirementProgress,
   academicYearId,
-  nestingLevel = 0
+  nestingLevel = 0,
+  onCourseClick
 }) => {
   // Always call hooks first (Rules of Hooks)
   const [courseData, setCourseData] = useState<Map<string, CourseData>>(new Map());
@@ -124,7 +126,7 @@ const TakeCoursesRuleComponent: React.FC<TakeCoursesRuleComponentProps> = ({
       {courses.length > 0 && (
         <>
           <CourseTableHeader nestingLevel={nestingLevel} />
-          <CourseList courses={courses} nestingLevel={nestingLevel} />
+          <CourseList courses={courses} nestingLevel={nestingLevel} onCourseClick={onCourseClick} />
         </>
       )}
       {requirementProgress.constraintValidation &&

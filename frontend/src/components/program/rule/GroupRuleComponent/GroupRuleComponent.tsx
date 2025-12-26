@@ -7,6 +7,7 @@ interface GroupRuleComponentProps {
   requirementProgress: RequirementProgress;
   academicYearId: number;
   nestingLevel?: number;
+  onCourseClick?: (courseId: string) => void;
 }
 
 const isGroupRule = (details: any): details is GroupProgressDetails => {
@@ -16,7 +17,8 @@ const isGroupRule = (details: any): details is GroupProgressDetails => {
 const GroupRuleComponent: React.FC<GroupRuleComponentProps> = ({
   requirementProgress,
   academicYearId,
-  nestingLevel = 0
+  nestingLevel = 0,
+  onCourseClick
 }) => {
   const isGroup = isGroupRule(requirementProgress.ruleProgress.details);
 
@@ -85,6 +87,7 @@ const GroupRuleComponent: React.FC<GroupRuleComponentProps> = ({
               constraintValidation={undefined}
               academicYearId={academicYearId}
               nestingLevel={nestingLevel + 1}
+              onCourseClick={onCourseClick}
             />
           </div>
         );
