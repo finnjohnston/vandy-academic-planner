@@ -16,6 +16,7 @@
             "rules": [
               {
                 "type": "take_courses",
+                "description": "Take the following courses",
                 "courses": [
                   "MATH 1300",
                   "MATH 1301",
@@ -24,6 +25,7 @@
               },
               {
                 "type": "take_courses",
+                "description": "Take the following courses",
                 "courses": [
                   "MATH 1300",
                   "MATH 1301",

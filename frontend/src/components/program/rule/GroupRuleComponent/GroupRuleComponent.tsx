@@ -48,13 +48,24 @@ const GroupRuleComponent: React.FC<GroupRuleComponentProps> = ({
       {details.subRuleProgress.map((subRule, index) => {
         const isCompleted = subRule.status === 'completed';
 
-        // Generate description for nested group rules
+        // Generate description for nested rules
         let subRuleDescription = '';
         if (subRule.type === 'group') {
           const subGroupDetails = subRule.details as GroupProgressDetails;
-          subRuleDescription = subGroupDetails.operator === 'OR'
-            ? 'Complete one of the following'
-            : 'Complete all of the following';
+
+          // Use explicit description if provided, otherwise generate automated text
+          if (subGroupDetails.description) {
+            subRuleDescription = subGroupDetails.description;
+          } else {
+            // Automated text for nested groups without explicit description
+            subRuleDescription = subGroupDetails.operator === 'OR'
+              ? 'Complete one of the following'
+              : 'Complete all of the following';
+          }
+        } else {
+          // For non-group rules, use description from details if available
+          const ruleDetails = subRule.details as any;
+          subRuleDescription = ruleDetails.description || '';
         }
 
         return (

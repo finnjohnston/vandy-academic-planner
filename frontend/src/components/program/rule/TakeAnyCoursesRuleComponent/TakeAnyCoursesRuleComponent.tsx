@@ -165,10 +165,12 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
 
   return (
     <div className="take-any-courses-rule-component">
-      <RuleDescriptionField
-        description={requirementProgress.description}
-        nestingLevel={nestingLevel}
-      />
+      {requirementProgress.description && (
+        <RuleDescriptionField
+          description={requirementProgress.description}
+          nestingLevel={nestingLevel}
+        />
+      )}
       <div className="take-any-courses-header-wrapper">
         <div
           className={`take-any-courses-header${filterToggle ? ' take-any-courses-header-no-term' : ''}`}

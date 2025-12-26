@@ -32,11 +32,13 @@ export type GroupRule = {
   type: "group";
   operator: "AND" | "OR";
   rules: Rule[];
+  description?: string;
 };
 
 export type TakeCoursesRule = {
   type: "take_courses";
   courses: string[];
+  description?: string;
 };
 
 export type TakeFromListRule = {
@@ -44,12 +46,14 @@ export type TakeFromListRule = {
   count: number;
   countType: "courses" | "credits";
   courses: string[];
+  description?: string;
 };
 
 export type TakeAnyCoursesRule = {
   type: "take_any_courses";
   credits: number;
   filter: CourseFilter;
+  description?: string;
 };
 
 // Filter Types (Phase 6 implementation)

@@ -7,6 +7,7 @@ export type TakeCoursesProgressDetails = {
   missingCourses: string[];
   coursesRequired: number;
   coursesTaken: number;
+  description?: string;
 };
 
 export type TakeFromListProgressDetails = {
@@ -15,6 +16,7 @@ export type TakeFromListProgressDetails = {
   takenCourses: string[];
   coursesRequired: number;
   coursesTaken: number;
+  description?: string;
 };
 
 export type TakeAnyCoursesProgressDetails = {
@@ -29,6 +31,7 @@ export type TakeAnyCoursesProgressDetails = {
     credits: number;
   }>;
   filter: any;
+  description?: string;
 };
 
 export type GroupProgressDetails = {
@@ -36,6 +39,7 @@ export type GroupProgressDetails = {
   operator: 'AND' | 'OR';
   subRuleProgress: RuleProgress[];
   activeOptionIndex?: number;
+  description?: string;
 };
 
 export type RuleProgressDetails =

@@ -22,12 +22,18 @@ const RuleRenderer: React.FC<RuleRendererProps> = ({
   academicYearId,
   nestingLevel = 0
 }) => {
+  // Extract rule-level description from details (if it exists)
+  const ruleDescription = (ruleProgress.details as any).description;
+
+  // Use rule-level description if available, otherwise use passed description
+  const effectiveDescription = ruleDescription || description;
+
   // Build a RequirementProgress-like object for the sub-rule
   const requirementProgress = {
     requirementId: '',
     sectionId: '',
     title: '',
-    description,
+    description: effectiveDescription,
     status: ruleProgress.status,
     creditsRequired: 0,
     creditsFulfilled: 0,

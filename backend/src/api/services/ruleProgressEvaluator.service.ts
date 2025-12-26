@@ -81,6 +81,7 @@ function evaluateTakeCoursesProgress(
     missingCourses,
     coursesRequired,
     coursesTaken,
+    description: rule.description,
   };
 
   return {
@@ -127,6 +128,7 @@ function evaluateTakeFromListProgress(
     fulfilled,
     availableCourses: rule.courses,
     takenCourses: matchingCourses.map((c) => c.courseId),
+    description: rule.description,
   };
 
   return {
@@ -170,6 +172,7 @@ function evaluateTakeAnyCoursesProgress(
       credits: c.creditsMin,
     })),
     filter: rule.filter,
+    description: rule.description,
   };
 
   return {
@@ -253,6 +256,7 @@ function evaluateGroupProgress(rule: GroupRule, courses: Course[]): RuleProgress
     operator: rule.operator,
     subRuleProgress,
     activeOptionIndex,
+    description: rule.description,
   };
 
   return {

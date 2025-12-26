@@ -16,6 +16,7 @@
             "rules": [
               {
                 "type": "take_courses",
+                "description": "Take the following courses",
                 "courses": [
                   "MATH 1300",
                   "MATH 1301",
@@ -24,6 +25,7 @@
               },
               {
                 "type": "take_courses",
+                "description": "Take the following courses",
                 "courses": [
                   "MATH 1300",
                   "MATH 1301",
@@ -32,6 +34,7 @@
               },
               {
                 "type": "take_courses",
+                "description": "Take the following courses",
                 "courses": [
                   "MATH 1300",
                   "MATH 1301",
@@ -55,6 +58,7 @@
                 "type": "take_from_list",
                 "count": 1,
                 "countType": "courses",
+                "description": "Choose a course",
                 "courses": [
                   "MATH 2410",
                   "MATH 2600"
@@ -62,6 +66,7 @@
               },
               {
                 "type": "take_courses",
+                "description": "Take the following courses",
                 "courses": [
                   "MATH 2500",
                   "MATH 2501"
