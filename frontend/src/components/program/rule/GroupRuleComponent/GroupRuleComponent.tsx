@@ -47,6 +47,16 @@ const GroupRuleComponent: React.FC<GroupRuleComponentProps> = ({
       )}
       {details.subRuleProgress.map((subRule, index) => {
         const isCompleted = subRule.status === 'completed';
+
+        // Generate description for nested group rules
+        let subRuleDescription = '';
+        if (subRule.type === 'group') {
+          const subGroupDetails = subRule.details as GroupProgressDetails;
+          subRuleDescription = subGroupDetails.operator === 'OR'
+            ? 'Complete one of the following'
+            : 'Complete all of the following';
+        }
+
         return (
           <div key={index}>
             <div
@@ -59,7 +69,7 @@ const GroupRuleComponent: React.FC<GroupRuleComponentProps> = ({
             </div>
             <RuleRenderer
               ruleProgress={subRule}
-              description=""
+              description={subRuleDescription}
               fulfillingCourses={requirementProgress.fulfillingCourses}
               constraintValidation={undefined}
               academicYearId={academicYearId}

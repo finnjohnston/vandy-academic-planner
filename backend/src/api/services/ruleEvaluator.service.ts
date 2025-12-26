@@ -106,14 +106,19 @@ function evaluateGroup(rule: GroupRule, course: Course): RuleEvaluation {
   );
 
   if (rule.operator === 'AND') {
-    // For AND: all sub-rules must match
-    const allMatch = subEvaluations.every((evaluation) => evaluation.matches);
-    if (!allMatch) {
+    // For AND during matching: a course matches if it satisfies ANY sub-rule
+    // (different courses will satisfy different parts of the AND)
+    const matchedEvaluations = subEvaluations.filter(
+      (evaluation) => evaluation.matches
+    );
+    if (matchedEvaluations.length === 0) {
       return { matches: false, specificityScore: 0 };
     }
-    // Score is minimum of all matched rules
-    const minScore = Math.min(...subEvaluations.map((e) => e.specificityScore));
-    return { matches: true, specificityScore: minScore };
+    // Score is maximum of matched sub-rules
+    const maxScore = Math.max(
+      ...matchedEvaluations.map((e) => e.specificityScore)
+    );
+    return { matches: true, specificityScore: maxScore };
   } else {
     // OR
     // For OR: at least one sub-rule must match

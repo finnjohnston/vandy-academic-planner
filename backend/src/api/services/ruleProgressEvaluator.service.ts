@@ -15,6 +15,7 @@ import {
   GroupProgressDetails,
 } from '../types/progress.types.js';
 import { evaluateCourseFilter } from './courseFilter.service.js';
+import { evaluateRule } from './ruleEvaluator.service.js';
 
 /**
  * Evaluate progress for a given rule against a list of courses
@@ -184,7 +185,21 @@ function evaluateTakeAnyCoursesProgress(
  * Recursively evaluates sub-rules
  */
 function evaluateGroupProgress(rule: GroupRule, courses: Course[]): RuleProgress {
-  const subRuleProgress = rule.rules.map((r) => evaluateRuleProgress(r, courses));
+  // For AND groups: pass all courses to all sub-rules (different courses satisfy different parts)
+  // For OR groups: filter courses for each option (each option gets only matching courses)
+  const subRuleProgress = rule.rules.map((subRule) => {
+    if (rule.operator === 'AND') {
+      // AND: all courses available to all sub-rules
+      return evaluateRuleProgress(subRule, courses);
+    } else {
+      // OR: filter to only include courses that match this specific option
+      const matchingCourses = courses.filter((course) => {
+        const evaluation = evaluateRule(subRule, course);
+        return evaluation.matches;
+      });
+      return evaluateRuleProgress(subRule, matchingCourses);
+    }
+  });
 
   let percentage: number;
   let status: ProgressStatus;
