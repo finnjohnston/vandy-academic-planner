@@ -188,13 +188,6 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
           continue;
         }
 
-        const alreadyAssignedInProgram = assignedRequirementIds.length > 0;
-        if (alreadyAssignedInProgram) {
-          if (!canDoubleCount(course, fullRequirementId, doubleCountMap)) {
-            continue;
-          }
-        }
-
         const section = programRequirements.sections.find(
           (s) => s.id === match.sectionId
         );
@@ -206,6 +199,7 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
           continue;
         }
 
+        // Re-check enforcement constraints first (they may pass now after other assignments)
         const enforcementCheck = checkEnforcementConstraints(
           course,
           requirement,
@@ -216,6 +210,18 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
 
         if (!enforcementCheck.allowed) {
           continue;
+        }
+
+        // If enforcement constraint passed, double counting is implicitly allowed
+        const alreadyAssignedInProgram = assignedRequirementIds.length > 0;
+        if (alreadyAssignedInProgram) {
+          const hasEnforcementConstraint = requirement.constraintsStructured?.some(
+            (c) => c.type === 'require_course_from_sections'
+          );
+
+          if (!hasEnforcementConstraint && !canDoubleCount(course, fullRequirementId, doubleCountMap)) {
+            continue;
+          }
         }
 
         await prisma.requirementFulfillment.create({

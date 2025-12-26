@@ -279,8 +279,11 @@ export function calculateFilterSpecificity(filter: CourseFilter): number {
         const sorted = subScores.sort((a, b) => b - a);
         return sorted.length >= 2 ? (sorted[0] + sorted[1]) / 2 : sorted[0];
       } else {
-        // OR is less specific: use max but cap at 70
-        return Math.min(70, maxScore);
+        // OR is less specific: use minimum score
+        // An OR filter is only as specific as its least specific (most broadly matching) component
+        // since it accepts courses that match ANY sub-filter
+        const minScore = Math.min(...subScores);
+        return minScore;
       }
     }
 
