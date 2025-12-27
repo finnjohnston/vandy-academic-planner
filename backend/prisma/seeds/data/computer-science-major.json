@@ -512,6 +512,15 @@
         "general_degree_requirements.ethics",
         "liberal_arts_core.12_credits_liberal_arts_core"
       ]
+    },
+    {
+      "id": "allow_double_count_math_2501_calculus_linear_algebra",
+      "type": "allow_double_count",
+      "courseId": "MATH 2501",
+      "requirementIds": [
+        "general_degree_requirements.calculus",
+        "general_degree_requirements.linear_algebra"
+      ]
     }
   ]
 }

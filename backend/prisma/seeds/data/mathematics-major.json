@@ -117,5 +117,16 @@
         }
       ]
     }
+  ],
+  "constraintsStructured": [
+    {
+      "id": "allow_double_count_math_2501_calculus_linear_algebra",
+      "type": "allow_double_count",
+      "courseId": "MATH 2501",
+      "requirementIds": [
+        "mathematics_major.calculus",
+        "mathematics_major.linear_algebra"
+      ]
+    }
   ]
 }
