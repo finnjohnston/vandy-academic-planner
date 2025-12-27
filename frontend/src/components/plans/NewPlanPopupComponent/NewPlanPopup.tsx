@@ -375,10 +375,12 @@ const NewPlanPopup: React.FC<NewPlanPopupProps> = ({ onClose }) => {
             </div>
           ) : (() => {
             const primaryMajor = programs.find(p => p.id === selectedProgramId);
-            const availablePrograms = allPrograms.filter(p =>
-              p.id !== selectedProgramId &&
-              (!primaryMajor || p.schoolId === primaryMajor.schoolId)
-            );
+            const availablePrograms = primaryMajor
+              ? allPrograms.filter(p =>
+                  p.id !== selectedProgramId &&
+                  p.schoolId === primaryMajor.schoolId
+                )
+              : [];
             return availablePrograms.length === 0 ? (
               <div className="new-plan-popup-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--color-text-dark)' }}>
                 No majors available
