@@ -19,10 +19,14 @@ const mathematicsMajor = JSON.parse(
   readFileSync(join(__dirname, 'mathematics-major.json'), 'utf-8')
 ) as ProgramRequirements;
 
+const collegeCore = JSON.parse(
+  readFileSync(join(__dirname, 'college-core.json'), 'utf-8')
+) as ProgramRequirements;
+
 export const programs: ProgramSeedData[] = [
   {
     programId: 'computer_science_major',
-    name: 'Computer Science Major',
+    name: 'Computer Science',
     type: 'major',
     totalCredits: 120,
     schoolId: 1,
@@ -31,7 +35,7 @@ export const programs: ProgramSeedData[] = [
   },
   {
     programId: 'mathematics_major',
-    name: 'Mathematics Major',
+    name: 'Mathematics',
     type: 'major',
     totalCredits: 29,
     schoolId: 2,
@@ -40,11 +44,20 @@ export const programs: ProgramSeedData[] = [
   },
   {
     programId: 'economics_minor',
-    name: 'Economics Minor',
+    name: 'Economics',
     type: 'minor',
     totalCredits: 21,
     schoolId: 2,
     academicYearId: 869,
     requirements: economicsMinor
+  },
+  {
+    programId: 'college_core',
+    name: 'College Core',
+    type: 'core',
+    totalCredits: 83,
+    schoolId: 2,
+    academicYearId: 869,
+    requirements: collegeCore
   }
 ];

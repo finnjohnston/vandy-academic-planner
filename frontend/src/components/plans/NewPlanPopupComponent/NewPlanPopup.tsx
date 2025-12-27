@@ -352,28 +352,10 @@ const NewPlanPopup: React.FC<NewPlanPopupProps> = ({ onClose }) => {
           ) : (
             <Dropdown
               label="Select primary major"
-              value={(() => {
-                const program = programs.find(p => p.id === selectedProgramId);
-                if (!program) return '';
-                const normalizedType = program.type.trim().toLowerCase();
-                return normalizedType && program.name.toLowerCase().endsWith(` ${normalizedType}`)
-                  ? program.name.slice(0, program.name.length - (normalizedType.length + 1))
-                  : program.name;
-              })()}
-              options={programs.map(p => {
-                const normalizedType = p.type.trim().toLowerCase();
-                return normalizedType && p.name.toLowerCase().endsWith(` ${normalizedType}`)
-                  ? p.name.slice(0, p.name.length - (normalizedType.length + 1))
-                  : p.name;
-              })}
-              onChange={(displayName) => {
-                const selected = programs.find(p => {
-                  const normalizedType = p.type.trim().toLowerCase();
-                  const strippedName = normalizedType && p.name.toLowerCase().endsWith(` ${normalizedType}`)
-                    ? p.name.slice(0, p.name.length - (normalizedType.length + 1))
-                    : p.name;
-                  return strippedName === displayName;
-                });
+              value={programs.find(p => p.id === selectedProgramId)?.name || ''}
+              options={programs.map(p => p.name)}
+              onChange={(name) => {
+                const selected = programs.find(p => p.name === name);
                 if (selected) {
                   setSelectedProgramId(selected.id);
                 }
@@ -404,28 +386,10 @@ const NewPlanPopup: React.FC<NewPlanPopupProps> = ({ onClose }) => {
             ) : (
               <Dropdown
                 label="Select secondary major"
-                value={(() => {
-                  const program = availablePrograms.find(p => p.id === selectedSecondaryProgramId);
-                  if (!program) return '';
-                  const normalizedType = program.type.trim().toLowerCase();
-                  return normalizedType && program.name.toLowerCase().endsWith(` ${normalizedType}`)
-                    ? program.name.slice(0, program.name.length - (normalizedType.length + 1))
-                    : program.name;
-                })()}
-                options={availablePrograms.map(p => {
-                  const normalizedType = p.type.trim().toLowerCase();
-                  return normalizedType && p.name.toLowerCase().endsWith(` ${normalizedType}`)
-                    ? p.name.slice(0, p.name.length - (normalizedType.length + 1))
-                    : p.name;
-                })}
-                onChange={(displayName) => {
-                  const selected = availablePrograms.find(p => {
-                    const normalizedType = p.type.trim().toLowerCase();
-                    const strippedName = normalizedType && p.name.toLowerCase().endsWith(` ${normalizedType}`)
-                      ? p.name.slice(0, p.name.length - (normalizedType.length + 1))
-                      : p.name;
-                    return strippedName === displayName;
-                  });
+                value={availablePrograms.find(p => p.id === selectedSecondaryProgramId)?.name || ''}
+                options={availablePrograms.map(p => p.name)}
+                onChange={(name) => {
+                  const selected = availablePrograms.find(p => p.name === name);
                   if (selected) {
                     setSelectedSecondaryProgramId(selected.id);
                   }
@@ -451,31 +415,12 @@ const NewPlanPopup: React.FC<NewPlanPopupProps> = ({ onClose }) => {
           ) : (
             <MultiSelectDropdown
               label="Select minors"
-              selectedValues={selectedMinorIds.map(id => {
-                const minor = allMinors.find(m => m.id === id);
-                if (!minor) return '';
-                const normalizedType = minor.type.trim().toLowerCase();
-                return normalizedType && minor.name.toLowerCase().endsWith(` ${normalizedType}`)
-                  ? minor.name.slice(0, minor.name.length - (normalizedType.length + 1))
-                  : minor.name;
-              })}
-              options={allMinors.map(m => {
-                const normalizedType = m.type.trim().toLowerCase();
-                return normalizedType && m.name.toLowerCase().endsWith(` ${normalizedType}`)
-                  ? m.name.slice(0, m.name.length - (normalizedType.length + 1))
-                  : m.name;
-              })}
-              onChange={(displayNames) => {
-                const ids = displayNames.map(displayName => {
-                  const minor = allMinors.find(m => {
-                    const normalizedType = m.type.trim().toLowerCase();
-                    const strippedName = normalizedType && m.name.toLowerCase().endsWith(` ${normalizedType}`)
-                      ? m.name.slice(0, m.name.length - (normalizedType.length + 1))
-                      : m.name;
-                    return strippedName === displayName;
-                  });
-                  return minor?.id;
-                }).filter((id): id is number => id !== undefined);
+              selectedValues={selectedMinorIds.map(id => allMinors.find(m => m.id === id)?.name || '')}
+              options={allMinors.map(m => m.name)}
+              onChange={(names) => {
+                const ids = names
+                  .map(name => allMinors.find(m => m.name === name)?.id)
+                  .filter((id): id is number => id !== undefined);
                 setSelectedMinorIds(ids);
               }}
               placeholder="Select minors"

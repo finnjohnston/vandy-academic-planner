@@ -189,6 +189,29 @@ export async function createPlan(
       },
     });
 
+    // Automatically add College Core for College of Arts and Sciences (schoolId = 2)
+    if (schoolId === 2) {
+      const collegeCore = await prisma.program.findFirst({
+        where: {
+          type: 'core',
+          schoolId: 2,
+          academicYearId,
+        },
+      });
+
+      if (collegeCore) {
+        await prisma.planProgram.create({
+          data: {
+            planId: plan.id,
+            programId: collegeCore.id,
+          },
+        });
+        logger.info(`Automatically added College Core (program ${collegeCore.id}) to plan ${plan.id}`);
+      } else {
+        logger.warn(`College Core program not found for academic year ${academicYearId}`);
+      }
+    }
+
     // Transform data - return relevant fields
     const transformedPlan = {
       id: plan.id,
@@ -302,17 +325,20 @@ export async function duplicatePlan(
     const { name } = req.body;
     logger.http(`POST /api/plans/${id}/duplicate (${name})`);
 
-    // Fetch original plan with planned courses
+    // Fetch original plan with planned courses and programs
     const originalPlan = await prisma.plan.findUnique({
       where: { id: Number(id) },
-      include: { plannedCourses: true },
+      include: {
+        plannedCourses: true,
+        planPrograms: true,
+      },
     });
 
     if (!originalPlan) {
       throw new NotFoundError('Plan not found');
     }
 
-    // Create duplicate plan with copied planned courses
+    // Create duplicate plan with copied planned courses and programs
     const duplicatedPlan = await prisma.plan.create({
       data: {
         name,
@@ -326,6 +352,11 @@ export async function duplicatePlan(
             classId: pc.classId,
             semesterNumber: pc.semesterNumber,
             credits: pc.credits,
+          })),
+        },
+        planPrograms: {
+          create: originalPlan.planPrograms.map((pp) => ({
+            programId: pp.programId,
           })),
         },
       },

@@ -37,10 +37,6 @@ const Program: React.FC<ProgramProps> = ({
   const displayType = normalizedType
     ? normalizedType.charAt(0).toUpperCase() + normalizedType.slice(1)
     : '';
-  const displayName =
-    normalizedType && name.toLowerCase().endsWith(` ${normalizedType}`)
-      ? name.slice(0, name.length - (normalizedType.length + 1))
-      : name;
 
   return (
     <>
@@ -49,7 +45,7 @@ const Program: React.FC<ProgramProps> = ({
         onClick={handleToggle}
       >
         <div className="program-info">
-          <span className="program-name">{displayName}</span>
+          <span className="program-name">{name}</span>
           {displayType && <span className="program-type">{displayType}</span>}
           <div className="program-progress-group">
             <ProgramProgressBar percent={progressPercent} />
