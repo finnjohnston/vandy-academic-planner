@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './NewPlanPopup.css';
 import exitIcon from '../../../assets/exit_icon.png';
 import Dropdown from '../DropdownComponent/Dropdown';
@@ -37,6 +38,7 @@ interface Program {
 const API_BASE_URL = 'http://localhost:3000';
 
 const NewPlanPopup: React.FC<NewPlanPopupProps> = ({ onClose }) => {
+  const navigate = useNavigate();
   const [planName, setPlanName] = useState('');
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | null>(null);
@@ -257,10 +259,8 @@ const NewPlanPopup: React.FC<NewPlanPopupProps> = ({ onClose }) => {
         });
       }
 
-      // Success - close popup
-      onClose();
-      // Optionally refresh the page or navigate to the new plan
-      window.location.reload();
+      // Success - navigate to the new plan
+      navigate(`/planning/${planId}`);
     } catch (err) {
       console.error('Error creating plan:', err);
       alert(err instanceof Error ? err.message : 'Failed to create plan');
