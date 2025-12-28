@@ -270,7 +270,15 @@ export async function updatePlanPrograms(
       await autoAssignFulfillments(Number(planId));
     }
 
-    // STEP 7: Return success
+    // STEP 7: Update plan's updatedAt timestamp if there were changes
+    if (toAdd.length > 0 || toDelete.length > 0) {
+      await prisma.plan.update({
+        where: { id: Number(planId) },
+        data: { updatedAt: new Date() },
+      });
+    }
+
+    // STEP 8: Return success
     sendSuccess(res, { updated: true });
   } catch (err) {
     next(err);

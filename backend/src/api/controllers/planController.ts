@@ -20,8 +20,17 @@ export async function getPlans(
       include: {
         academicYear: true,
         school: true,
+        planPrograms: {
+          include: {
+            program: true,
+          },
+          orderBy: [
+            { program: { type: 'asc' } },
+            { createdAt: 'asc' },
+          ],
+        },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { updatedAt: 'desc' },
       take: 1000,
     });
 
@@ -42,6 +51,11 @@ export async function getPlans(
       isActive: plan.isActive,
       createdAt: plan.createdAt,
       updatedAt: plan.updatedAt,
+      programs: plan.planPrograms.map(pp => ({
+        id: pp.id,
+        name: pp.program.name,
+        type: pp.program.type,
+      })),
     }));
 
     sendSuccess(res, transformedPlans);

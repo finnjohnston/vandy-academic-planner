@@ -188,6 +188,12 @@ export async function addPlannedCourse(
     // PHASE 4: Auto-assign fulfillments
     await autoAssignFulfillments(Number(planId));
 
+    // Update plan's updatedAt timestamp
+    await prisma.plan.update({
+      where: { id: Number(planId) },
+      data: { updatedAt: new Date() },
+    });
+
     // Transform data - return relevant fields
     const transformedPlannedCourse = {
       id: plannedCourse.id,
@@ -330,6 +336,12 @@ export async function updatePlannedCourse(
     // PHASE 4: Re-assign fulfillments after update
     await autoAssignFulfillments(Number(planId));
 
+    // Update plan's updatedAt timestamp
+    await prisma.plan.update({
+      where: { id: Number(planId) },
+      data: { updatedAt: new Date() },
+    });
+
     // Transform data - return relevant fields
     const transformedPlannedCourse = {
       id: plannedCourse!.id,
@@ -394,6 +406,12 @@ export async function deletePlannedCourse(
 
     // PHASE 4: Re-assign fulfillments after deletion
     await autoAssignFulfillments(Number(planId));
+
+    // Update plan's updatedAt timestamp
+    await prisma.plan.update({
+      where: { id: Number(planId) },
+      data: { updatedAt: new Date() },
+    });
 
     res.status(204).send();
   } catch (err) {

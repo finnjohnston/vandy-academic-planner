@@ -21,6 +21,30 @@
   cursor: pointer;
 }
 
+.plan-majors {
+  position: absolute;
+  left: 325px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.plan-minors {
+  position: absolute;
+  left: 650px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.plan-program-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-white);
+}
+
 .plan-modified {
   position: absolute;
   left: 975px;

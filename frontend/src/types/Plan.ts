@@ -20,4 +20,9 @@ export interface Plan {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  programs?: Array<{
+    id: number;
+    name: string;
+    type: string;
+  }>;
 }
