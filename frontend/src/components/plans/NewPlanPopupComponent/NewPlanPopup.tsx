@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import './NewPlanPopup.css';
 import exitIcon from '../../../assets/exit_icon.png';
 import Dropdown from '../DropdownComponent/Dropdown';
-import MultiSelectDropdown from '../MultiSelectDropdownComponent/MultiSelectDropdown';
 
 interface NewPlanPopupProps {
   onClose: () => void;
@@ -27,14 +26,6 @@ interface School {
   updatedAt: string;
 }
 
-interface Program {
-  id: number;
-  name: string;
-  type: string;
-  totalCredits: number;
-  schoolId: number;
-}
-
 const API_BASE_URL = 'http://localhost:3000';
 
 const NewPlanPopup: React.FC<NewPlanPopupProps> = ({ onClose }) => {
@@ -44,16 +35,7 @@ const NewPlanPopup: React.FC<NewPlanPopupProps> = ({ onClose }) => {
   const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | null>(null);
   const [schools, setSchools] = useState<School[]>([]);
   const [selectedSchoolId, setSelectedSchoolId] = useState<number | null>(null);
-  const [programs, setPrograms] = useState<Program[]>([]);
-  const [selectedProgramId, setSelectedProgramId] = useState<number | null>(null);
-  const [allPrograms, setAllPrograms] = useState<Program[]>([]);
-  const [selectedSecondaryProgramId, setSelectedSecondaryProgramId] = useState<number | null>(null);
-  const [allMinors, setAllMinors] = useState<Program[]>([]);
-  const [selectedMinorIds, setSelectedMinorIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingPrograms, setLoadingPrograms] = useState(false);
-  const [loadingAllPrograms, setLoadingAllPrograms] = useState(false);
-  const [loadingMinors, setLoadingMinors] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   // Fetch academic years and schools on mount
@@ -83,101 +65,6 @@ const NewPlanPopup: React.FC<NewPlanPopupProps> = ({ onClose }) => {
     fetchData();
   }, []);
 
-  // Fetch programs when school or academic year changes
-  useEffect(() => {
-    const fetchPrograms = async () => {
-      if (!selectedSchoolId || !selectedAcademicYearId) {
-        setPrograms([]);
-        setSelectedProgramId(null);
-        return;
-      }
-
-      setLoadingPrograms(true);
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/programs?schoolId=${selectedSchoolId}&academicYearId=${selectedAcademicYearId}&type=major`
-        );
-        if (!response.ok) throw new Error('Failed to fetch programs');
-        const result = await response.json();
-        const programsData = result.data as Program[];
-        setPrograms(programsData);
-      } catch (error) {
-        console.error('Error fetching programs:', error);
-        setPrograms([]);
-        setSelectedProgramId(null);
-      } finally {
-        setLoadingPrograms(false);
-      }
-    };
-
-    fetchPrograms();
-  }, [selectedSchoolId, selectedAcademicYearId]);
-
-  // Fetch all programs for secondary major dropdown
-  useEffect(() => {
-    const fetchAllPrograms = async () => {
-      if (!selectedAcademicYearId) {
-        setAllPrograms([]);
-        setSelectedSecondaryProgramId(null);
-        return;
-      }
-
-      setLoadingAllPrograms(true);
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/programs?academicYearId=${selectedAcademicYearId}&type=major`
-        );
-        if (!response.ok) throw new Error('Failed to fetch all programs');
-        const result = await response.json();
-        const programsData = result.data as Program[];
-        setAllPrograms(programsData);
-      } catch (error) {
-        console.error('Error fetching all programs:', error);
-        setAllPrograms([]);
-      } finally {
-        setLoadingAllPrograms(false);
-      }
-    };
-
-    fetchAllPrograms();
-  }, [selectedAcademicYearId]);
-
-  // Fetch all minors
-  useEffect(() => {
-    const fetchMinors = async () => {
-      if (!selectedAcademicYearId) {
-        setAllMinors([]);
-        setSelectedMinorIds([]);
-        return;
-      }
-
-      setLoadingMinors(true);
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/programs?academicYearId=${selectedAcademicYearId}&type=minor`
-        );
-        if (!response.ok) throw new Error('Failed to fetch minors');
-        const result = await response.json();
-        const minorsData = result.data as Program[];
-        setAllMinors(minorsData);
-      } catch (error) {
-        console.error('Error fetching minors:', error);
-        setAllMinors([]);
-      } finally {
-        setLoadingMinors(false);
-      }
-    };
-
-    fetchMinors();
-  }, [selectedAcademicYearId]);
-
-  // Clear secondary major if it becomes the primary major
-  useEffect(() => {
-    if (selectedSecondaryProgramId === selectedProgramId) {
-      setSelectedSecondaryProgramId(null);
-    }
-  }, [selectedProgramId, selectedSecondaryProgramId]);
-
   // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -196,7 +83,7 @@ const NewPlanPopup: React.FC<NewPlanPopupProps> = ({ onClose }) => {
 
   // Handle plan creation
   const handleCreatePlan = async () => {
-    if (!planName.trim() || planName.length > 50 || !selectedAcademicYearId || !selectedSchoolId || !selectedProgramId) {
+    if (!planName.trim() || planName.length > 50 || !selectedAcademicYearId || !selectedSchoolId) {
       return;
     }
 
@@ -221,43 +108,6 @@ const NewPlanPopup: React.FC<NewPlanPopupProps> = ({ onClose }) => {
 
       const result = await response.json();
       const planId = result.data.id;
-
-      // Add primary major to plan
-      await fetch(`${API_BASE_URL}/api/plans/${planId}/programs`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          programId: selectedProgramId,
-        }),
-      });
-
-      // Add secondary major if selected
-      if (selectedSecondaryProgramId) {
-        await fetch(`${API_BASE_URL}/api/plans/${planId}/programs`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            programId: selectedSecondaryProgramId,
-          }),
-        });
-      }
-
-      // Add minors if selected
-      for (const minorId of selectedMinorIds) {
-        await fetch(`${API_BASE_URL}/api/plans/${planId}/programs`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            programId: minorId,
-          }),
-        });
-      }
 
       // Success - navigate to the new plan
       navigate(`/planning/${planId}`);
@@ -336,104 +186,6 @@ const NewPlanPopup: React.FC<NewPlanPopupProps> = ({ onClose }) => {
             />
           )}
 
-          <div className="new-plan-popup-label" style={{ marginTop: '20px' }}>Select primary major</div>
-          {loading || loadingPrograms ? (
-            <div className="new-plan-popup-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--color-text-dark)' }}>
-              Loading...
-            </div>
-          ) : !selectedSchoolId || !selectedAcademicYearId ? (
-            <div className="new-plan-popup-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--color-text-dark)' }}>
-              Select school and catalog year first
-            </div>
-          ) : programs.length === 0 ? (
-            <div className="new-plan-popup-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--color-text-dark)' }}>
-              No majors available
-            </div>
-          ) : (
-            <Dropdown
-              label="Select primary major"
-              value={programs.find(p => p.id === selectedProgramId)?.name || ''}
-              options={programs.map(p => p.name)}
-              onChange={(name) => {
-                const selected = programs.find(p => p.name === name);
-                if (selected) {
-                  setSelectedProgramId(selected.id);
-                }
-              }}
-              placeholder="Select primary major"
-            />
-          )}
-
-          <div className="new-plan-popup-label" style={{ marginTop: '20px' }}>Select secondary major</div>
-          {loading || loadingAllPrograms ? (
-            <div className="new-plan-popup-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--color-text-dark)' }}>
-              Loading...
-            </div>
-          ) : !selectedAcademicYearId ? (
-            <div className="new-plan-popup-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--color-text-dark)' }}>
-              Select catalog year first
-            </div>
-          ) : (() => {
-            const primaryMajor = programs.find(p => p.id === selectedProgramId);
-            const availablePrograms = primaryMajor
-              ? allPrograms.filter(p => {
-                  if (p.id === selectedProgramId) return false;
-                  // Engineering (schoolId 1) can access Arts & Science (schoolId 2) majors
-                  if (primaryMajor.schoolId === 1) {
-                    return p.schoolId === 1 || p.schoolId === 2;
-                  }
-                  // Arts & Science (schoolId 2) can only access their own school
-                  return p.schoolId === primaryMajor.schoolId;
-                })
-              : [];
-            return availablePrograms.length === 0 ? (
-              <div className="new-plan-popup-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--color-text-dark)' }}>
-                No majors available
-              </div>
-            ) : (
-              <Dropdown
-                label="Select secondary major"
-                value={availablePrograms.find(p => p.id === selectedSecondaryProgramId)?.name || ''}
-                options={availablePrograms.map(p => p.name)}
-                onChange={(name) => {
-                  const selected = availablePrograms.find(p => p.name === name);
-                  if (selected) {
-                    setSelectedSecondaryProgramId(selected.id);
-                  }
-                }}
-                placeholder="Select secondary major"
-              />
-            );
-          })()}
-
-          <div className="new-plan-popup-label" style={{ marginTop: '20px' }}>Select minors</div>
-          {loading || loadingMinors ? (
-            <div className="new-plan-popup-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--color-text-dark)' }}>
-              Loading...
-            </div>
-          ) : !selectedAcademicYearId ? (
-            <div className="new-plan-popup-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--color-text-dark)' }}>
-              Select catalog year first
-            </div>
-          ) : allMinors.length === 0 ? (
-            <div className="new-plan-popup-input" style={{ display: 'flex', alignItems: 'center', color: 'var(--color-text-dark)' }}>
-              No minors available
-            </div>
-          ) : (
-            <MultiSelectDropdown
-              label="Select minors"
-              selectedValues={selectedMinorIds.map(id => allMinors.find(m => m.id === id)?.name || '')}
-              options={allMinors.map(m => m.name)}
-              onChange={(names) => {
-                const ids = names
-                  .map(name => allMinors.find(m => m.name === name)?.id)
-                  .filter((id): id is number => id !== undefined);
-                setSelectedMinorIds(ids);
-              }}
-              placeholder="Select minors"
-            />
-          )}
-
           <div className="new-plan-popup-buttons">
             <button
               className="new-plan-popup-cancel-button"
@@ -443,12 +195,12 @@ const NewPlanPopup: React.FC<NewPlanPopupProps> = ({ onClose }) => {
             </button>
             <button
               className={`new-plan-popup-create-button ${
-                planName.trim() && planName.length <= 50 && selectedAcademicYearId && selectedSchoolId && selectedProgramId && !isCreating
+                planName.trim() && planName.length <= 50 && selectedAcademicYearId && selectedSchoolId && !isCreating
                   ? 'ready'
                   : 'disabled'
               }`}
               onClick={handleCreatePlan}
-              disabled={isCreating || !planName.trim() || planName.length > 50 || !selectedAcademicYearId || !selectedSchoolId || !selectedProgramId}
+              disabled={isCreating || !planName.trim() || planName.length > 50 || !selectedAcademicYearId || !selectedSchoolId}
             >
               {isCreating ? 'Creating...' : 'Create Plan'}
             </button>
