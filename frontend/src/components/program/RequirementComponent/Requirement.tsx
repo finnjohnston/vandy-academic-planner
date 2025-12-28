@@ -1,5 +1,7 @@
 import React from 'react';
 import ProgramList from '../ProgramListComponent/ProgramList';
+import EditProgramsButton from '../EditProgramsButtonComponent/EditProgramsButton';
+import EditProgramsPopup from '../EditProgramsPopupComponent/EditProgramsPopup';
 import './Requirement.css';
 
 interface RequirementProps {
@@ -17,6 +19,9 @@ interface RequirementProps {
     semesterNumber: number;
   }>;
   academicYearId: number;
+  isEditProgramsOpen: boolean;
+  onEditProgramsOpen: () => void;
+  onEditProgramsClose: () => void;
 }
 
 const Requirement: React.FC<RequirementProps> = ({
@@ -25,24 +30,36 @@ const Requirement: React.FC<RequirementProps> = ({
   programs,
   plannedCourses,
   academicYearId,
+  isEditProgramsOpen,
+  onEditProgramsOpen,
+  onEditProgramsClose,
 }) => {
   const isEmpty = programs.length === 0;
+
   return (
-    <div
-      className={`requirement-container${isBlurred ? ' requirement-blurred' : ''}${
-        isEmpty ? ' requirement-empty' : ''
-      }`}
-    >
-      <h1 className="requirement-header">Requirements</h1>
-      <div className="requirement-content">
-        <ProgramList
-          planId={planId}
-          programs={programs}
-          plannedCourses={plannedCourses}
-          academicYearId={academicYearId}
-        />
+    <>
+      <div
+        className={`requirement-container${isBlurred ? ' requirement-blurred' : ''}${
+          isEmpty ? ' requirement-empty' : ''
+        }`}
+      >
+        <div className="requirement-header-section">
+          <h1 className="requirement-header">Requirements</h1>
+          <EditProgramsButton onClick={onEditProgramsOpen} />
+        </div>
+        <div className="requirement-content">
+          <ProgramList
+            planId={planId}
+            programs={programs}
+            plannedCourses={plannedCourses}
+            academicYearId={academicYearId}
+          />
+        </div>
       </div>
-    </div>
+      {isEditProgramsOpen && (
+        <EditProgramsPopup onClose={onEditProgramsClose} />
+      )}
+    </>
   );
 };
 

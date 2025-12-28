@@ -21,16 +21,23 @@
   -webkit-filter: blur(2px);
 }
 
+.requirement-header-section {
+  width: 100%;
+  max-width: 1175px;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .requirement-header {
   font-family: 'Inter', sans-serif;
   font-size: 16px;
   font-weight: 500;
   color: var(--color-gold-light);
-  margin: 0 auto;
+  margin: 0;
   padding: 0;
-  width: 100%;
-  max-width: 1200px;
-  padding-left: 20px;
   text-align: left;
 }
 

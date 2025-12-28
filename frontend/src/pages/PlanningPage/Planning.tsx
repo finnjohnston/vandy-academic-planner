@@ -51,6 +51,7 @@ interface PlanData {
 const Planning: React.FC = () => {
   const { planId } = useParams<{ planId: string }>();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isEditProgramsOpen, setIsEditProgramsOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [planData, setPlanData] = useState<PlanData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -491,11 +492,11 @@ const Planning: React.FC = () => {
       collisionDetection={pointerWithin}
     >
       <div className="planning-page">
-        <NavBar isBlurred={isPopupOpen} />
+        <NavBar isBlurred={isPopupOpen || isEditProgramsOpen} />
         <CourseSearch
           onPopupOpen={() => setIsPopupOpen(true)}
           onPopupClose={() => setIsPopupOpen(false)}
-          isBlurred={isPopupOpen}
+          isBlurred={isPopupOpen || isEditProgramsOpen}
         />
         <div className="plan-requirements-container">
           <Plan
@@ -503,7 +504,7 @@ const Planning: React.FC = () => {
             planName={planData.name}
             academicYear={planData.academicYear}
             plannedCourses={planData.plannedCourses}
-            isBlurred={isPopupOpen}
+            isBlurred={isPopupOpen || isEditProgramsOpen}
             onCourseDetailsClick={handlePlannedCourseClick}
             onDeleteCourseClick={handleDeleteCourse}
             dragOverPosition={dragOverPosition}
@@ -520,6 +521,9 @@ const Planning: React.FC = () => {
             }))}
             plannedCourses={planData.plannedCourses}
             academicYearId={planData.academicYearId}
+            isEditProgramsOpen={isEditProgramsOpen}
+            onEditProgramsOpen={() => setIsEditProgramsOpen(true)}
+            onEditProgramsClose={() => setIsEditProgramsOpen(false)}
           />
         </div>
 

@@ -218,7 +218,7 @@ const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose, 
           value={searchQuery}
           onChange={setSearchQuery}
           onSearch={handleSearch}
-          placeholder="Search courses..."
+          placeholder="Search for courses"
         />
 
         {error && <div className="error-message">{error}</div>}
