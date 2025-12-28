@@ -18,6 +18,7 @@ interface PlanData {
   id: number;
   name: string;
   academicYearId: number;
+  schoolId: number | null;
   academicYear: {
     id: number;
     year: string;
@@ -138,6 +139,43 @@ const Planning: React.FC = () => {
       console.error('Error deleting course:', err);
       setPlanData(originalPlanData);
       setError(err instanceof Error ? err.message : 'Failed to delete course');
+    }
+  };
+
+  const handleSavePrograms = async (programIds: number[]) => {
+    if (!planData) return;
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/plans/${planData.id}/programs`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ programIds })
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to update programs');
+      }
+
+      // Refetch the plan to get updated programs data
+      const planResponse = await fetch(`${API_BASE_URL}/api/plans/${planData.id}`);
+      if (!planResponse.ok) {
+        throw new Error('Failed to refetch plan data');
+      }
+
+      const planResult = await planResponse.json();
+      if (planResult.data) {
+        setPlanData(planResult.data);
+      } else {
+        throw new Error('Invalid plan data received');
+      }
+    } catch (err) {
+      console.error('Error updating programs:', err);
+      // Don't set error state, just log it - keep the UI intact
+      alert(err instanceof Error ? err.message : 'Failed to update programs');
     }
   };
 
@@ -521,9 +559,12 @@ const Planning: React.FC = () => {
             }))}
             plannedCourses={planData.plannedCourses}
             academicYearId={planData.academicYearId}
+            schoolId={planData.schoolId}
+            currentProgramIds={planData.programs.map((planProgram) => planProgram.program.id)}
             isEditProgramsOpen={isEditProgramsOpen}
             onEditProgramsOpen={() => setIsEditProgramsOpen(true)}
             onEditProgramsClose={() => setIsEditProgramsOpen(false)}
+            onSavePrograms={handleSavePrograms}
           />
         </div>
 

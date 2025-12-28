@@ -19,9 +19,12 @@ interface RequirementProps {
     semesterNumber: number;
   }>;
   academicYearId: number;
+  schoolId: number | null;
+  currentProgramIds: number[];
   isEditProgramsOpen: boolean;
   onEditProgramsOpen: () => void;
   onEditProgramsClose: () => void;
+  onSavePrograms: (programIds: number[]) => void;
 }
 
 const Requirement: React.FC<RequirementProps> = ({
@@ -30,9 +33,12 @@ const Requirement: React.FC<RequirementProps> = ({
   programs,
   plannedCourses,
   academicYearId,
+  schoolId,
+  currentProgramIds,
   isEditProgramsOpen,
   onEditProgramsOpen,
   onEditProgramsClose,
+  onSavePrograms,
 }) => {
   const isEmpty = programs.length === 0;
 
@@ -57,7 +63,13 @@ const Requirement: React.FC<RequirementProps> = ({
         </div>
       </div>
       {isEditProgramsOpen && (
-        <EditProgramsPopup onClose={onEditProgramsClose} />
+        <EditProgramsPopup
+          onClose={onEditProgramsClose}
+          academicYearId={academicYearId}
+          schoolId={schoolId}
+          currentProgramIds={currentProgramIds}
+          onSave={onSavePrograms}
+        />
       )}
     </>
   );

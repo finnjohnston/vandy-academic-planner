@@ -5,6 +5,7 @@ import {
   getPlanPrograms,
   addPlanProgram,
   deletePlanProgram,
+  updatePlanPrograms,
 } from '../controllers/planProgramController.js';
 import fulfillmentRoutes from './fulfillmentRoutes.js';
 import progressRoutes from './progressRoutes.js';
@@ -26,12 +27,21 @@ const addProgramSchema = z.object({
   programId: z.number().int().positive(),
 });
 
+const updateProgramsSchema = z.object({
+  programIds: z.array(z.number().int().positive()),
+});
+
 // Routes
 router.get('/', validate({ params: planIdParamSchema }), getPlanPrograms);
 router.post(
   '/',
   validate({ params: planIdParamSchema, body: addProgramSchema }),
   addPlanProgram
+);
+router.put(
+  '/',
+  validate({ params: planIdParamSchema, body: updateProgramsSchema }),
+  updatePlanPrograms
 );
 router.delete(
   '/:id',

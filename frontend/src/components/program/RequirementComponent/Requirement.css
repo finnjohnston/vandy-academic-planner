@@ -12,7 +12,7 @@
 }
 
 .requirement-container.requirement-empty {
-  min-height: calc(100vh - 120px);
+  min-height: 175px;
   margin-bottom: 20px;
 }
 

@@ -210,3 +210,69 @@ export async function deletePlanProgram(
     next(err);
   }
 }
+
+/**
+ * PUT /api/plans/:planId/programs
+ * Bulk update programs for a plan (replaces all existing programs)
+ */
+export async function updatePlanPrograms(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { planId } = req.params;
+    const { programIds } = req.body;
+
+    logger.http(`PUT /api/plans/${planId}/programs (programIds: ${programIds.join(', ')})`);
+
+    // STEP 1: Verify plan exists
+    const plan = await prisma.plan.findUnique({
+      where: { id: Number(planId) },
+    });
+
+    if (!plan) {
+      throw new NotFoundError('Plan not found');
+    }
+
+    // STEP 2: Get current programs
+    const currentPlanPrograms = await prisma.planProgram.findMany({
+      where: { planId: Number(planId) },
+    });
+
+    const currentProgramIds = currentPlanPrograms.map(pp => pp.programId);
+
+    // STEP 3: Determine what to add and what to delete
+    const toAdd = programIds.filter((id: number) => !currentProgramIds.includes(id));
+    const toDelete = currentPlanPrograms.filter(pp => !programIds.includes(pp.programId));
+
+    // STEP 4: Execute deletions
+    if (toDelete.length > 0) {
+      await prisma.planProgram.deleteMany({
+        where: {
+          id: { in: toDelete.map(pp => pp.id) },
+        },
+      });
+    }
+
+    // STEP 5: Execute additions
+    if (toAdd.length > 0) {
+      await prisma.planProgram.createMany({
+        data: toAdd.map((programId: number) => ({
+          planId: Number(planId),
+          programId,
+        })),
+      });
+    }
+
+    // STEP 6: Auto-assign fulfillments if programs were added
+    if (toAdd.length > 0) {
+      await autoAssignFulfillments(Number(planId));
+    }
+
+    // STEP 7: Return success
+    sendSuccess(res, { updated: true });
+  } catch (err) {
+    next(err);
+  }
+}
