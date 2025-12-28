@@ -19,6 +19,7 @@ export async function getPlans(
     const plans = await prisma.plan.findMany({
       include: {
         academicYear: true,
+        school: true,
       },
       orderBy: { createdAt: 'desc' },
       take: 1000,
@@ -36,6 +37,7 @@ export async function getPlans(
         start: plan.academicYear.start,
         end: plan.academicYear.end,
       } : null,
+      school: plan.school,
       currentSemester: plan.currentSemester,
       isActive: plan.isActive,
       createdAt: plan.createdAt,

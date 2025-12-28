@@ -9,6 +9,13 @@ export interface Plan {
     start: number;
     end: number;
   } | null;
+  school?: {
+    id: number;
+    code: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
   currentSemester: number;
   isActive: boolean;
   createdAt: string;

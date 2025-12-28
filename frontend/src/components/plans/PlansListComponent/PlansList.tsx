@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PlanListItem from '../PlanListItemComponent/PlanListItem';
+import EditPlanPopup from '../EditPlanPopupComponent/EditPlanPopup';
 import type { Plan } from '../../../types/Plan';
 import './PlansList.css';
 
@@ -9,6 +10,7 @@ const PlansList: React.FC = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -31,7 +33,14 @@ const PlansList: React.FC = () => {
   }, []);
 
   const handleEditPlan = (planId: number) => {
-    // TODO: Implement edit functionality
+    const plan = plans.find((p) => p.id === planId);
+    if (plan) {
+      setEditingPlan(plan);
+    }
+  };
+
+  const handleCloseEditPopup = () => {
+    setEditingPlan(null);
   };
 
   const handleDeletePlan = async (planId: number) => {
@@ -85,16 +94,27 @@ const PlansList: React.FC = () => {
   }
 
   return (
-    <div className="plans-list">
-      {plans.map((plan) => (
-        <PlanListItem
-          key={plan.id}
-          plan={plan}
-          onEditClick={handleEditPlan}
-          onDeleteClick={handleDeletePlan}
+    <>
+      <div className="plans-list">
+        {plans.map((plan) => (
+          <PlanListItem
+            key={plan.id}
+            plan={plan}
+            onEditClick={handleEditPlan}
+            onDeleteClick={handleDeletePlan}
+          />
+        ))}
+      </div>
+      {editingPlan && (
+        <EditPlanPopup
+          onClose={handleCloseEditPopup}
+          planId={editingPlan.id}
+          initialName={editingPlan.name}
+          catalogYear={editingPlan.academicYear?.year || ''}
+          schoolName={editingPlan.school?.name || 'Unknown School'}
         />
-      ))}
-    </div>
+      )}
+    </>
   );
 };
 

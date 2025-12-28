@@ -1,4 +1,4 @@
-.new-plan-popup-backdrop {
+.edit-plan-popup-backdrop {
   position: fixed;
   top: 0;
   left: 0;
@@ -11,7 +11,7 @@
   backdrop-filter: blur(2px);
 }
 
-.new-plan-popup-content {
+.edit-plan-popup-content {
   width: 650px;
   height: 350px;
   background-color: var(--color-bg);
@@ -22,7 +22,7 @@
   padding: 20px 24px;
 }
 
-.new-plan-popup-close-icon {
+.edit-plan-popup-close-icon {
   position: absolute;
   top: 27px;
   right: 20px;
@@ -33,7 +33,11 @@
   transition: opacity 0.2s;
 }
 
-.new-plan-popup-header {
+.edit-plan-popup-close-icon:hover {
+  opacity: 0.7;
+}
+
+.edit-plan-popup-header {
   position: absolute;
   top: 20px;
   left: 24px;
@@ -44,11 +48,11 @@
   font-family: inherit;
 }
 
-.new-plan-popup-form {
+.edit-plan-popup-form {
   margin-top: 45px;
 }
 
-.new-plan-popup-label {
+.edit-plan-popup-label {
   font-size: 12px;
   font-weight: 500;
   color: var(--color-text-dark);
@@ -57,7 +61,7 @@
   text-align: left;
 }
 
-.new-plan-popup-input {
+.edit-plan-popup-input {
   width: 100%;
   height: 30px;
   background-color: var(--color-card-bg);
@@ -70,17 +74,48 @@
   box-sizing: border-box;
 }
 
-.new-plan-popup-input:focus {
+.edit-plan-popup-input:focus {
   outline: none;
   border-color: var(--color-btn-border);
 }
 
-.new-plan-popup-input.error {
+.edit-plan-popup-input.error {
   border-color: var(--color-text-red);
   color: var(--color-text-red);
 }
 
-.new-plan-popup-error-text {
+.edit-plan-popup-locked-dropdown {
+  width: 100%;
+  height: 30px;
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-btn-border);
+  border-radius: 4px;
+  color: var(--color-text-white);
+  font-size: 14px;
+  font-family: inherit;
+  padding: 0 12px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.edit-plan-popup-locked-dropdown.locked-error {
+  border-color: var(--color-text-red);
+}
+
+.edit-plan-popup-locked-dropdown .locked-text-error {
+  color: var(--color-text-red);
+}
+
+.edit-plan-popup-lock-icon {
+  width: 12px;
+  height: 12px;
+  filter: brightness(0) invert(1);
+}
+
+.edit-plan-popup-error-text {
   position: absolute;
   top: 34px;
   left: 0;
@@ -92,11 +127,11 @@
   pointer-events: none;
 }
 
-.new-plan-popup-error-text.visible {
+.edit-plan-popup-error-text.visible {
   opacity: 1;
 }
 
-.new-plan-popup-buttons {
+.edit-plan-popup-buttons {
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -104,7 +139,7 @@
   margin-top: 20px;
 }
 
-.new-plan-popup-cancel-button {
+.edit-plan-popup-cancel-button {
   height: 35px;
   padding: 0 20px;
   background-color: transparent;
@@ -119,19 +154,19 @@
   outline: none;
 }
 
-.new-plan-popup-cancel-button:hover {
+.edit-plan-popup-cancel-button:hover {
   background-color: var(--color-btn-bg);
 }
 
-.new-plan-popup-cancel-button:focus {
+.edit-plan-popup-cancel-button:focus {
   outline: none;
 }
 
-.new-plan-popup-cancel-button:active {
+.edit-plan-popup-cancel-button:active {
   outline: none;
 }
 
-.new-plan-popup-create-button {
+.edit-plan-popup-update-button {
   width: auto;
   height: 35px;
   padding: 0 20px;
@@ -145,19 +180,19 @@
   outline: none;
 }
 
-.new-plan-popup-create-button.disabled {
+.edit-plan-popup-update-button.disabled {
   background-color: var(--color-card-bg);
   border: 1px solid var(--color-btn-border);
   color: var(--color-text-dark);
   cursor: not-allowed;
 }
 
-.new-plan-popup-create-button.ready {
+.edit-plan-popup-update-button.ready {
   background-color: var(--color-btn-bg);
   border: 1px solid var(--color-btn-border);
   color: var(--color-text-white);
 }
 
-.new-plan-popup-create-button.ready:hover {
+.edit-plan-popup-update-button.ready:hover {
   background-color: var(--color-btn-border);
 }
