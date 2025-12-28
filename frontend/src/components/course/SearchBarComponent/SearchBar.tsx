@@ -13,7 +13,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChange,
   onSearch,
-  placeholder = 'Search courses...'
+  placeholder = 'Search for courses'
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);

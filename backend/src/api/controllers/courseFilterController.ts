@@ -6,7 +6,7 @@ import {
   validateFilter,
 } from '../services/courseFilter.service.js';
 import { sendSuccess } from '../utils/response.utils.js';
-import { BadRequestError, NotFoundError } from '../types/error.types.js';
+import { ValidationError, NotFoundError } from '../types/error.types.js';
 import logger from '../../utils/logger.js';
 import { prisma } from '../../config/prisma.js';
 
@@ -26,7 +26,7 @@ export async function queryCoursesByFilter(
     // Validate filter structure
     const error = validateFilter(filter);
     if (error) {
-      throw new BadRequestError(`Invalid filter: ${error}`);
+      throw new ValidationError(`Invalid filter: ${error}`);
     }
 
     const courses = await getCoursesByFilter(filter, academicYearId);
@@ -65,7 +65,7 @@ export async function evaluateCourseAgainstFilter(
     // Validate filter
     const error = validateFilter(filter);
     if (error) {
-      throw new BadRequestError(`Invalid filter: ${error}`);
+      throw new ValidationError(`Invalid filter: ${error}`);
     }
 
     // Fetch course
@@ -114,7 +114,7 @@ export async function getFilterSpecificity(
 
     const error = validateFilter(filter);
     if (error) {
-      throw new BadRequestError(`Invalid filter: ${error}`);
+      throw new ValidationError(`Invalid filter: ${error}`);
     }
 
     const specificity = calculateFilterSpecificity(filter);

@@ -6,6 +6,7 @@ import type { DragStartEvent, DragEndEvent, DragOverEvent } from '@dnd-kit/core'
 import NavBar from '../../components/common/NavBarComponent/NavBar';
 import CourseSearch from '../../components/course/CourseSearchComponent/CourseSearch';
 import Plan from '../../components/plan/PlanComponent/Plan';
+import Requirement from '../../components/program/RequirementComponent/Requirement';
 import CourseDetail from '../../components/course/CourseDetailComponent/CourseDetail';
 import type { Course } from '../../types/Course';
 import type { DragData } from '../../types/DragData';
@@ -17,6 +18,7 @@ interface PlanData {
   id: number;
   name: string;
   academicYearId: number;
+  schoolId: number | null;
   academicYear: {
     id: number;
     year: string;
@@ -35,11 +37,22 @@ interface PlanData {
       courseNumber: string;
     } | null;
   }>;
+  programs: Array<{
+    id: number;
+    program: {
+      id: number;
+      programId: string;
+      name: string;
+      type: string;
+      totalCredits: number;
+    };
+  }>;
 }
 
 const Planning: React.FC = () => {
   const { planId } = useParams<{ planId: string }>();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isEditProgramsOpen, setIsEditProgramsOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [planData, setPlanData] = useState<PlanData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -115,10 +128,54 @@ const Planning: React.FC = () => {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Failed to delete course');
       }
+
+      // Refetch the plan to get updated data
+      const planResponse = await fetch(`${API_BASE_URL}/api/plans/${planData.id}`);
+      if (planResponse.ok) {
+        const planResult = await planResponse.json();
+        setPlanData(planResult.data);
+      }
     } catch (err) {
       console.error('Error deleting course:', err);
       setPlanData(originalPlanData);
       setError(err instanceof Error ? err.message : 'Failed to delete course');
+    }
+  };
+
+  const handleSavePrograms = async (programIds: number[]) => {
+    if (!planData) return;
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/plans/${planData.id}/programs`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ programIds })
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to update programs');
+      }
+
+      // Refetch the plan to get updated programs data
+      const planResponse = await fetch(`${API_BASE_URL}/api/plans/${planData.id}`);
+      if (!planResponse.ok) {
+        throw new Error('Failed to refetch plan data');
+      }
+
+      const planResult = await planResponse.json();
+      if (planResult.data) {
+        setPlanData(planResult.data);
+      } else {
+        throw new Error('Invalid plan data received');
+      }
+    } catch (err) {
+      console.error('Error updating programs:', err);
+      // Don't set error state, just log it - keep the UI intact
+      alert(err instanceof Error ? err.message : 'Failed to update programs');
     }
   };
 
@@ -176,18 +233,6 @@ const Planning: React.FC = () => {
         isSwapMode,
         hoveredPlannedCourseId: overData.plannedCourseId
       });
-
-      // DEBUG LOGGING
-      console.log('=== DRAG OVER ===', {
-        activePosition: dragData.currentPosition,
-        hoveredPosition,
-        activeSemester,
-        hoveredSemester: overData.currentSemester,
-        isSameSemester,
-        indicatorPosition,
-        draggedCourseId: dragData.plannedCourseId,
-        hoveredCourseId: overData.plannedCourseId
-      });
     }
     // Hovering over semester body - append to end
     else if (overData?.semesterNumber !== undefined) {
@@ -239,7 +284,6 @@ const Planning: React.FC = () => {
     const dragData = active.data.current as DragData;
     const semesterNumber = targetPosition.semesterNumber;
     const hoveredPosition = targetPosition.position;
-    const indicatorDirection = targetPosition.indicatorPosition;
 
     if (!semesterNumber || typeof semesterNumber !== 'number') {
       return;
@@ -249,16 +293,6 @@ const Planning: React.FC = () => {
     const activeSemester = dragData.currentSemester;
     const isSameSemester = activeSemester === semesterNumber;
     const activePosition = dragData.currentPosition;
-
-    // DEBUG LOGGING
-    console.log('=== DRAG END (pre-calc) ===', {
-      activePosition,
-      hoveredPosition,
-      indicatorDirection,
-      isSameSemester,
-      oldSemester: dragData.currentSemester,
-      newSemester: semesterNumber
-    });
 
     let insertPosition: number;
 
@@ -298,13 +332,6 @@ const Planning: React.FC = () => {
       // Ensure position doesn't exceed valid range
       insertPosition = Math.min(insertPosition, maxPosition);
     }
-
-    // DEBUG LOGGING
-    console.log('=== DRAG END (post-calc) ===', {
-      calculatedInsertPosition: insertPosition,
-      isSwapMode: targetPosition.isSwapMode,
-      hoveredPlannedCourseId: targetPosition.hoveredPlannedCourseId
-    });
 
     // Handle swap mode: delete the hovered course before inserting
     if (targetPosition.isSwapMode && targetPosition.hoveredPlannedCourseId) {
@@ -503,23 +530,43 @@ const Planning: React.FC = () => {
       collisionDetection={pointerWithin}
     >
       <div className="planning-page">
-        <NavBar isBlurred={isPopupOpen} />
+        <NavBar isBlurred={isPopupOpen || isEditProgramsOpen} />
         <CourseSearch
           onPopupOpen={() => setIsPopupOpen(true)}
           onPopupClose={() => setIsPopupOpen(false)}
-          isBlurred={isPopupOpen}
+          isBlurred={isPopupOpen || isEditProgramsOpen}
         />
-        <Plan
-          planId={planData.id}
-          planName={planData.name}
-          academicYear={planData.academicYear}
-          plannedCourses={planData.plannedCourses}
-          isBlurred={isPopupOpen}
-          onCourseDetailsClick={handlePlannedCourseClick}
-          onDeleteCourseClick={handleDeleteCourse}
-          dragOverPosition={dragOverPosition}
-          activeDrag={activeDrag}
-        />
+        <div className="plan-requirements-container">
+          <Plan
+            planId={planData.id}
+            planName={planData.name}
+            academicYear={planData.academicYear}
+            plannedCourses={planData.plannedCourses}
+            isBlurred={isPopupOpen || isEditProgramsOpen}
+            onCourseDetailsClick={handlePlannedCourseClick}
+            onDeleteCourseClick={handleDeleteCourse}
+            dragOverPosition={dragOverPosition}
+            activeDrag={activeDrag}
+          />
+          <Requirement
+            isBlurred={isPopupOpen}
+            planId={planData.id}
+            programs={planData.programs.map((planProgram) => ({
+              id: planProgram.id,
+              name: planProgram.program.name,
+              type: planProgram.program.type,
+              totalCredits: planProgram.program.totalCredits,
+            }))}
+            plannedCourses={planData.plannedCourses}
+            academicYearId={planData.academicYearId}
+            schoolId={planData.schoolId}
+            currentProgramIds={planData.programs.map((planProgram) => planProgram.program.id)}
+            isEditProgramsOpen={isEditProgramsOpen}
+            onEditProgramsOpen={() => setIsEditProgramsOpen(true)}
+            onEditProgramsClose={() => setIsEditProgramsOpen(false)}
+            onSavePrograms={handleSavePrograms}
+          />
+        </div>
 
         {selectedCourse && ReactDOM.createPortal(
           <CourseDetail course={selectedCourse} onClose={handleClosePopup} />,

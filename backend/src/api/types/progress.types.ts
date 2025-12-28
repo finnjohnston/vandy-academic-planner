@@ -26,6 +26,7 @@ export type TakeCoursesProgressDetails = {
   missingCourses: string[];
   coursesRequired: number;
   coursesTaken: number;
+  description?: string;
 };
 
 /**
@@ -38,6 +39,7 @@ export type TakeFromListProgressDetails = {
   fulfilled: number;
   availableCourses: string[];
   takenCourses: string[];
+  description?: string;
 };
 
 /**
@@ -53,6 +55,7 @@ export type TakeAnyCoursesProgressDetails = {
     credits: number;
   }>;
   filter: CourseFilter;
+  description?: string;
 };
 
 /**
@@ -63,6 +66,7 @@ export type GroupProgressDetails = {
   operator: 'AND' | 'OR';
   subRuleProgress: RuleProgress[];
   activeOptionIndex?: number; // For OR: which path student is pursuing
+  description?: string;
 };
 
 /**
@@ -92,6 +96,8 @@ export type RequirementProgress = {
     title: string;
     credits: number;
     creditsApplied: number;
+    semesterNumber?: number;
+    termLabel?: string;
   }>;
   constraintValidation?: {
     results: Array<{
@@ -181,4 +187,5 @@ export type EnrichedFulfillment = {
     attributes: any;
   };
   creditsApplied: number;
+  semesterNumber: number;
 };

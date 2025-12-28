@@ -1,15 +1,9 @@
 .plan-container {
-  position: fixed;
-  left: 340px;
-  top: 60px;
-  right: 0;
-  bottom: 0;
-  overflow-y: auto;
-  padding: 20px;
-  box-sizing: border-box;
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  flex-shrink: 0;
 }
 
 .plan-blurred {

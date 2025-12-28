@@ -86,13 +86,35 @@ function processConstraintsForDoubleCount(
 
 /**
  * Check if a course can double count for a specific requirement
+ * Checks both direct courseId match and subjectCode + courseNumber format
  */
 export function canDoubleCount(
-  courseId: string,
+  courseIdOrCourse: string | Course,
   targetRequirementId: string,
   doubleCountMap: DoubleCountMap
 ): boolean {
-  const info = doubleCountMap.get(courseId);
+  // If a Course object is passed, try both courseId and subjectCode + courseNumber
+  if (typeof courseIdOrCourse === 'object') {
+    const course = courseIdOrCourse;
+
+    // Try direct courseId match
+    let info = doubleCountMap.get(course.courseId);
+    if (info && info.allowedRequirementIds.includes(targetRequirementId)) {
+      return true;
+    }
+
+    // Try subjectCode + courseNumber format (e.g., "MATH 1300")
+    const courseCode = `${course.subjectCode} ${course.courseNumber}`;
+    info = doubleCountMap.get(courseCode);
+    if (info && info.allowedRequirementIds.includes(targetRequirementId)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  // String courseId passed (legacy support)
+  const info = doubleCountMap.get(courseIdOrCourse);
   if (!info) return false;
   return info.allowedRequirementIds.includes(targetRequirementId);
 }

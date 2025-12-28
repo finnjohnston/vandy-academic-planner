@@ -1,0 +1,71 @@
+.requirement-item-container {
+  width: calc(100% - 40px);
+  max-width: 1135px;
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  background-color: var(--color-card-bg);
+  border-bottom: 1px solid var(--color-border);
+  margin-left: auto;
+  padding-left: 0;
+  cursor: pointer;
+}
+
+.requirement-item-container.requirement-item-last:not(.requirement-item-expanded) {
+  border-bottom: none;
+}
+
+.requirement-item-container.requirement-item-border-top {
+  border-top: 1px solid var(--color-border);
+}
+
+.requirement-item-info {
+  display: grid;
+  grid-template-columns: 260px 1fr 507px auto;
+  column-gap: 20px;
+  align-items: center;
+}
+
+.requirement-item-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-light);
+  padding-left: 0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.requirement-item-credits {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-light);
+}
+
+.requirement-item-progress-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-self: end;
+  grid-column: 4;
+}
+
+.requirement-item-progress-spacer {
+  width: 0px;
+  height: 10px;
+  visibility: hidden;
+}
+
+.requirement-item-dropdown-icon {
+  color: var(--color-text-light);
+  margin-right: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.requirement-item-dropdown-icon.expanded {
+  transform: rotate(180deg);
+}

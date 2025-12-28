@@ -1,0 +1,9 @@
+.take-from-list-rule-component {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-card-bg);
+  margin: 0;
+  padding: 0;
+  gap: 0;
+}

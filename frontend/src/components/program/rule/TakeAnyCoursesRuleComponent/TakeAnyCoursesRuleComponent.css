@@ -1,0 +1,111 @@
+.take-any-courses-rule-component {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-card-bg);
+  margin: 0;
+  padding: 0;
+  gap: 0;
+}
+
+.take-any-courses-header-wrapper {
+  position: relative;
+  width: calc(100% - 60px);
+  height: 40px;
+  margin-left: auto;
+}
+
+.take-any-courses-header {
+  width: 100%;
+  height: 40px;
+  display: grid;
+  grid-template-columns: 260px 1fr 507px auto;
+  column-gap: 20px;
+  align-items: center;
+  box-sizing: border-box;
+  background-color: var(--color-card-bg);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0;
+}
+
+.take-any-courses-header.take-any-courses-header-no-term {
+  grid-template-columns: 260px 1fr auto;
+}
+
+.take-any-courses-header-course {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-dark);
+  text-align: left;
+}
+
+.take-any-courses-header-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-dark);
+  text-align: left;
+  margin-left: -50px;
+}
+
+.take-any-courses-header-term {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-dark);
+  text-align: left;
+  margin-left: -25px;
+}
+
+.take-any-courses-header-credits {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-dark);
+  text-align: left;
+  margin-left: -300px;
+}
+
+.take-any-courses-header-toggle-section {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--color-card-bg);
+  padding-left: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.take-any-courses-header-possible-courses {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-light);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.take-any-courses-empty-row {
+  width: calc(100% - 60px);
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background-color: var(--color-card-bg);
+  border-bottom: none;
+  margin-left: auto;
+  padding: 0;
+}
+
+.take-any-courses-empty-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-white);
+  text-align: center;
+}

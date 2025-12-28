@@ -1,0 +1,48 @@
+.course-table-header {
+  width: calc(100% - 60px);
+  height: 40px;
+  display: grid;
+  grid-template-columns: 260px 1fr 507px auto;
+  column-gap: 20px;
+  align-items: center;
+  box-sizing: border-box;
+  background-color: var(--color-card-bg);
+  border-bottom: 1px solid var(--color-border);
+  margin-left: auto;
+  padding: 0;
+}
+
+.course-table-header-course {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-dark);
+  text-align: left;
+}
+
+.course-table-header-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-dark);
+  text-align: left;
+  margin-left: -50px;
+}
+
+.course-table-header-term {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-dark);
+  text-align: left;
+  margin-left: -25px;
+}
+
+.course-table-header-credits {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-dark);
+  text-align: left;
+  margin-left: -300px;
+}

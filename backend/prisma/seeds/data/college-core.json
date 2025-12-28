@@ -1,0 +1,279 @@
+{
+  "sections": [
+    {
+        "id": "core_capacity_tagged_courses",
+        "title": "Core Capacity Tagged Courses",
+        "creditsRequired": 29,
+        "requirements": [
+        {
+            "id": "first_year_core",
+            "title": "First-Year Core",
+            "description": "Take the following courses",
+            "creditsRequired": 8,
+            "rule": {
+                "type": "take_courses",
+                "courses": ["CORE 1010", "CORE 1020"]
+            }
+        },
+        {
+            "id": "exploratory_core",
+            "title": "Exploratory Core",
+            "description": "2 interdisciplinary, problem-oriented CORE 2500 courses, each fulfilling 2 Core Capacities",
+            "creditsRequired": 6,
+            "rule": {
+                "type": "take_any_courses",
+                "credits": 6,
+                "filter": {
+                    "type": "subject_number",
+                    "subjects": ["CORE"],
+                    "numbers": [{ "type": "specific", "values": ["2500"] }]
+                }
+            }
+        },
+        {
+            "id": "humanities",
+            "title": "Core Capacity Tagged Course: Humanities",
+            "description": "One Humanities course with LE: HFA and at least one capacity attribute (A, B, C, D, or E)",
+            "creditsRequired": 3,
+            "rule": {
+                "type": "take_any_courses",
+                "credits": 3,
+                "filter": {
+                    "type": "composite",
+                    "operator": "AND",
+                    "filters": [
+                    {
+                        "type": "attribute",
+                        "attributeType": "core",
+                        "attributes": ["LE: HFA-Humanities and Fine Arts"]
+                    },
+                    {
+                        "type": "attribute",
+                        "attributeType": "core",
+                        "attributes": [
+                            "CORE: A-Written & Creative Expression",
+                            "CORE: B-Systemic & Structural Reasoning",
+                            "CORE: C-Cultural & Interpretive Investigation",
+                            "CORE: D-Data Literacy & Computational Thinking",
+                            "CORE: E-Ethical & Social Engagement"
+                        ]
+                    }
+                    ]
+                }
+            }
+        },
+        {
+            "id": "social_science",
+            "title": "Core Capacity Tagged Course: Social Science",
+            "description": "One Social Science course with LE: SBS attribute AND at least one capacity tag (A, B, C, D, or E)",
+            "creditsRequired": 3,
+            "rule": {
+            "type": "take_any_courses",
+            "credits": 3,
+            "filter": {
+                "type": "composite",
+                "operator": "AND",
+                "filters": [
+                {
+                    "type": "attribute",
+                    "attributeType": "core",
+                    "attributes": ["LE: SBS-Social and Behavioral Sciences"]
+                },
+                {
+                    "type": "attribute",
+                    "attributeType": "core",
+                    "attributes": [
+                        "CORE: A-Written & Creative Expression",
+                        "CORE: B-Systemic & Structural Reasoning",
+                        "CORE: C-Cultural & Interpretive Investigation",
+                        "CORE: D-Data Literacy & Computational Thinking",
+                        "CORE: E-Ethical & Social Engagement"
+                    ]
+                }
+                ]
+            }
+            }
+        },
+        {
+            "id": "natural_science",
+            "title": "Core Capacity Tagged Course: Natural Science",
+            "description": "One Natural Science course with LE: MNS attribute AND at least one capacity tag (A, B, C, D, or E)",
+            "creditsRequired": 3,
+            "rule": {
+            "type": "take_any_courses",
+            "credits": 3,
+            "filter": {
+                "type": "composite",
+                "operator": "AND",
+                "filters": [
+                {
+                    "type": "attribute",
+                    "attributeType": "core",
+                    "attributes": ["LE: MNS-Math and Natural Sciences"]
+                },
+                {
+                    "type": "attribute",
+                    "attributeType": "core",
+                    "attributes": [
+                        "CORE: A-Written & Creative Expression",
+                        "CORE: B-Systemic & Structural Reasoning",
+                        "CORE: C-Cultural & Interpretive Investigation",
+                        "CORE: D-Data Literacy & Computational Thinking",
+                        "CORE: E-Ethical & Social Engagement"
+                    ]
+                }
+                ]
+            }
+            }
+        },
+        {
+            "id": "any_tagged",
+            "title": "Core Capacity Tagged Course: Any",
+            "description": "Two additional courses tagged with 1-2 Core Capacities",
+            "creditsRequired": 6,
+            "rule": {
+                "type": "take_any_courses",
+                "credits": 6,
+                "filter": {
+                    "type": "attribute",
+                    "attributeType": "core",
+                    "attributes": [
+                        "CORE: A-Written & Creative Expression",
+                        "CORE: B-Systemic & Structural Reasoning",
+                        "CORE: C-Cultural & Interpretive Investigation",
+                        "CORE: D-Data Literacy & Computational Thinking",
+                        "CORE: E-Ethical & Social Engagement"
+                    ]
+                }
+            }
+        }
+        ]
+    },
+    {
+        "id": "core_capacity_tags",
+        "title": "Core Capacity Tags",
+        "creditsRequired": 48,
+        "requirements": [
+            {
+                "id": "capacity_a",
+                "title": "A: Written & Creative Expression",
+                "description": "4 courses tagged A",
+                "creditsRequired": 12,
+                "rule": {
+                    "type": "take_any_courses",
+                    "credits": 12,
+                    "filter": {
+                        "type": "attribute",
+                        "attributeType": "core",
+                        "attributes": ["CORE: A-Written & Creative Expression"]
+                    }
+                }
+            },
+            {
+                "id": "capacity_b",
+                "title": "B: Systemic & Structural Reasoning",
+                "description": "3 courses tagged B",
+                "creditsRequired": 9,
+                "rule": {
+                    "type": "take_any_courses",
+                    "credits": 9,
+                    "filter": {
+                        "type": "attribute",
+                        "attributeType": "core",
+                        "attributes": ["CORE: B-Systemic & Structural Reasoning"]
+                    }
+                }
+            },
+            {
+                "id": "capacity_c",
+                "title": "C: Cultural & Interpretive Investigation",
+                "description": "3 courses tagged C",
+                "creditsRequired": 9,
+                "rule": {
+                    "type": "take_any_courses",
+                    "credits": 9,
+                    "filter": {
+                        "type": "attribute",
+                        "attributeType": "core",
+                        "attributes": ["CORE: C-Cultural & Interpretive Investigation"]
+                    }
+                }
+            },
+            {
+                "id": "capacity_d",
+                "title": "D: Data Literacy & Computational Thinking",
+                "description": "3 courses tagged D",
+                "creditsRequired": 9,
+                "rule": {
+                    "type": "take_any_courses",
+                    "credits": 9,
+                    "filter": {
+                        "type": "attribute",
+                        "attributeType": "core",
+                        "attributes": ["CORE: D-Data Literacy & Computational Thinking"]
+                    }
+                }
+            },
+            {
+                "id": "capacity_e",
+                "title": "E: Ethical & Social Engagement",
+                "description": "3 courses tagged E",
+                "creditsRequired": 9,
+                "rule": {
+                    "type": "take_any_courses",
+                    "credits": 9,
+                    "filter": {
+                        "type": "attribute",
+                        "attributeType": "core",
+                        "attributes": ["CORE: E-Ethical & Social Engagement"]
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "id": "world_language",
+        "title": "World Language",
+        "creditsRequired": 3,
+        "requirements": [
+            {
+                "id": "world_language_course",
+                "title": "LA: World Language",
+                "description": "1 course tagged LA",
+                "creditsRequired": 3,
+                "rule": {
+                    "type": "take_any_courses",
+                    "credits": 3,
+                    "filter": {
+                        "type": "attribute",
+                        "attributeType": "core",
+                        "attributes": ["CORE: LA-World Language through 2nd Semester"]
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "id": "inquiry_lab",
+        "title": "Inquiry Lab",
+        "creditsRequired": 3,
+        "requirements": [
+            {
+                "id": "inquiry_lab_course",
+                "title": "LB: Inquiry Lab",
+                "description": "3-4 hours of coursework - either a 3-4 credit course or a 1-credit lab with a 3-credit corequisite",
+                "creditsRequired": 3,
+                "rule": {
+                    "type": "take_any_courses",
+                    "credits": 3,
+                    "filter": {
+                        "type": "attribute",
+                        "attributeType": "core",
+                        "attributes": ["CORE: LB-Inquiry Lab"]
+                    }
+                }
+            }
+        ]
+    }
+    ]
+}

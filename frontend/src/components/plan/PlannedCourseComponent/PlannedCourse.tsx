@@ -98,17 +98,6 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
 
   const showIndicator = shouldShowIndicator && !isDraggingAdjacentToLastPosition;
 
-  // DEBUG LOGGING
-  useEffect(() => {
-    console.log(`COURSE ${subjectCode} ${courseNumber} (pos ${position}):`, {
-      showIndicator,
-      gapClass: showIndicator ? (indicatorPosition === 'above' ? 'GAP-ABOVE' : 'GAP-BELOW') : 'NO-GAP',
-      isDragging,
-      dragOverPosition: dragOverPosition?.position,
-      thisPosition: position
-    });
-  }, [showIndicator, position, isDragging, dragOverPosition, subjectCode, courseNumber, indicatorPosition]);
-
   // Check if there's a same-semester drag happening
   const isSameSemesterDrag = dragOverPosition && dragOverPosition.semesterNumber === semesterNumber;
 

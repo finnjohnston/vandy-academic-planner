@@ -25,6 +25,8 @@
   --color-text-dark: #8C8C8C;
   --color-text-light: #D4D4D4;
   --color-text-white: #FFFFFF;
+  --color-text-green: #22C55E;
+  --color-text-red: #EF4444;
 }
 
 a {

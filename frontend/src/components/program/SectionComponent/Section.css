@@ -1,0 +1,74 @@
+.section-container {
+  width: calc(100% - 20px);
+  max-width: 1155px;
+  height: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  background-color: var(--color-card-bg);
+  border-bottom: 1px solid var(--color-border);
+  margin-left: auto;
+  padding-left: 0;
+  cursor: pointer;
+}
+
+.section-container.section-last {
+  border-bottom: none;
+}
+
+.section-container.section-last.section-expanded {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.section-container.section-border-top {
+  border-top: 1px solid var(--color-border);
+}
+
+.section-info {
+  display: grid;
+  grid-template-columns: 260px 1fr 378px auto;
+  column-gap: 20px;
+  align-items: center;
+}
+
+.section-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-white);
+  padding-left: 0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.section-credits {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-white);
+}
+
+.section-progress-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-self: end;
+  grid-column: 4;
+}
+
+.section-progress-spacer {
+  width: 150px;
+  height: 10px;
+  visibility: hidden;
+}
+
+.section-dropdown-icon {
+  color: var(--color-text-white);
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.section-dropdown-icon.expanded {
+  transform: rotate(180deg);
+}

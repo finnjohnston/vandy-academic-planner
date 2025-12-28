@@ -13,6 +13,10 @@ import logger from '../../utils/logger.js';
  * Automatically assign all courses in a plan to requirements
  * Called when courses or programs are added/removed
  * Supports double counting and enforcement constraints
+ *
+ * KEY BEHAVIOR: Courses automatically count across ALL programs unless constrained.
+ * Double count constraints only apply within a single program (one course counting
+ * for multiple requirements in the same program).
  */
 export async function autoAssignFulfillments(planId: number): Promise<void> {
   logger.info(`Auto-assigning fulfillments for plan ${planId}`);
@@ -49,33 +53,46 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
 
   logger.info(`Cleared existing fulfillments for plan ${planId}`);
 
-  // STEP 3: For each program, build double count map and process courses
-  for (const planProgram of plan.planPrograms) {
-    const programRequirements =
-      planProgram.program.requirements as ProgramRequirements;
-    const doubleCountMap = buildDoubleCountMap(programRequirements);
+  // STEP 3: Build double count maps and fulfillment tracking for each program
+  const programData = plan.planPrograms.map((planProgram) => ({
+    planProgram,
+    programRequirements: planProgram.program.requirements as ProgramRequirements,
+    doubleCountMap: buildDoubleCountMap(
+      planProgram.program.requirements as ProgramRequirements
+    ),
+    allFulfillments: [] as FulfillmentRecord[],
+  }));
 
-    logger.debug(
-      `Built double count map for ${planProgram.program.name}: ${doubleCountMap.size} courses`
-    );
+  // STEP 4: Process each course across ALL programs
+  for (const plannedCourse of plan.plannedCourses) {
+    if (!plannedCourse.course) continue;
 
-    // Track all fulfillments created for this program (for enforcement constraint checking)
-    const allFulfillments: FulfillmentRecord[] = [];
+    const course = plannedCourse.course;
+    logger.info(`Processing course ${course.courseId} across ${programData.length} programs`);
 
-    // STEP 4: For each course, find all valid matches
-    for (const plannedCourse of plan.plannedCourses) {
-      if (!plannedCourse.course) continue;
+    // STEP 5: For each program, find matches and assign fulfillments
+    for (const data of programData) {
+      const { planProgram, programRequirements, doubleCountMap, allFulfillments } = data;
 
-      const course = plannedCourse.course;
-
-      // Find all requirements this course could fulfill
+      // Find all requirements this course could fulfill in this program
       const matches = findMatchingRequirements(course, programRequirements);
 
-      // Track which requirements we've assigned this course to
+      if (matches.length === 0) {
+        logger.info(
+          `No matches for ${course.courseId} in program ${planProgram.program.name}`
+        );
+        continue;
+      }
+
+      logger.info(
+        `Found ${matches.length} potential matches for ${course.courseId} in program ${planProgram.program.name}`
+      );
+
+      // Track which requirements we've assigned this course to IN THIS PROGRAM
       const assignedRequirementIds: string[] = [];
       const deferredMatches: typeof matches = [];
 
-      // STEP 5: Process matches in specificity order
+      // STEP 6: Process matches in specificity order (within this program)
       for (const match of matches) {
         const fullRequirementId = `${match.sectionId}.${match.requirementId}`;
 
@@ -84,14 +101,15 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
           continue;
         }
 
-        // Check if already assigned to a different requirement
-        const alreadyAssigned = assignedRequirementIds.length > 0;
+        // Check if already assigned to a different requirement IN THIS PROGRAM
+        const alreadyAssignedInProgram = assignedRequirementIds.length > 0;
 
-        // If already assigned, check if double counting is allowed
-        if (alreadyAssigned) {
-          if (!canDoubleCount(course.courseId, fullRequirementId, doubleCountMap)) {
+        // If already assigned within this program, check if double counting is allowed
+        if (alreadyAssignedInProgram) {
+          if (!canDoubleCount(course, fullRequirementId, doubleCountMap)) {
             logger.debug(
-              `Skipping ${course.courseId} for ${fullRequirementId}: already assigned and double counting not allowed`
+              `Skipping ${course.courseId} for ${fullRequirementId} in ${planProgram.program.name}: ` +
+                `already assigned within program and double counting not allowed`
             );
             continue;
           }
@@ -123,7 +141,7 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
 
         if (!enforcementCheck.allowed) {
           logger.debug(
-            `Deferring ${course.courseId} for ${fullRequirementId}: ${enforcementCheck.reason}`
+            `Deferring ${course.courseId} for ${fullRequirementId} in ${planProgram.program.name}: ${enforcementCheck.reason}`
           );
           deferredMatches.push(match);
           continue;
@@ -156,30 +174,18 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
           creditsApplied: plannedCourse.credits,
         });
 
-        logger.debug(
-          `Assigned ${course.courseId} to ${fullRequirementId} in program ${planProgram.program.name} ` +
-            `(score: ${match.specificityScore})${alreadyAssigned ? ' [DOUBLE COUNT]' : ''}`
+        logger.info(
+          `✓ Assigned ${course.courseId} to ${fullRequirementId} in program ${planProgram.program.name} ` +
+            `(planProgramId: ${planProgram.id}, score: ${match.specificityScore})${alreadyAssignedInProgram ? ' [DOUBLE COUNT WITHIN PROGRAM]' : ''}`
         );
-
-        // If not double counting and we've made one assignment, stop
-        if (!alreadyAssigned) {
-          // Don't break - continue to check for double count possibilities
-        }
       }
 
-      // STEP 6: Re-check deferred matches after other assignments
+      // STEP 7: Re-check deferred matches after other assignments (within this program)
       for (const match of deferredMatches) {
         const fullRequirementId = `${match.sectionId}.${match.requirementId}`;
 
         if (assignedRequirementIds.includes(fullRequirementId)) {
           continue;
-        }
-
-        const alreadyAssigned = assignedRequirementIds.length > 0;
-        if (alreadyAssigned) {
-          if (!canDoubleCount(course.courseId, fullRequirementId, doubleCountMap)) {
-            continue;
-          }
         }
 
         const section = programRequirements.sections.find(
@@ -193,6 +199,7 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
           continue;
         }
 
+        // Re-check enforcement constraints first (they may pass now after other assignments)
         const enforcementCheck = checkEnforcementConstraints(
           course,
           requirement,
@@ -203,6 +210,18 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
 
         if (!enforcementCheck.allowed) {
           continue;
+        }
+
+        // If enforcement constraint passed, double counting is implicitly allowed
+        const alreadyAssignedInProgram = assignedRequirementIds.length > 0;
+        if (alreadyAssignedInProgram) {
+          const hasEnforcementConstraint = requirement.constraintsStructured?.some(
+            (c) => c.type === 'require_course_from_sections'
+          );
+
+          if (!hasEnforcementConstraint && !canDoubleCount(course, fullRequirementId, doubleCountMap)) {
+            continue;
+          }
         }
 
         await prisma.requirementFulfillment.create({
@@ -229,6 +248,10 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
           },
           creditsApplied: plannedCourse.credits,
         });
+
+        logger.debug(
+          `Assigned ${course.courseId} to ${fullRequirementId} in program ${planProgram.program.name} [DEFERRED]`
+        );
       }
     }
   }
