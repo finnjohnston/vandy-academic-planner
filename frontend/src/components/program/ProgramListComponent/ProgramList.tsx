@@ -19,9 +19,20 @@ interface ProgramListProps {
     semesterNumber: number;
   }>;
   academicYearId: number;
+  showCheckmarks?: boolean;
+  checkedProgramIds?: Set<number>;
+  onCheckChange?: (programId: number, checked: boolean) => void;
 }
 
-const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCourses, academicYearId }) => {
+const ProgramList: React.FC<ProgramListProps> = ({
+  planId,
+  programs,
+  plannedCourses,
+  academicYearId,
+  showCheckmarks = false,
+  checkedProgramIds = new Set(),
+  onCheckChange
+}) => {
   const [progressByProgramId, setProgressByProgramId] = useState<
     Record<number, {
       fulfilled: number;
@@ -119,6 +130,9 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
             creditsText={`${fulfilled} / ${required} credits`}
             sections={sections}
             academicYearId={academicYearId}
+            showCheckmark={showCheckmarks}
+            checked={checkedProgramIds.has(program.id)}
+            onCheckChange={onCheckChange ? (checked) => onCheckChange(program.id, checked) : undefined}
           />
         );
       })}

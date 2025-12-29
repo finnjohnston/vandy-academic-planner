@@ -6,5 +6,5 @@
 }
 
 .program-list > .program-container:first-child {
-  margin-top: 10px;
+  border-top: none;
 }

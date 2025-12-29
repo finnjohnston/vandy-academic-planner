@@ -2,12 +2,24 @@ import React, { useState, useRef, useEffect } from 'react';
 import './ProgramDropdown.css';
 import dropdownIcon from '../../../../assets/dropdown_icon.png';
 
-const ProgramDropdown: React.FC = () => {
-  const [selectedValue, setSelectedValue] = useState('All');
+interface ProgramDropdownProps {
+  value?: string;
+  onChange?: (value: string) => void;
+}
+
+const ProgramDropdown: React.FC<ProgramDropdownProps> = ({ value, onChange }) => {
+  const [selectedValue, setSelectedValue] = useState(value || 'All');
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const options = ['All', 'Major', 'Minor'];
+
+  // Sync with controlled value
+  useEffect(() => {
+    if (value !== undefined) {
+      setSelectedValue(value);
+    }
+  }, [value]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -29,6 +41,9 @@ const ProgramDropdown: React.FC = () => {
   const handleSelect = (option: string) => {
     setSelectedValue(option);
     setIsOpen(false);
+    if (onChange) {
+      onChange(option);
+    }
   };
 
   return (

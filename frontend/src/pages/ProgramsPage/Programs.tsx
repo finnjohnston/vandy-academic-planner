@@ -6,7 +6,7 @@ import ProgramDropdown from '../../components/program/programpage/ProgramDropdow
 import Toggle from '../../components/common/ToggleComponent/Toggle';
 import ReturnToPlanButton from '../../components/program/programpage/ReturnToPlanButtonComponent/ReturnToPlanButton';
 import ProgramsTableHeader from '../../components/program/programpage/ProgramsTableHeaderComponent/ProgramsTableHeader';
-import Program from '../../components/program/ProgramComponent/Program';
+import ProgramList from '../../components/program/ProgramListComponent/ProgramList';
 import './Programs.css';
 
 interface PlanData {
@@ -28,11 +28,19 @@ interface PlanData {
 
 const Programs: React.FC = () => {
   const { planId } = useParams<{ planId?: string }>();
-  const [showAllCourses, setShowAllCourses] = useState(false);
+  const [showAllPrograms, setShowAllPrograms] = useState(false);
   const [planData, setPlanData] = useState<PlanData | null>(null);
+  const [allAvailablePrograms, setAllAvailablePrograms] = useState<Array<{
+    id: number;
+    name: string;
+    type: string;
+    totalCredits: number;
+  }>>([]);
   const [loading, setLoading] = useState(!!planId);
   const [error, setError] = useState<string | null>(null);
   const [checkedPrograms, setCheckedPrograms] = useState<Set<number>>(new Set());
+  const [selectedType, setSelectedType] = useState<string>('All');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     if (!planId) return;
@@ -59,16 +67,81 @@ const Programs: React.FC = () => {
     fetchPlan();
   }, [planId]);
 
-  const handleCheckChange = (programId: number, checked: boolean) => {
-    setCheckedPrograms(prev => {
-      const newSet = new Set(prev);
-      if (checked) {
-        newSet.add(programId);
-      } else {
-        newSet.delete(programId);
+  // Fetch all available programs
+  useEffect(() => {
+    const fetchAllPrograms = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/programs');
+        if (!response.ok) throw new Error('Failed to fetch all programs');
+        const result = await response.json();
+
+        // Filter to only Major and Minor types
+        const majorMinorPrograms = result.data
+          .filter((p: any) => {
+            const type = p.type.toLowerCase();
+            return type === 'major' || type === 'minor';
+          })
+          .map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            type: p.type,
+            totalCredits: p.totalCredits
+          }));
+
+        setAllAvailablePrograms(majorMinorPrograms);
+      } catch (err) {
+        console.error('Error fetching all programs:', err);
       }
-      return newSet;
-    });
+    };
+
+    fetchAllPrograms();
+  }, []);
+
+  const handleCheckChange = async (programId: number, checked: boolean) => {
+    if (!planData) return;
+
+    // Optimistically update UI
+    const newCheckedPrograms = new Set(checkedPrograms);
+    if (checked) {
+      newCheckedPrograms.add(programId);
+    } else {
+      newCheckedPrograms.delete(programId);
+    }
+    setCheckedPrograms(newCheckedPrograms);
+
+    try {
+      // Save to database
+      const response = await fetch(
+        `http://localhost:3000/api/plans/${planData.id}/programs`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ programIds: Array.from(newCheckedPrograms) })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to update programs');
+      }
+
+      // Refetch plan data to ensure UI is in sync
+      const planResponse = await fetch(`http://localhost:3000/api/plans/${planData.id}`);
+      if (planResponse.ok) {
+        const planResult = await planResponse.json();
+        setPlanData(planResult.data);
+
+        // Update checked programs from fresh data
+        const updatedProgramIds = new Set(
+          planResult.data.programs.map((p: any) => p.program.id)
+        );
+        setCheckedPrograms(updatedProgramIds);
+      }
+    } catch (err) {
+      console.error('Error updating programs:', err);
+      // Revert optimistic update on error
+      setCheckedPrograms(checkedPrograms);
+      alert('Failed to update programs. Please try again.');
+    }
   };
 
   if (loading) {
@@ -106,36 +179,76 @@ const Programs: React.FC = () => {
           <ReturnToPlanButton planId={planId ? parseInt(planId) : undefined} />
         </div>
         <div className="programs-search-wrapper">
-          <ProgramSearchBar />
-          <ProgramDropdown />
+          <ProgramSearchBar value={searchQuery} onChange={setSearchQuery} />
+          <ProgramDropdown value={selectedType} onChange={setSelectedType} />
           <div className="programs-toggle-section">
             <Toggle
-              isOn={showAllCourses}
-              onToggle={() => setShowAllCourses(!showAllCourses)}
+              isOn={showAllPrograms}
+              onToggle={() => setShowAllPrograms(!showAllPrograms)}
             />
             <span className="programs-toggle-text">All programs</span>
           </div>
         </div>
         <ProgramsTableHeader />
-        <Program
-          name="Computer Science"
-          type="Major"
-          creditsText="45 / 51 credits"
-          progressPercent={88}
-          academicYearId={1}
-          sections={[
-            {
-              sectionId: 'core',
-              title: 'Core Requirements',
-              creditsRequired: 30,
-              creditsFulfilled: 24,
-              percentage: 80,
-            },
-          ]}
-          showCheckmark={true}
-          checked={checkedPrograms.has(1)}
-          onCheckChange={(checked) => handleCheckChange(1, checked)}
-        />
+        {(() => {
+          // Determine which programs to show based on toggle
+          let sourcePrograms = showAllPrograms
+            ? allAvailablePrograms
+            : (planData ? planData.programs.map(p => ({
+                id: p.program.id,
+                name: p.program.name,
+                type: p.program.type,
+                totalCredits: p.program.totalCredits
+              })) : []);
+
+          // Filter to only Major and Minor types
+          sourcePrograms = sourcePrograms.filter(p => {
+            const type = p.type.toLowerCase();
+            return type === 'major' || type === 'minor';
+          });
+
+          // Filter by type dropdown selection
+          let filteredPrograms = selectedType === 'All'
+            ? sourcePrograms
+            : sourcePrograms.filter(p => p.type.toLowerCase() === selectedType.toLowerCase());
+
+          // Filter by search query
+          if (searchQuery.trim()) {
+            filteredPrograms = filteredPrograms.filter(p =>
+              p.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+          }
+
+          // Sort: Alphabetically by name, then Major before Minor for same name
+          filteredPrograms.sort((a, b) => {
+            // First, sort alphabetically by name
+            const nameComparison = a.name.localeCompare(b.name);
+
+            // If names are different, use alphabetical order
+            if (nameComparison !== 0) {
+              return nameComparison;
+            }
+
+            // If names are the same, Major comes before Minor
+            const typeA = a.type.toLowerCase();
+            const typeB = b.type.toLowerCase();
+            return typeA === 'major' ? -1 : 1;
+          });
+
+          // Only render if we have planData (needed for planId and academicYearId)
+          if (!planData) return null;
+
+          return (
+            <ProgramList
+              planId={planData.id}
+              programs={filteredPrograms}
+              academicYearId={planData.academicYearId}
+              showCheckmarks={true}
+              checkedProgramIds={checkedPrograms}
+              onCheckChange={handleCheckChange}
+            />
+          );
+        })()}
       </div>
     </div>
   );
