@@ -24,6 +24,11 @@ interface PlanData {
       totalCredits: number;
     };
   }>;
+  plannedCourses: Array<{
+    id: number;
+    courseId: string | null;
+    semesterNumber: number;
+  }>;
 }
 
 const Programs: React.FC = () => {
@@ -193,9 +198,16 @@ const Programs: React.FC = () => {
         {(() => {
           // Determine which programs to show based on toggle
           let sourcePrograms = showAllPrograms
-            ? allAvailablePrograms
+            ? allAvailablePrograms.map(p => ({
+                id: p.id,
+                programId: p.id, // For "All programs", id IS the program ID
+                name: p.name,
+                type: p.type,
+                totalCredits: p.totalCredits
+              }))
             : (planData ? planData.programs.map(p => ({
-                id: p.program.id,
+                id: p.id, // planProgram ID (for API calls)
+                programId: p.program.id, // program ID (for checkmarks)
                 name: p.program.name,
                 type: p.program.type,
                 totalCredits: p.program.totalCredits
@@ -242,6 +254,7 @@ const Programs: React.FC = () => {
             <ProgramList
               planId={planData.id}
               programs={filteredPrograms}
+              plannedCourses={planData.plannedCourses}
               academicYearId={planData.academicYearId}
               showCheckmarks={true}
               checkedProgramIds={checkedPrograms}

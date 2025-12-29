@@ -75,3 +75,63 @@
 .programs-page .program-container {
   background-color: var(--color-bg);
 }
+
+.programs-page .section-container {
+  background-color: var(--color-bg);
+}
+
+.programs-page .requirement-item-container {
+  background-color: var(--color-bg);
+}
+
+.programs-page .take-courses-rule-component {
+  background-color: var(--color-bg);
+}
+
+.programs-page .group-rule-component {
+  background-color: var(--color-bg);
+}
+
+.programs-page .group-rule-description {
+  background-color: var(--color-bg);
+}
+
+.programs-page .group-rule-option {
+  background-color: var(--color-bg);
+}
+
+.programs-page .take-from-list-rule-component {
+  background-color: var(--color-bg);
+}
+
+.programs-page .take-any-courses-rule-component {
+  background-color: var(--color-bg);
+}
+
+.programs-page .take-any-courses-header {
+  background-color: var(--color-bg);
+}
+
+.programs-page .take-any-courses-header-toggle-section {
+  background-color: var(--color-bg);
+}
+
+.programs-page .take-any-courses-empty-row {
+  background-color: var(--color-bg);
+}
+
+.programs-page .rule-description-field {
+  background-color: var(--color-bg);
+}
+
+.programs-page .course-row {
+  background-color: var(--color-bg);
+}
+
+.programs-page .course-table-header {
+  background-color: var(--color-bg);
+}
+
+.programs-page .constraint-field {
+  background-color: var(--color-bg);
+}

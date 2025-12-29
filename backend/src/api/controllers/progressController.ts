@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { calculateProgramProgress } from '../services/progressCalculator.service.js';
+import { calculateProgramProgress, calculateProgramPreview } from '../services/progressCalculator.service.js';
 import { aggregatePlanProgress } from '../services/planProgressAggregator.service.js';
 import { NotFoundError } from '../types/error.types.js';
 import { sendSuccess } from '../utils/response.utils.js';
@@ -177,6 +177,34 @@ export async function getProgramRequirementsProgress(
         constraintValidation: programProgress.constraintValidation ?? null,
       },
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/programs/:programId/preview?planId=:planId
+ * Preview program structure and progress for any program (even if not in plan)
+ */
+export async function getProgramPreview(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { id } = req.params;
+    const { planId } = req.query;
+    logger.http(`GET /api/programs/${id}/preview?planId=${planId}`);
+
+    if (!planId) {
+      throw new NotFoundError('planId query parameter is required');
+    }
+
+    const progress = await calculateProgramPreview(
+      Number(id),
+      Number(planId)
+    );
+    sendSuccess(res, progress);
   } catch (err) {
     next(err);
   }

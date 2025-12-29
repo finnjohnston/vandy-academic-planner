@@ -24,6 +24,7 @@ import {
   ConstraintValidationContext,
   FulfillmentRecord,
 } from '../types/constraint.types.js';
+import { findMatchingRequirements } from './requirementMatcher.service.js';
 
 const getTermLabel = (semesterNumber: number, academicYearStart: number): string => {
   const season = semesterNumber % 2 === 1 ? 'Fall' : 'Spring';
@@ -31,6 +32,138 @@ const getTermLabel = (semesterNumber: number, academicYearStart: number): string
   const year = academicYearStart + yearOffset;
   return `${season} ${year}`;
 };
+
+/**
+ * Calculate program preview for any program (even if not in plan)
+ * Shows program structure with progress based on plan's courses
+ */
+export async function calculateProgramPreview(
+  programId: number,
+  planId: number
+): Promise<ProgramProgress> {
+  // Fetch program
+  const program = await prisma.program.findUnique({
+    where: { id: programId },
+  });
+
+  if (!program) {
+    throw new NotFoundError('Program not found');
+  }
+
+  // Fetch plan with academic year and planned courses
+  const plan = await prisma.plan.findUnique({
+    where: { id: planId },
+    include: {
+      academicYear: true,
+      plannedCourses: {
+        include: { course: true },
+        orderBy: [{ semesterNumber: 'asc' }, { position: 'asc' }],
+      },
+    },
+  });
+
+  if (!plan) {
+    throw new NotFoundError('Plan not found');
+  }
+
+  // Check if program is already in the plan
+  const planProgram = await prisma.planProgram.findFirst({
+    where: {
+      planId: planId,
+      programId: programId,
+    },
+  });
+
+  // If program is in the plan, use the regular progress calculation
+  if (planProgram) {
+    return calculateProgramProgress(planProgram.id);
+  }
+
+  // Program not in plan - calculate hypothetical fulfillments
+  const requirements = program.requirements as unknown as ProgramRequirements;
+  const academicYearStart = plan.academicYear.start;
+  const academicYearId = plan.academicYear.id;
+
+  // Find hypothetical fulfillments by matching planned courses to requirements
+  const enrichedFulfillments: EnrichedFulfillment[] = [];
+
+  for (const plannedCourse of plan.plannedCourses) {
+    if (!plannedCourse.course) continue;
+
+    const course = plannedCourse.course;
+    // Find all requirements this course could fulfill
+    const matches = findMatchingRequirements(course, requirements);
+
+    // For preview mode, assign each course to its first (most specific) match
+    if (matches.length > 0) {
+      const match = matches[0]; // Take the most specific match
+      const fullRequirementId = `${match.sectionId}.${match.requirementId}`;
+
+      enrichedFulfillments.push({
+        requirementId: fullRequirementId,
+        course: {
+          id: course.id,
+          courseId: course.courseId,
+          title: course.title,
+          credits: plannedCourse.credits,
+          subjectCode: course.subjectCode,
+          courseNumber: course.courseNumber,
+          attributes: course.attributes,
+        },
+        creditsApplied: plannedCourse.credits,
+        semesterNumber: plannedCourse.semesterNumber,
+      });
+    }
+  }
+
+  // Calculate progress for each section using hypothetical fulfillments
+  const sectionProgress = await Promise.all(
+    requirements.sections.map((section) =>
+      calculateSectionProgress(
+        section,
+        section.id,
+        enrichedFulfillments,
+        requirements,
+        0, // No planProgramId since not in plan
+        academicYearStart,
+        academicYearId
+      )
+    )
+  );
+
+  // Calculate total progress from hypothetical fulfillments
+  const totalCreditsFulfilled = sectionProgress.reduce(
+    (sum, s) => sum + s.creditsFulfilled,
+    0
+  );
+  const totalCreditsRequired = program.totalCredits;
+  const percentage =
+    totalCreditsRequired === 0 ? 100 : (totalCreditsFulfilled / totalCreditsRequired) * 100;
+
+  // Determine status based on hypothetical progress
+  let status: ProgressStatus;
+  if (totalCreditsFulfilled === 0) {
+    status = 'not_started';
+  } else if (totalCreditsFulfilled >= totalCreditsRequired) {
+    status = 'completed';
+  } else {
+    status = 'in_progress';
+  }
+
+  return {
+    planProgramId: 0, // 0 indicates this is a preview, not an actual plan program
+    programId: program.id,
+    programName: program.name,
+    programType: program.type,
+    status,
+    totalCreditsRequired,
+    totalCreditsFulfilled,
+    percentage,
+    sectionProgress,
+    lastUpdated: new Date(),
+    constraintValidation: undefined,
+  };
+}
 
 /**
  * Calculate complete progress for a program in a plan
