@@ -1,4 +1,4 @@
-.filter-courses-toggle {
+.toggle {
   width: 35px;
   height: 20px;
   border-radius: 999px;
@@ -11,25 +11,25 @@
   outline: none;
 }
 
-.filter-courses-toggle:hover {
+.toggle:hover {
   border: 1px solid var(--color-btn-border);
 }
 
-.filter-courses-toggle:focus,
-.filter-courses-toggle:focus-visible {
+.toggle:focus,
+.toggle:focus-visible {
   outline: none;
 }
 
-.filter-courses-toggle-on {
+.toggle-on {
   background-color: var(--color-text-light);
   border: 1px solid var(--color-text-light);
 }
 
-.filter-courses-toggle-on:hover {
+.toggle-on:hover {
   border: 1px solid var(--color-text-light);
 }
 
-.filter-courses-toggle-circle {
+.toggle-circle {
   width: 16px;
   height: 16px;
   border-radius: 50%;
@@ -40,7 +40,7 @@
   transition: left 0.2s ease, background-color 0.2s ease;
 }
 
-.filter-courses-toggle-on .filter-courses-toggle-circle {
+.toggle-on .toggle-circle {
   left: 17px;
   background-color: black;
 }

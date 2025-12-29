@@ -3,7 +3,7 @@ import RuleDescriptionField from '../RuleDescriptionFieldComponent/RuleDescripti
 import CourseTableHeader from '../CourseTableHeaderComponent/CourseTableHeader';
 import CourseList from '../CourseListComponent/CourseList';
 import ConstraintField from '../ConstraintFieldComponent/ConstraintField';
-import FilterCoursesToggle from '../../../../components/program/rule/FilterCoursesToggleComponent/FilterCoursesToggle';
+import Toggle from '../../../common/ToggleComponent/Toggle';
 import type { RequirementProgress, TakeAnyCoursesProgressDetails } from '../../../../types/RequirementProgress';
 import './TakeAnyCoursesRuleComponent.css';
 
@@ -189,7 +189,7 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
           <span className="take-any-courses-header-credits">Credits</span>
         </div>
         <div className="take-any-courses-header-toggle-section">
-          <FilterCoursesToggle
+          <Toggle
             isOn={filterToggle}
             onToggle={() => setFilterToggle(!filterToggle)}
           />

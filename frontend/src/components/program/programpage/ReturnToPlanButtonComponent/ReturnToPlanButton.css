@@ -1,0 +1,46 @@
+.return-to-plan-button {
+  width: 125px;
+  height: 35px;
+  background-color: var(--color-btn-bg);
+  border: 1px solid var(--color-btn-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  box-shadow: none;
+}
+
+.return-to-plan-button:hover {
+  outline: none;
+  box-shadow: none;
+  background-color: var(--color-btn-border);
+}
+
+.return-to-plan-button:active {
+  outline: none;
+  box-shadow: none;
+}
+
+.return-to-plan-text {
+  position: absolute;
+  left: 60%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-white);
+  white-space: nowrap;
+}
+
+.return-to-plan-icon {
+  position: absolute;
+  left: 15%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  filter: brightness(0) invert(1);
+}
