@@ -28,7 +28,7 @@
 
 .program-info {
   display: grid;
-  grid-template-columns: 260px 80px 360px auto;
+  grid-template-columns: 260px 80px 320px auto;
   column-gap: 20px;
   align-items: center;
 }
