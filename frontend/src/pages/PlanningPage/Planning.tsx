@@ -8,6 +8,7 @@ import CourseSearch from '../../components/course/CourseSearchComponent/CourseSe
 import Plan from '../../components/plan/PlanComponent/Plan';
 import Requirement from '../../components/program/RequirementComponent/Requirement';
 import CourseDetail from '../../components/course/CourseDetailComponent/CourseDetail';
+import TransferCredits from '../../components/course/TransferCreditsComponent/TransferCredits';
 import type { Course } from '../../types/Course';
 import type { DragData } from '../../types/DragData';
 import './Planning.css';
@@ -537,6 +538,9 @@ const Planning: React.FC = () => {
           isBlurred={isPopupOpen || isEditProgramsOpen}
         />
         <div className="plan-requirements-container">
+          <div className="transfer-credits-wrapper">
+            <TransferCredits />
+          </div>
           <Plan
             planId={planData.id}
             planName={planData.name}

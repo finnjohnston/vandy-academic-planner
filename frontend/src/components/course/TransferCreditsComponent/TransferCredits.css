@@ -1,0 +1,40 @@
+.transfer-credits-button {
+  height: 30px;
+  padding: 0 20px;
+  background-color: transparent;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  outline: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.transfer-credits-button:hover {
+  background-color: var(--color-btn-bg);
+}
+
+.transfer-credits-button:focus {
+  outline: none;
+}
+
+.transfer-credits-button:active {
+  outline: none;
+}
+
+.transfer-credits-icon {
+  width: 12px;
+  height: 12px;
+  filter: brightness(0) saturate(100%) invert(85%);
+}
+
+.transfer-credits-text {
+  color: var(--color-text-light);
+  font-size: 13px;
+}
