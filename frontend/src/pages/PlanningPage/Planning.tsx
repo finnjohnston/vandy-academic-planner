@@ -53,7 +53,6 @@ interface PlanData {
 const Planning: React.FC = () => {
   const { planId } = useParams<{ planId: string }>();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [isEditProgramsOpen, setIsEditProgramsOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [planData, setPlanData] = useState<PlanData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -140,43 +139,6 @@ const Planning: React.FC = () => {
       console.error('Error deleting course:', err);
       setPlanData(originalPlanData);
       setError(err instanceof Error ? err.message : 'Failed to delete course');
-    }
-  };
-
-  const handleSavePrograms = async (programIds: number[]) => {
-    if (!planData) return;
-
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/plans/${planData.id}/programs`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ programIds })
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to update programs');
-      }
-
-      // Refetch the plan to get updated programs data
-      const planResponse = await fetch(`${API_BASE_URL}/api/plans/${planData.id}`);
-      if (!planResponse.ok) {
-        throw new Error('Failed to refetch plan data');
-      }
-
-      const planResult = await planResponse.json();
-      if (planResult.data) {
-        setPlanData(planResult.data);
-      } else {
-        throw new Error('Invalid plan data received');
-      }
-    } catch (err) {
-      console.error('Error updating programs:', err);
-      // Don't set error state, just log it - keep the UI intact
-      alert(err instanceof Error ? err.message : 'Failed to update programs');
     }
   };
 
@@ -531,11 +493,11 @@ const Planning: React.FC = () => {
       collisionDetection={pointerWithin}
     >
       <div className="planning-page">
-        <NavBar isBlurred={isPopupOpen || isEditProgramsOpen} />
+        <NavBar isBlurred={isPopupOpen} />
         <CourseSearch
           onPopupOpen={() => setIsPopupOpen(true)}
           onPopupClose={() => setIsPopupOpen(false)}
-          isBlurred={isPopupOpen || isEditProgramsOpen}
+          isBlurred={isPopupOpen}
         />
         <div className="plan-requirements-container">
           <div className="transfer-credits-wrapper">
@@ -546,7 +508,7 @@ const Planning: React.FC = () => {
             planName={planData.name}
             academicYear={planData.academicYear}
             plannedCourses={planData.plannedCourses}
-            isBlurred={isPopupOpen || isEditProgramsOpen}
+            isBlurred={isPopupOpen}
             onCourseDetailsClick={handlePlannedCourseClick}
             onDeleteCourseClick={handleDeleteCourse}
             dragOverPosition={dragOverPosition}
@@ -565,10 +527,6 @@ const Planning: React.FC = () => {
             academicYearId={planData.academicYearId}
             schoolId={planData.schoolId}
             currentProgramIds={planData.programs.map((planProgram) => planProgram.program.id)}
-            isEditProgramsOpen={isEditProgramsOpen}
-            onEditProgramsOpen={() => setIsEditProgramsOpen(true)}
-            onEditProgramsClose={() => setIsEditProgramsOpen(false)}
-            onSavePrograms={handleSavePrograms}
           />
         </div>
 

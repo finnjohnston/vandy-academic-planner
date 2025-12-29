@@ -11,6 +11,7 @@ function App() {
         <Route path="/planning/:planId" element={<Planning />} />
         <Route path="/planning" element={<Planning />} />
         <Route path="/plans" element={<Plans />} />
+        <Route path="/programs/:planId" element={<Programs />} />
         <Route path="/programs" element={<Programs />} />
       </Routes>
     </BrowserRouter>
