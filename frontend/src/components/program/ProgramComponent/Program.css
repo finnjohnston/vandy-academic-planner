@@ -65,3 +65,28 @@
 .program-dropdown-icon.expanded {
   transform: rotate(180deg);
 }
+
+.program-checkbox {
+  width: 15px;
+  height: 15px;
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  margin-right: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.program-checkbox.checked {
+  background-color: var(--color-text-light);
+  border-color: var(--color-text-light);
+}
+
+.program-checkbox-icon {
+  width: 10px;
+  height: 10px;
+  filter: brightness(0);
+}

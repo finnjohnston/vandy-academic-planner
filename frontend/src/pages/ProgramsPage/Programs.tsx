@@ -32,6 +32,7 @@ const Programs: React.FC = () => {
   const [planData, setPlanData] = useState<PlanData | null>(null);
   const [loading, setLoading] = useState(!!planId);
   const [error, setError] = useState<string | null>(null);
+  const [checkedPrograms, setCheckedPrograms] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (!planId) return;
@@ -42,6 +43,12 @@ const Programs: React.FC = () => {
         if (!response.ok) throw new Error('Failed to fetch plan data');
         const result = await response.json();
         setPlanData(result.data);
+
+        // Initialize checked programs from plan data
+        const selectedProgramIds = new Set(
+          result.data.programs.map((p: any) => p.program.id)
+        );
+        setCheckedPrograms(selectedProgramIds);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load plan');
       } finally {
@@ -51,6 +58,18 @@ const Programs: React.FC = () => {
 
     fetchPlan();
   }, [planId]);
+
+  const handleCheckChange = (programId: number, checked: boolean) => {
+    setCheckedPrograms(prev => {
+      const newSet = new Set(prev);
+      if (checked) {
+        newSet.add(programId);
+      } else {
+        newSet.delete(programId);
+      }
+      return newSet;
+    });
+  };
 
   if (loading) {
     return (
@@ -113,6 +132,9 @@ const Programs: React.FC = () => {
               percentage: 80,
             },
           ]}
+          showCheckmark={true}
+          checked={checkedPrograms.has(1)}
+          onCheckChange={(checked) => handleCheckChange(1, checked)}
         />
       </div>
     </div>
