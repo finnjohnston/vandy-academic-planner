@@ -106,7 +106,7 @@ const TakeCoursesRuleComponent: React.FC<TakeCoursesRuleComponentProps> = ({
         subjectCode: subjectCode || courseId,
         courseNumber: numberParts.join(' ') || '',
         title: course?.title || (loading ? 'Loading...' : courseId),
-        term: fulfillment?.termLabel,
+        term: fulfillment?.semesterNumber === 0 ? 'Transferred' : fulfillment?.termLabel,
         credits: course?.creditsMin || 0,
         isTaken: !!fulfillment,
       };

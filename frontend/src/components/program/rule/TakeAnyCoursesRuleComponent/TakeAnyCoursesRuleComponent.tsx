@@ -118,7 +118,7 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
           subjectCode: subjectCode || courseId,
           courseNumber: numberParts.join(' ') || '',
           title: course?.title || (loading ? 'Loading...' : courseId),
-          term: fulfillment?.termLabel,
+          term: fulfillment?.semesterNumber === 0 ? 'Transferred' : fulfillment?.termLabel,
           credits: course?.creditsMin || 0,
           isTaken: !!fulfillment,
         };
@@ -155,7 +155,7 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
           subjectCode: subjectCode || courseId,
           courseNumber: numberParts.join(' ') || '',
           title: course?.title || (loading ? 'Loading...' : courseId),
-          term: fulfillment.termLabel,
+          term: fulfillment.semesterNumber === 0 ? 'Transferred' : fulfillment.termLabel,
           credits: course?.creditsMin || 0,
           isTaken: true,
         };
@@ -173,11 +173,13 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
           nestingLevel={nestingLevel}
         />
       )}
-      <div className="take-any-courses-header-wrapper">
+      <div
+        className="take-any-courses-header-wrapper"
+        style={{ width: `calc(100% - ${60 * (nestingLevel + 1)}px)` }}
+      >
         <div
           className={`take-any-courses-header${filterToggle ? ' take-any-courses-header-no-term' : ''}`}
           style={{
-            width: `calc(100% - ${60 * (nestingLevel + 1)}px)`,
             gridTemplateColumns: filterToggle
               ? `${260 - indent}px 1fr auto`
               : `${260 - indent}px 1fr 507px auto`
