@@ -76,6 +76,10 @@
   background-color: var(--color-bg);
 }
 
+.programs-page .program-container:first-child {
+  border-top: none;
+}
+
 .programs-page .section-container {
   background-color: var(--color-bg);
 }

@@ -4,7 +4,3 @@
   flex-direction: column;
   align-items: center;
 }
-
-.program-list > .program-container:first-child {
-  border-top: none;
-}

@@ -9,6 +9,7 @@ import Plan from '../../components/plan/PlanComponent/Plan';
 import Requirement from '../../components/program/RequirementComponent/Requirement';
 import CourseDetail from '../../components/course/CourseDetailComponent/CourseDetail';
 import TransferCredits from '../../components/course/TransferCreditsComponent/TransferCredits';
+import { PlanProvider } from '../../contexts/PlanContext';
 import type { Course } from '../../types/Course';
 import type { DragData } from '../../types/DragData';
 import './Planning.css';
@@ -485,97 +486,99 @@ const Planning: React.FC = () => {
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-      collisionDetection={pointerWithin}
-    >
-      <div className="planning-page">
-        <NavBar isBlurred={isPopupOpen} />
-        <CourseSearch
-          onPopupOpen={() => setIsPopupOpen(true)}
-          onPopupClose={() => setIsPopupOpen(false)}
-          isBlurred={isPopupOpen}
-        />
-        <div className="plan-requirements-container">
-          <div className="transfer-credits-wrapper">
-            <TransferCredits />
+    <PlanProvider value={planData.plannedCourses}>
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+        collisionDetection={pointerWithin}
+      >
+        <div className="planning-page">
+          <NavBar isBlurred={isPopupOpen} />
+          <CourseSearch
+            onPopupOpen={() => setIsPopupOpen(true)}
+            onPopupClose={() => setIsPopupOpen(false)}
+            isBlurred={isPopupOpen}
+          />
+          <div className="plan-requirements-container">
+            <div className="transfer-credits-wrapper">
+              <TransferCredits />
+            </div>
+            <Plan
+              planId={planData.id}
+              planName={planData.name}
+              academicYear={planData.academicYear}
+              plannedCourses={planData.plannedCourses}
+              isBlurred={isPopupOpen}
+              onCourseDetailsClick={handlePlannedCourseClick}
+              onDeleteCourseClick={handleDeleteCourse}
+              dragOverPosition={dragOverPosition}
+              activeDrag={activeDrag}
+            />
+            <Requirement
+              isBlurred={isPopupOpen}
+              planId={planData.id}
+              programs={planData.programs.map((planProgram) => ({
+                id: planProgram.id,
+                name: planProgram.program.name,
+                type: planProgram.program.type,
+                totalCredits: planProgram.program.totalCredits,
+              }))}
+              plannedCourses={planData.plannedCourses}
+              academicYearId={planData.academicYearId}
+              schoolId={planData.schoolId}
+              currentProgramIds={planData.programs.map((planProgram) => planProgram.program.id)}
+            />
           </div>
-          <Plan
-            planId={planData.id}
-            planName={planData.name}
-            academicYear={planData.academicYear}
-            plannedCourses={planData.plannedCourses}
-            isBlurred={isPopupOpen}
-            onCourseDetailsClick={handlePlannedCourseClick}
-            onDeleteCourseClick={handleDeleteCourse}
-            dragOverPosition={dragOverPosition}
-            activeDrag={activeDrag}
-          />
-          <Requirement
-            isBlurred={isPopupOpen}
-            planId={planData.id}
-            programs={planData.programs.map((planProgram) => ({
-              id: planProgram.id,
-              name: planProgram.program.name,
-              type: planProgram.program.type,
-              totalCredits: planProgram.program.totalCredits,
-            }))}
-            plannedCourses={planData.plannedCourses}
-            academicYearId={planData.academicYearId}
-            schoolId={planData.schoolId}
-            currentProgramIds={planData.programs.map((planProgram) => planProgram.program.id)}
-          />
+
+          {selectedCourse && ReactDOM.createPortal(
+            <CourseDetail course={selectedCourse} onClose={handleClosePopup} />,
+            document.body
+          )}
         </div>
 
-        {selectedCourse && ReactDOM.createPortal(
-          <CourseDetail course={selectedCourse} onClose={handleClosePopup} />,
-          document.body
-        )}
-      </div>
-
-      <DragOverlay dropAnimation={null}>
-        {activeDrag && (
-          activeDrag.source === 'search' ? (
-            // CourseCard preview - match CourseCard structure exactly
-            <div className="course" style={{ opacity: 0.25 }}>
-              <span className="course-code">
-                {activeDrag.course.subjectCode || ''} {activeDrag.course.courseNumber || ''}
-              </span>
-              <span className="course-title">
-                {activeDrag.course.title && activeDrag.course.title.length > 40
-                  ? activeDrag.course.title.substring(0, 40) + '...'
-                  : (activeDrag.course.title || '')}
-              </span>
-              <span className="course-credits">
-                {activeDrag.course.creditsMin === activeDrag.course.creditsMax
-                  ? activeDrag.course.creditsMin
-                  : `${activeDrag.course.creditsMin} - ${activeDrag.course.creditsMax}`}
-              </span>
-            </div>
-          ) : (
-            // PlannedCourse preview - keep existing drag-preview structure
-            <div className="drag-preview">
-              <span className="drag-preview-code">
-                {activeDrag.course.subjectCode || ''} {activeDrag.course.courseNumber || ''}
-              </span>
-              {activeDrag.course.title && (
-                <span className="drag-preview-title">
-                  {activeDrag.course.title.length > 40
-                    ? activeDrag.course.title.substring(0, 40) + '...'
-                    : activeDrag.course.title}
+        <DragOverlay dropAnimation={null}>
+          {activeDrag && (
+            activeDrag.source === 'search' ? (
+              // CourseCard preview - match CourseCard structure exactly
+              <div className="course" style={{ opacity: 0.25 }}>
+                <span className="course-code">
+                  {activeDrag.course.subjectCode || ''} {activeDrag.course.courseNumber || ''}
                 </span>
-              )}
-              <span className="drag-preview-credits">
-                {activeDrag.course.creditsMin}
-              </span>
-            </div>
-          )
-        )}
-      </DragOverlay>
-    </DndContext>
+                <span className="course-title">
+                  {activeDrag.course.title && activeDrag.course.title.length > 40
+                    ? activeDrag.course.title.substring(0, 40) + '...'
+                    : (activeDrag.course.title || '')}
+                </span>
+                <span className="course-credits">
+                  {activeDrag.course.creditsMin === activeDrag.course.creditsMax
+                    ? activeDrag.course.creditsMin
+                    : `${activeDrag.course.creditsMin} - ${activeDrag.course.creditsMax}`}
+                </span>
+              </div>
+            ) : (
+              // PlannedCourse preview - keep existing drag-preview structure
+              <div className="drag-preview">
+                <span className="drag-preview-code">
+                  {activeDrag.course.subjectCode || ''} {activeDrag.course.courseNumber || ''}
+                </span>
+                {activeDrag.course.title && (
+                  <span className="drag-preview-title">
+                    {activeDrag.course.title.length > 40
+                      ? activeDrag.course.title.substring(0, 40) + '...'
+                      : activeDrag.course.title}
+                  </span>
+                )}
+                <span className="drag-preview-credits">
+                  {activeDrag.course.creditsMin}
+                </span>
+              </div>
+            )
+          )}
+        </DragOverlay>
+      </DndContext>
+    </PlanProvider>
   );
 };
 
