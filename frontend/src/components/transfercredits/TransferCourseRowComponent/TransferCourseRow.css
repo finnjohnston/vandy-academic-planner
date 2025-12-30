@@ -38,3 +38,75 @@
   left: 882px;
   color: var(--color-text-light);
 }
+
+.transfer-course-row-details-button {
+  position: absolute;
+  right: 60px;
+  width: 30px;
+  height: 30px;
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background-color 0.15s ease;
+  outline: none;
+}
+
+.transfer-course-row-details-button:hover {
+  background-color: var(--color-btn-bg);
+}
+
+.transfer-course-row-details-button:focus {
+  outline: none;
+}
+
+.transfer-course-row-details-button:active {
+  outline: none;
+}
+
+.transfer-course-row-details-icon {
+  width: 13px;
+  height: 13px;
+  filter: brightness(0) saturate(100%) invert(85%);
+  margin-left: 3px;
+  margin-top: 1px;
+}
+
+.transfer-course-row-delete-button {
+  position: absolute;
+  right: 20px;
+  width: 30px;
+  height: 30px;
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background-color 0.15s ease;
+  outline: none;
+}
+
+.transfer-course-row-delete-button:hover {
+  background-color: var(--color-btn-bg);
+}
+
+.transfer-course-row-delete-button:focus {
+  outline: none;
+}
+
+.transfer-course-row-delete-button:active {
+  outline: none;
+}
+
+.transfer-course-row-delete-icon {
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) saturate(100%) invert(85%);
+}

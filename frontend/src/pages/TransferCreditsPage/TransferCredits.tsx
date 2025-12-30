@@ -29,6 +29,34 @@ const TransferCredits: React.FC = () => {
     setIsSearchOpen(true);
   };
 
+  const handleDeleteCourse = async (plannedCourseId: number) => {
+    if (!planId) return;
+
+    // Confirm deletion
+    if (!window.confirm('Are you sure you want to delete this transfer course?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/plans/${planId}/courses/${plannedCourseId}`,
+        { method: 'DELETE' }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to delete transfer course');
+      }
+
+      // Update local state by removing the deleted course
+      setTransferCourses(prevCourses =>
+        prevCourses.filter(course => course.id !== plannedCourseId)
+      );
+    } catch (err) {
+      console.error('Error deleting transfer course:', err);
+      alert('Failed to delete transfer course. Please try again.');
+    }
+  };
+
   // Fetch plan and transfer courses
   useEffect(() => {
     if (!planId) return;
@@ -88,6 +116,7 @@ const TransferCredits: React.FC = () => {
           courses={transferCourses}
           loading={loading}
           error={error}
+          onDeleteCourse={handleDeleteCourse}
         />
       </div>
     </div>
