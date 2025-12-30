@@ -68,3 +68,20 @@
 .transfer-credits-search-wrapper-shifted {
   left: 370px;
 }
+
+.transfer-credits-drop-zone-wrapper {
+  width: 100%;
+  max-width: 1175px;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  transition: border-color 0.2s ease;
+  margin-top: 25px;
+  margin-left: -2px;
+  margin-right: -2px;
+}
+
+.transfer-credits-drop-zone-active {
+  border-color: var(--color-btn-border);
+}

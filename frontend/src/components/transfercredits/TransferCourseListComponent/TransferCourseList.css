@@ -5,6 +5,7 @@
   flex-direction: column;
   max-height: calc(100vh - 350px);
   overflow-y: scroll;
+  border-radius: 0 0 8px 8px;
 
   /* Hide scrollbar (cross-browser) */
   scrollbar-width: none;
@@ -16,8 +17,7 @@
 }
 
 .transfer-course-list-loading,
-.transfer-course-list-error,
-.transfer-course-list-empty {
+.transfer-course-list-error {
   padding: 2rem;
   text-align: center;
   font-size: 14px;
@@ -26,4 +26,23 @@
 
 .transfer-course-list-error {
   color: #ff6b6b;
+}
+
+/* Drop target highlight */
+.transfer-course-list-drop-target {
+  /* No border - silent drop zone */
+}
+
+/* Enhanced empty state during drag */
+.transfer-course-list-empty {
+  padding: 3rem 2rem;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-dark);
+  transition: all 0.2s ease;
+}
+
+.transfer-course-list-drop-target .transfer-course-list-empty {
+  color: var(--color-btn-border);
+  font-weight: 500;
 }

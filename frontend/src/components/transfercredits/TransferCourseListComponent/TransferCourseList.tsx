@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
+import { useDroppable } from '@dnd-kit/core';
 import TransferCourseRow from '../TransferCourseRowComponent/TransferCourseRow';
 import CourseDetail from '../../course/CourseDetailComponent/CourseDetail';
 import type { PlannedCourse } from '../../../types/PlannedCourse';
@@ -11,38 +12,28 @@ interface TransferCourseListProps {
   loading: boolean;
   error: string | null;
   onDeleteCourse?: (plannedCourseId: number) => void;
+  isDropTarget?: boolean;
+  isDragging?: boolean;
 }
 
 const TransferCourseList: React.FC<TransferCourseListProps> = ({
   courses,
   loading,
   error,
-  onDeleteCourse
+  onDeleteCourse,
+  isDropTarget = false,
+  isDragging = false
 }) => {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  if (loading) {
-    return (
-      <div className="transfer-course-list">
-        <div className="transfer-course-list-loading">Loading transfer courses...</div>
-      </div>
-    );
-  }
 
-  if (error) {
-    return (
-      <div className="transfer-course-list">
-        <div className="transfer-course-list-error">Error: {error}</div>
-      </div>
-    );
-  }
+  const { setNodeRef } = useDroppable({
+    id: 'transfer-credits-drop-zone',
+    data: {
+      semesterNumber: 0
+    }
+  });
 
-  if (courses.length === 0) {
-    return (
-      <div className="transfer-course-list">
-        <div className="transfer-course-list-empty">No courses added</div>
-      </div>
-    );
-  }
+  const showDropHighlight = isDragging && isDropTarget;
 
   const handleClosePopup = () => {
     setSelectedCourse(null);
@@ -50,8 +41,18 @@ const TransferCourseList: React.FC<TransferCourseListProps> = ({
 
   return (
     <>
-      <div className="transfer-course-list">
-        {courses.map((pc, index) => {
+      <div
+        ref={setNodeRef}
+        className={`transfer-course-list${showDropHighlight ? ' transfer-course-list-drop-target' : ''}`}
+      >
+        {loading && <div className="transfer-course-list-loading">Loading transfer courses...</div>}
+        {error && <div className="transfer-course-list-error">Error: {error}</div>}
+        {!loading && !error && courses.length === 0 && (
+          <div className="transfer-course-list-empty">
+            {isDragging ? 'Drop course here to add as transfer credit' : 'No courses added'}
+          </div>
+        )}
+        {!loading && !error && courses.length > 0 && courses.map((pc, index) => {
           // Extract course data from nested course object or fallback to PlannedCourse fields
           const subjectCode = (pc as any).course?.subjectCode || pc.subjectCode;
           const courseNumber = (pc as any).course?.courseNumber || pc.courseNumber;
