@@ -1,0 +1,40 @@
+.transfer-course-row {
+  width: 100%;
+  max-width: 1175px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  background-color: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.transfer-course-row-last {
+  border-bottom: none;
+}
+
+.transfer-course-row span {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  position: absolute;
+}
+
+.transfer-course-row-course {
+  left: 0;
+  color: var(--color-gold-light);
+}
+
+.transfer-course-row-title {
+  left: 300px;
+  color: var(--color-text-light);
+  max-width: 560px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transfer-course-row-credits {
+  left: 882px;
+  color: var(--color-text-light);
+}

@@ -49,3 +49,18 @@
 .transfer-credits-header-buttons .add-credits-button {
   margin-bottom: 3px;
 }
+
+.transfer-credits-search-wrapper {
+  position: absolute;
+  top: 90px;
+  left: 30px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.transfer-credits-list {
+  width: 100%;
+  max-width: 1175px;
+  display: flex;
+  flex-direction: column;
+}
