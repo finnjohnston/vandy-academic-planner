@@ -1,0 +1,54 @@
+.add-credits-button {
+  height: 30px;
+  padding: 0 20px;
+  background-color: transparent;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  outline: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-credits-button:hover {
+  background-color: var(--color-btn-bg);
+}
+
+.add-credits-button:focus {
+  outline: none;
+}
+
+.add-credits-button:active {
+  outline: none;
+}
+
+.add-credits-icon {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) saturate(100%) invert(85%);
+}
+
+.add-credits-icon-placeholder {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  color: var(--color-text-light);
+  font-size: 20px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.add-credits-text {
+  color: var(--color-text-light);
+  font-size: 13px;
+}

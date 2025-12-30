@@ -503,7 +503,7 @@ const Planning: React.FC = () => {
           />
           <div className="plan-requirements-container">
             <div className="transfer-credits-wrapper">
-              <TransferCredits />
+              <TransferCredits planId={planData.id} />
             </div>
             <Plan
               planId={planData.id}
