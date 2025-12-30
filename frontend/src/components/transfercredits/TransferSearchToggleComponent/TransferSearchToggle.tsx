@@ -2,14 +2,13 @@ import React from 'react';
 import menuIcon from '../../../assets/menu_icon.png';
 import './TransferSearchToggle.css';
 
-const TransferSearchToggle: React.FC = () => {
-  const handleClick = () => {
-    // TODO: Implement search toggle functionality
-    console.log('Search toggle clicked');
-  };
+interface TransferSearchToggleProps {
+  onClick: () => void;
+}
 
+const TransferSearchToggle: React.FC<TransferSearchToggleProps> = ({ onClick }) => {
   return (
-    <div className="transfer-search-toggle" onClick={handleClick}>
+    <div className="transfer-search-toggle" onClick={onClick}>
       <img src={menuIcon} alt="Menu" className="transfer-search-toggle-icon" />
     </div>
   );
