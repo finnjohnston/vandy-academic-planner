@@ -5,9 +5,10 @@ import ReturnToPlanButton from '../../components/program/programpage/ReturnToPla
 import AddCreditsButton from '../../components/transfercredits/AddCreditsButtonComponent/AddCreditsButton';
 import TransferSearchToggle from '../../components/transfercredits/TransferSearchToggleComponent/TransferSearchToggle';
 import TransferCreditsTableHeader from '../../components/transfercredits/TransferCreditsTableHeaderComponent/TransferCreditsTableHeader';
-import TransferCourseRow from '../../components/transfercredits/TransferCourseRowComponent/TransferCourseRow';
+import TransferCourseList from '../../components/transfercredits/TransferCourseListComponent/TransferCourseList';
 import CourseSearch from '../../components/course/CourseSearchComponent/CourseSearch';
 import type { Plan } from '../../types/Plan';
+import type { PlannedCourse } from '../../types/PlannedCourse';
 import './TransferCredits.css';
 
 const API_BASE_URL = 'http://localhost:3000';
@@ -16,6 +17,9 @@ const TransferCredits: React.FC = () => {
   const { planId } = useParams<{ planId?: string }>();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [plan, setPlan] = useState<Plan | null>(null);
+  const [transferCourses, setTransferCourses] = useState<PlannedCourse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const toggleSearch = () => {
     setIsSearchOpen(!isSearchOpen);
@@ -25,22 +29,38 @@ const TransferCredits: React.FC = () => {
     setIsSearchOpen(true);
   };
 
-  // Fetch plan data to get academic year
+  // Fetch plan and transfer courses
   useEffect(() => {
     if (!planId) return;
 
-    const fetchPlan = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/plans/${planId}`);
-        if (!response.ok) throw new Error('Failed to fetch plan');
-        const data = await response.json();
-        setPlan(data.data);
+        setLoading(true);
+
+        // Fetch plan and transfer courses in parallel
+        const [planResponse, coursesResponse] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/plans/${planId}`),
+          fetch(`${API_BASE_URL}/api/plans/${planId}/courses?semesterNumber=0`)
+        ]);
+
+        if (!planResponse.ok) throw new Error('Failed to fetch plan');
+        if (!coursesResponse.ok) throw new Error('Failed to fetch transfer courses');
+
+        const planData = await planResponse.json();
+        const coursesData = await coursesResponse.json();
+
+        setPlan(planData.data);
+        setTransferCourses(coursesData.data);
+        setError(null);
       } catch (err) {
-        console.error('Error fetching plan:', err);
+        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load data');
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchPlan();
+    fetchData();
   }, [planId]);
 
   return (
@@ -64,25 +84,11 @@ const TransferCredits: React.FC = () => {
           </div>
         </div>
         <TransferCreditsTableHeader />
-        <div className="transfer-credits-list">
-          {/* Example transfer course rows */}
-          <TransferCourseRow
-            course="MATH 1300"
-            title="Differential and Integral Calculus I"
-            credits={3}
-          />
-          <TransferCourseRow
-            course="CS 1101"
-            title="Programming and Problem Solving"
-            credits={3}
-          />
-          <TransferCourseRow
-            course="PHYS 1601"
-            title="Introductory Physics I"
-            credits={4}
-            isLast={true}
-          />
-        </div>
+        <TransferCourseList
+          courses={transferCourses}
+          loading={loading}
+          error={error}
+        />
       </div>
     </div>
   );

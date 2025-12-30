@@ -139,3 +139,18 @@
 .programs-page .constraint-field {
   background-color: var(--color-bg);
 }
+
+.programs-empty-state {
+  width: 100%;
+  max-width: 1175px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.programs-empty-message {
+  padding: 2rem;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-dark);
+}

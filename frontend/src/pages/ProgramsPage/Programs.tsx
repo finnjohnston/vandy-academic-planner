@@ -219,6 +219,15 @@ const Programs: React.FC = () => {
             return type === 'major' || type === 'minor';
           });
 
+          // Show empty state when toggle is off and no major/minor programs are added
+          if (!showAllPrograms && sourcePrograms.length === 0) {
+            return (
+              <div className="programs-empty-state">
+                <div className="programs-empty-message">No programs added</div>
+              </div>
+            );
+          }
+
           // Filter by type dropdown selection
           let filteredPrograms = selectedType === 'All'
             ? sourcePrograms

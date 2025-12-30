@@ -68,10 +68,3 @@
 .transfer-credits-search-wrapper-shifted {
   left: 370px;
 }
-
-.transfer-credits-list {
-  width: 100%;
-  max-width: 1175px;
-  display: flex;
-  flex-direction: column;
-}
