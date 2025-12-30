@@ -7,6 +7,7 @@ import TransferSearchToggle from '../../components/transfercredits/TransferSearc
 import TransferCreditsTableHeader from '../../components/transfercredits/TransferCreditsTableHeaderComponent/TransferCreditsTableHeader';
 import TransferCourseList from '../../components/transfercredits/TransferCourseListComponent/TransferCourseList';
 import CourseSearch from '../../components/course/CourseSearchComponent/CourseSearch';
+import { PlanProvider } from '../../contexts/PlanContext';
 import type { Plan } from '../../types/Plan';
 import type { PlannedCourse } from '../../types/PlannedCourse';
 import './TransferCredits.css';
@@ -18,6 +19,7 @@ const TransferCredits: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [transferCourses, setTransferCourses] = useState<PlannedCourse[]>([]);
+  const [allPlannedCourses, setAllPlannedCourses] = useState<PlannedCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,6 +53,9 @@ const TransferCredits: React.FC = () => {
       setTransferCourses(prevCourses =>
         prevCourses.filter(course => course.id !== plannedCourseId)
       );
+      setAllPlannedCourses(prevCourses =>
+        prevCourses.filter(course => course.id !== plannedCourseId)
+      );
     } catch (err) {
       console.error('Error deleting transfer course:', err);
       alert('Failed to delete transfer course. Please try again.');
@@ -65,20 +70,24 @@ const TransferCredits: React.FC = () => {
       try {
         setLoading(true);
 
-        // Fetch plan and transfer courses in parallel
-        const [planResponse, coursesResponse] = await Promise.all([
+        // Fetch plan, all planned courses, and transfer courses in parallel
+        const [planResponse, allCoursesResponse, transferCoursesResponse] = await Promise.all([
           fetch(`${API_BASE_URL}/api/plans/${planId}`),
+          fetch(`${API_BASE_URL}/api/plans/${planId}/courses`),
           fetch(`${API_BASE_URL}/api/plans/${planId}/courses?semesterNumber=0`)
         ]);
 
         if (!planResponse.ok) throw new Error('Failed to fetch plan');
-        if (!coursesResponse.ok) throw new Error('Failed to fetch transfer courses');
+        if (!allCoursesResponse.ok) throw new Error('Failed to fetch planned courses');
+        if (!transferCoursesResponse.ok) throw new Error('Failed to fetch transfer courses');
 
         const planData = await planResponse.json();
-        const coursesData = await coursesResponse.json();
+        const allCoursesData = await allCoursesResponse.json();
+        const transferCoursesData = await transferCoursesResponse.json();
 
         setPlan(planData.data);
-        setTransferCourses(coursesData.data);
+        setAllPlannedCourses(allCoursesData.data);
+        setTransferCourses(transferCoursesData.data);
         setError(null);
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -92,34 +101,36 @@ const TransferCredits: React.FC = () => {
   }, [planId]);
 
   return (
-    <div className="transfer-credits-page">
-      <NavBar />
-      {isSearchOpen && plan && (
-        <CourseSearch
-          hideFilters={true}
-          fixedAcademicYearId={plan.academicYearId}
-        />
-      )}
-      <div className={`transfer-credits-search-wrapper${isSearchOpen ? ' transfer-credits-search-wrapper-shifted' : ''}`}>
-        <TransferSearchToggle onClick={toggleSearch} />
-      </div>
-      <div className={`transfer-credits-content${isSearchOpen ? ' transfer-credits-content-shifted' : ''}`}>
-        <div className="transfer-credits-header">
-          <h1>Transfer credits</h1>
-          <div className="transfer-credits-header-buttons">
-            <AddCreditsButton onClick={openSearch} />
-            <ReturnToPlanButton planId={planId ? parseInt(planId) : undefined} />
-          </div>
+    <PlanProvider value={allPlannedCourses}>
+      <div className="transfer-credits-page">
+        <NavBar />
+        {isSearchOpen && plan && (
+          <CourseSearch
+            hideFilters={true}
+            fixedAcademicYearId={plan.academicYearId}
+          />
+        )}
+        <div className={`transfer-credits-search-wrapper${isSearchOpen ? ' transfer-credits-search-wrapper-shifted' : ''}`}>
+          <TransferSearchToggle onClick={toggleSearch} />
         </div>
-        <TransferCreditsTableHeader />
-        <TransferCourseList
-          courses={transferCourses}
-          loading={loading}
-          error={error}
-          onDeleteCourse={handleDeleteCourse}
-        />
+        <div className={`transfer-credits-content${isSearchOpen ? ' transfer-credits-content-shifted' : ''}`}>
+          <div className="transfer-credits-header">
+            <h1>Transfer credits</h1>
+            <div className="transfer-credits-header-buttons">
+              <AddCreditsButton onClick={openSearch} />
+              <ReturnToPlanButton planId={planId ? parseInt(planId) : undefined} />
+            </div>
+          </div>
+          <TransferCreditsTableHeader />
+          <TransferCourseList
+            courses={transferCourses}
+            loading={loading}
+            error={error}
+            onDeleteCourse={handleDeleteCourse}
+          />
+        </div>
       </div>
-    </div>
+    </PlanProvider>
   );
 };
 
