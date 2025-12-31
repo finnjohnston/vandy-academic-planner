@@ -100,41 +100,39 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
 
   const transformCoursesForDisplay = () => {
     if (filterToggle) {
-      // Toggle ON: Show ALL matching courses, sorted with taken first
+      // Toggle ON: Show only matching courses that haven't been taken yet
       if (!details.matchingCourses || details.matchingCourses.length === 0) {
         return [];
       }
 
-      const coursesWithTakenStatus = details.matchingCourses.map((matchingCourse) => {
-        const courseId = matchingCourse.courseId;
-        const course = courseData.get(courseId);
-        const fulfillment = requirementProgress.fulfillingCourses.find(
-          (fc) => fc.courseId === courseId
-        );
-        const [subjectCode, ...numberParts] = courseId.split(' ');
+      const coursesWithTakenStatus = details.matchingCourses
+        .map((matchingCourse) => {
+          const courseId = matchingCourse.courseId;
+          const course = courseData.get(courseId);
+          const fulfillment = requirementProgress.fulfillingCourses.find(
+            (fc) => fc.courseId === courseId
+          );
+          const [subjectCode, ...numberParts] = courseId.split(' ');
 
-        return {
-          courseId,
-          subjectCode: subjectCode || courseId,
-          courseNumber: numberParts.join(' ') || '',
-          title: course?.title || (loading ? 'Loading...' : courseId),
-          term: fulfillment?.semesterNumber === 0 ? 'Transferred' : fulfillment?.termLabel,
-          credits: course?.creditsMin || 0,
-          isTaken: !!fulfillment,
-        };
-      });
+          return {
+            courseId,
+            subjectCode: subjectCode || courseId,
+            courseNumber: numberParts.join(' ') || '',
+            title: course?.title || (loading ? 'Loading...' : courseId),
+            term: fulfillment?.semesterNumber === 0 ? 'Transferred' : fulfillment?.termLabel,
+            credits: course?.creditsMin || 0,
+            isTaken: !!fulfillment,
+          };
+        })
+        .filter(course => !course.isTaken); // Filter out courses that have been taken
 
-      // Sort: taken courses first, then by subject code, then by course number
+      // Sort by subject code, then by course number
       return coursesWithTakenStatus.sort((a, b) => {
-        // First, sort by taken status (taken first)
-        if (a.isTaken && !b.isTaken) return -1;
-        if (!a.isTaken && b.isTaken) return 1;
-
-        // Then sort by subject code
+        // Sort by subject code
         const subjectCompare = a.subjectCode.localeCompare(b.subjectCode);
         if (subjectCompare !== 0) return subjectCompare;
 
-        // Finally, sort by course number (convert to number for proper numeric sorting)
+        // Sort by course number (convert to number for proper numeric sorting)
         const aNum = parseInt(a.courseNumber.replace(/\D/g, ''), 10) || 0;
         const bNum = parseInt(b.courseNumber.replace(/\D/g, ''), 10) || 0;
         return aNum - bNum;

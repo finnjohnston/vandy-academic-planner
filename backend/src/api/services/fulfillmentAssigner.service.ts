@@ -63,6 +63,32 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
     allFulfillments: [] as FulfillmentRecord[],
   }));
 
+  // Track running totals of credits assigned to each requirement
+  // Key format: "planProgramId.sectionId.requirementId"
+  const requirementCreditsMap = new Map<string, number>();
+
+  // Helper function to get current assigned credits for a requirement
+  const getAssignedCredits = (
+    planProgramId: number,
+    sectionId: string,
+    requirementId: string
+  ): number => {
+    const key = `${planProgramId}.${sectionId}.${requirementId}`;
+    return requirementCreditsMap.get(key) || 0;
+  };
+
+  // Helper function to add credits to requirement total
+  const addCreditsToRequirement = (
+    planProgramId: number,
+    sectionId: string,
+    requirementId: string,
+    credits: number
+  ) => {
+    const key = `${planProgramId}.${sectionId}.${requirementId}`;
+    const current = requirementCreditsMap.get(key) || 0;
+    requirementCreditsMap.set(key, current + credits);
+  };
+
   // STEP 4: Process each course across ALL programs
   for (const plannedCourse of plan.plannedCourses) {
     if (!plannedCourse.course) continue;
@@ -73,6 +99,15 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
     // STEP 5: For each program, find matches and assign fulfillments
     for (const data of programData) {
       const { planProgram, programRequirements, doubleCountMap, allFulfillments } = data;
+
+      // Build a lookup map for requirement credit limits: "sectionId.requirementId" -> creditsRequired
+      const requirementLimitsMap = new Map<string, number>();
+      for (const section of programRequirements.sections) {
+        for (const req of section.requirements) {
+          const key = `${section.id}.${req.id}`;
+          requirementLimitsMap.set(key, req.creditsRequired);
+        }
+      }
 
       // Find all requirements this course could fulfill in this program
       const matches = findMatchingRequirements(course, programRequirements);
@@ -92,13 +127,65 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
       const assignedRequirementIds: string[] = [];
       const deferredMatches: typeof matches = [];
 
-      // STEP 6: Process matches in specificity order (within this program)
-      for (const match of matches) {
+      // STEP 6: Process matches in fulfillment status + specificity order (within this program)
+      // Sort matches: unfilled requirements first, then by specificity
+      const sortedMatches = [...matches].sort((a, b) => {
+        const aKey = `${a.sectionId}.${a.requirementId}`;
+        const bKey = `${b.sectionId}.${b.requirementId}`;
+
+        const aLimit = requirementLimitsMap.get(aKey) || 0;
+        const bLimit = requirementLimitsMap.get(bKey) || 0;
+
+        const aAssigned = getAssignedCredits(planProgram.id, a.sectionId, a.requirementId);
+        const bAssigned = getAssignedCredits(planProgram.id, b.sectionId, b.requirementId);
+
+        const aIsFull = aAssigned >= aLimit;
+        const bIsFull = bAssigned >= bLimit;
+
+        // Prioritize unfilled requirements
+        if (!aIsFull && bIsFull) return -1;
+        if (aIsFull && !bIsFull) return 1;
+
+        // If both full or both unfilled, use specificity
+        return b.specificityScore - a.specificityScore;
+      });
+
+      for (const match of sortedMatches) {
         const fullRequirementId = `${match.sectionId}.${match.requirementId}`;
+        const requirementKey = `${match.sectionId}.${match.requirementId}`;
 
         // Check if already assigned to this requirement
         if (assignedRequirementIds.includes(fullRequirementId)) {
           continue;
+        }
+
+        // Check if this requirement is already fully satisfied
+        const creditsRequired = requirementLimitsMap.get(requirementKey) || 0;
+        const creditsAssigned = getAssignedCredits(planProgram.id, match.sectionId, match.requirementId);
+        const isFull = creditsAssigned >= creditsRequired;
+
+        // If requirement is full, only assign if ALL matches are full
+        if (isFull) {
+          // Check if ANY other match is unfilled
+          const hasUnfilledMatch = sortedMatches.some((m) => {
+            const key = `${m.sectionId}.${m.requirementId}`;
+            const limit = requirementLimitsMap.get(key) || 0;
+            const assigned = getAssignedCredits(planProgram.id, m.sectionId, m.requirementId);
+            return assigned < limit && key !== requirementKey;
+          });
+
+          if (hasUnfilledMatch) {
+            logger.debug(
+              `Skipping ${course.courseId} for ${fullRequirementId} in ${planProgram.program.name}: ` +
+                `requirement is full (${creditsAssigned}/${creditsRequired}) and unfilled matches exist`
+            );
+            continue; // Skip this full requirement, try next match
+          }
+          // If NO unfilled matches exist, allow assignment to this full requirement (overflow)
+          logger.debug(
+            `Allowing overflow: ${course.courseId} to ${fullRequirementId} in ${planProgram.program.name} ` +
+              `(${creditsAssigned}/${creditsRequired}) - all matches are full`
+          );
         }
 
         // Check if already assigned to a different requirement IN THIS PROGRAM
@@ -157,6 +244,14 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
           },
         });
 
+        // Track credits assigned to this requirement
+        addCreditsToRequirement(
+          planProgram.id,
+          match.sectionId,
+          match.requirementId,
+          plannedCourse.credits
+        );
+
         // Track this fulfillment
         assignedRequirementIds.push(fullRequirementId);
         allFulfillments.push({
@@ -212,16 +307,10 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
           continue;
         }
 
-        // If enforcement constraint passed, double counting is implicitly allowed
+        // Check if double counting is allowed
         const alreadyAssignedInProgram = assignedRequirementIds.length > 0;
-        if (alreadyAssignedInProgram) {
-          const hasEnforcementConstraint = requirement.constraintsStructured?.some(
-            (c) => c.type === 'require_course_from_sections'
-          );
-
-          if (!hasEnforcementConstraint && !canDoubleCount(course, fullRequirementId, doubleCountMap)) {
-            continue;
-          }
+        if (alreadyAssignedInProgram && !canDoubleCount(course, fullRequirementId, doubleCountMap)) {
+          continue;
         }
 
         await prisma.requirementFulfillment.create({
@@ -232,6 +321,14 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
             creditsApplied: plannedCourse.credits,
           },
         });
+
+        // Track credits assigned to this requirement
+        addCreditsToRequirement(
+          planProgram.id,
+          match.sectionId,
+          match.requirementId,
+          plannedCourse.credits
+        );
 
         assignedRequirementIds.push(fullRequirementId);
         allFulfillments.push({
