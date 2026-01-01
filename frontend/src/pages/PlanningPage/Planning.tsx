@@ -10,6 +10,8 @@ import Requirement from '../../components/program/RequirementComponent/Requireme
 import CourseDetail from '../../components/course/CourseDetailComponent/CourseDetail';
 import TransferCredits from '../../components/course/TransferCreditsComponent/TransferCredits';
 import { PlanProvider } from '../../contexts/PlanContext';
+import { useCourseDetails } from '../../hooks/useCourseDetails';
+import { useValidation } from '../../hooks/useValidation';
 import type { Course } from '../../types/Course';
 import type { DragData } from '../../types/DragData';
 import './Planning.css';
@@ -94,6 +96,17 @@ const Planning: React.FC = () => {
     };
     fetchPlan();
   }, [planId]);
+
+  // Fetch course details for validation
+  const { courseDetailsMap, loading: detailsLoading } = useCourseDetails(
+    planData?.plannedCourses || []
+  );
+
+  // Validate all planned courses
+  const validationMap = useValidation(
+    planData?.plannedCourses || [],
+    courseDetailsMap
+  );
 
   const handlePlannedCourseClick = async (courseId: string) => {
     try {
@@ -515,6 +528,7 @@ const Planning: React.FC = () => {
               onDeleteCourseClick={handleDeleteCourse}
               dragOverPosition={dragOverPosition}
               activeDrag={activeDrag}
+              validationMap={validationMap}
             />
             <Requirement
               isBlurred={isPopupOpen}

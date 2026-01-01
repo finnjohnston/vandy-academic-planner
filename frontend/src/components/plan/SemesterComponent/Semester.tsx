@@ -3,6 +3,7 @@ import { useDroppable } from '@dnd-kit/core';
 import './Semester.css';
 import PlannedCourseList from '../PlannedCourseListComponent/PlannedCourseList';
 import type { PlannedCourse } from '../../../types/PlannedCourse';
+import type { ValidationMap } from '../../../types/Validation';
 
 interface SemesterProps {
   semesterNumber: number;
@@ -26,6 +27,7 @@ interface SemesterProps {
     source: 'search' | 'planned';
     currentSemester?: number;
   } | null;
+  validationMap?: ValidationMap;
 }
 
 interface SemesterInfo {
@@ -42,6 +44,7 @@ const Semester: React.FC<SemesterProps> = ({
   onDeleteCourseClick,
   dragOverPosition,
   activeDrag,
+  validationMap,
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `semester-${semesterNumber}`,
@@ -104,6 +107,7 @@ const Semester: React.FC<SemesterProps> = ({
           onCourseDetailsClick={onCourseDetailsClick}
           onDeleteCourseClick={onDeleteCourseClick}
           dragOverPosition={dragOverPosition}
+          validationMap={validationMap}
         />
       </div>
     </div>

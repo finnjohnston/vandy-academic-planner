@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import PlannedCourseOptionsMenu from '../PlannedCourseOptionsMenuComponent/PlannedCourseOptionsMenu';
+import type { Violation } from '../../../types/Validation';
 import './PlannedCourse.css';
 
 interface PlannedCourseProps {
@@ -21,6 +22,8 @@ interface PlannedCourseProps {
     isSwapMode?: boolean;
     hoveredPlannedCourseId?: number;
   } | null;
+  isValid?: boolean;
+  violations?: Violation[];
 }
 
 const PlannedCourse: React.FC<PlannedCourseProps> = ({
@@ -34,6 +37,8 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
   onCourseDetailsClick,
   onDeleteCourseClick,
   dragOverPosition,
+  isValid,
+  violations,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRecentlyDragged, setIsRecentlyDragged] = useState(false);
@@ -124,8 +129,9 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
     : '';
 
   const swapClass = isSwapTarget ? ' planned-course-swap-target' : '';
+  const validationClass = isValid === false ? ' planned-course-invalid' : '';
 
-  const finalClassName = `planned-course${isDragging ? ' planned-course-dragging' : ''}${gapClass}${swapClass}`;
+  const finalClassName = `planned-course${isDragging ? ' planned-course-dragging' : ''}${gapClass}${swapClass}${validationClass}`;
 
   useEffect(() => {
     if (isDragging) {

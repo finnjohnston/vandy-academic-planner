@@ -38,7 +38,28 @@
   border-radius: 4px;
 }
 
-.planned-course:last-child:not(.planned-course-dragging) {
+.planned-course-invalid {
+  border: 1px solid #ff4444 !important;
+  border-radius: 4px;
+  position: relative;
+}
+
+/* Only collapse borders when two invalid courses are adjacent */
+.planned-course-invalid + .planned-course-invalid {
+  margin-top: -1px;
+}
+
+/* Ensure red border is visible during swap state */
+.planned-course-invalid.planned-course-swap-target {
+  border: 1px solid #ff4444 !important;
+}
+
+/* Ensure invalid courses keep bottom border even when last child */
+.planned-course-invalid:last-child {
+  border-bottom: 1px solid #ff4444 !important;
+}
+
+.planned-course:last-child:not(.planned-course-dragging):not(.planned-course-invalid) {
   border-bottom: none !important;
 }
 

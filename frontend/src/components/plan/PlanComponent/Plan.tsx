@@ -1,6 +1,7 @@
 import React from 'react';
 import Semester from '../SemesterComponent/Semester';
 import type { PlannedCourse } from '../../../types/PlannedCourse';
+import type { ValidationMap } from '../../../types/Validation';
 import './Plan.css';
 
 interface PlanProps {
@@ -35,6 +36,7 @@ interface PlanProps {
     source: 'search' | 'planned';
     currentSemester?: number;
   } | null;
+  validationMap?: ValidationMap;
 }
 
 const Plan: React.FC<PlanProps> = ({
@@ -46,7 +48,8 @@ const Plan: React.FC<PlanProps> = ({
   onCourseDetailsClick,
   onDeleteCourseClick,
   dragOverPosition,
-  activeDrag
+  activeDrag,
+  validationMap
 }) => {
   const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -88,6 +91,7 @@ const Plan: React.FC<PlanProps> = ({
               onDeleteCourseClick={onDeleteCourseClick}
               dragOverPosition={dragOverPosition}
               activeDrag={activeDrag}
+              validationMap={validationMap}
             />
           ))}
         </div>
