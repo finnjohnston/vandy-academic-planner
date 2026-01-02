@@ -298,9 +298,9 @@ const Planning: React.FC = () => {
               pc.course
       ) || [];
 
-      // For same-semester moves, we remove one course first, so max position is count - 1
-      // For cross-semester/search, we're adding a course, so max position is count
-      const maxPosition = isSameSemester ? targetSemesterCourses.length - 1 : targetSemesterCourses.length;
+      // Get the actual maximum position value (not array length)
+      // This correctly handles 1-indexed positions
+      const currentMaxPosition = Math.max(...targetSemesterCourses.map(pc => pc.position), 0);
 
       // Since we always use 'above' indicator, we always insert before the hovered course
       if (isSameSemester && activePosition !== undefined && activePosition < hoveredPosition) {
@@ -310,10 +310,10 @@ const Planning: React.FC = () => {
 
         if (isAdjacentToLast) {
           // Special case: dragging from N to N+1 where N+1 is last position
-          // When dragging to the end, we want to insert AFTER the last course
-          // After removal, the last course will be at position (hoveredPosition - 1)
-          // So we insert at hoveredPosition to place it after the shifted last course
-          insertPosition = maxPosition;
+          // When dragging to the end, we want to insert AFTER the current last course
+          // After removal, position 6 is still at position 6 (backend doesn't renumber)
+          // So we insert at currentMaxPosition + 1 to place it after the last course
+          insertPosition = currentMaxPosition + 1;
         } else {
           // Normal downward drag: the hovered course will be at (hoveredPosition - 1) after removal
           insertPosition = hoveredPosition - 1;
@@ -324,7 +324,8 @@ const Planning: React.FC = () => {
       }
 
       // Ensure position doesn't exceed valid range
-      insertPosition = Math.min(insertPosition, maxPosition);
+      // Allow maxPosition + 1 for appending to the end
+      insertPosition = Math.min(insertPosition, currentMaxPosition + 1);
     }
 
     // Handle swap mode: delete the hovered course before inserting
