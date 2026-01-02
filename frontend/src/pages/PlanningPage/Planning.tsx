@@ -162,7 +162,8 @@ const Planning: React.FC = () => {
   };
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveDrag(event.active.data.current as DragData);
+    const dragData = event.active.data.current as DragData;
+    setActiveDrag(dragData);
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -187,8 +188,12 @@ const Planning: React.FC = () => {
       const indicatorPosition: 'above' | 'below' = 'above';
 
       // Calculate if this is the last position in the semester
+      // Filter to match Plan component's filtering logic (exclude courses with null courseId/course)
       const semesterCourses = planData?.plannedCourses.filter(
-        pc => pc.semesterNumber === overData.currentSemester && pc.id > 0
+        pc => pc.semesterNumber === overData.currentSemester &&
+              pc.id > 0 &&
+              pc.courseId &&
+              pc.course
       ) || [];
       const maxPosition = Math.max(...semesterCourses.map(pc => pc.position), -1);
       const isLastInSemester = hoveredPosition === maxPosition;
@@ -216,9 +221,12 @@ const Planning: React.FC = () => {
       // Filter courses in target semester, excluding:
       // 1. The course being dragged if it's in the same semester
       // 2. Temporary courses from optimistic updates (negative IDs)
+      // 3. Courses with null courseId/course (to match Plan component filtering)
       const semesterCourses = planData?.plannedCourses.filter(
         pc => pc.semesterNumber === overData.semesterNumber &&
               pc.id > 0 && // Exclude temp courses (negative IDs from optimistic updates)
+              pc.courseId && // Exclude courses with null courseId
+              pc.course && // Exclude courses with null course data
               !(dragData.source === 'planned' &&
                 dragData.plannedCourseId === pc.id &&
                 dragData.currentSemester === overData.semesterNumber)
@@ -256,7 +264,9 @@ const Planning: React.FC = () => {
     const targetPosition = dragOverPosition;
     setDragOverPosition(null);
 
-    if (!over || !planData || !targetPosition) return;
+    if (!over || !planData || !targetPosition) {
+      return;
+    }
 
     const dragData = active.data.current as DragData;
     const semesterNumber = targetPosition.semesterNumber;
@@ -279,8 +289,12 @@ const Planning: React.FC = () => {
     } else {
       // Normal insertion logic
       // Get the current count of courses in the target semester
+      // Filter to match Plan component's filtering logic (exclude courses with null courseId/course)
       const targetSemesterCourses = planData?.plannedCourses.filter(
-        pc => pc.semesterNumber === semesterNumber && pc.id > 0
+        pc => pc.semesterNumber === semesterNumber &&
+              pc.id > 0 &&
+              pc.courseId &&
+              pc.course
       ) || [];
 
       // For same-semester moves, we remove one course first, so max position is count - 1
