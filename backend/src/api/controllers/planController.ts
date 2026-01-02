@@ -122,19 +122,26 @@ export async function getPlanById(
       isActive: plan.isActive,
       createdAt: plan.createdAt,
       updatedAt: plan.updatedAt,
-      plannedCourses: plan.plannedCourses.map((pc) => ({
-        id: pc.id,
-        planId: pc.planId,
-        courseId: pc.courseId,
-        classId: pc.classId,
-        semesterNumber: pc.semesterNumber,
-        position: pc.position,
-        credits: pc.credits,
-        createdAt: pc.createdAt,
-        updatedAt: pc.updatedAt,
-        course: pc.course,
-        class: pc.class,
-      })),
+      plannedCourses: plan.plannedCourses.map((pc) => {
+        // Extract subjectCode and courseNumber from either course or class
+        const sourceData = pc.class || pc.course;
+
+        return {
+          id: pc.id,
+          planId: pc.planId,
+          courseId: pc.courseId,
+          classId: pc.classId,
+          semesterNumber: pc.semesterNumber,
+          position: pc.position,
+          credits: pc.credits,
+          subjectCode: sourceData?.subjectCode || '',
+          courseNumber: sourceData?.courseNumber || '',
+          createdAt: pc.createdAt,
+          updatedAt: pc.updatedAt,
+          course: pc.course,
+          class: pc.class,
+        };
+      }),
       programs: plan.planPrograms.map((pp) => ({
         id: pp.id,
         planId: pp.planId,

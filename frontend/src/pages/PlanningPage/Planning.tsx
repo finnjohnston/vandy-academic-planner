@@ -353,7 +353,7 @@ const Planning: React.FC = () => {
     const isTermSearch = dragData.searchContext?.type === 'term';
 
     const requestBody: { courseId?: string; classId?: string; semesterNumber: number; credits: number; position: number } = {
-      [isTermSearch ? 'classId' : 'courseId']: course.courseId,
+      [isTermSearch ? 'classId' : 'courseId']: isTermSearch ? course.classId : course.courseId,
       semesterNumber,
       credits: course.creditsMin,
       position
@@ -363,14 +363,13 @@ const Planning: React.FC = () => {
     const tempId = -Date.now(); // Negative to distinguish from real IDs
     const tempPlannedCourse = {
       id: tempId,
-      courseId: course.courseId,
+      courseId: isTermSearch ? undefined : course.courseId,
+      classId: isTermSearch ? course.classId : undefined,
       semesterNumber,
       position,
       credits: course.creditsMin,
-      course: {
-        subjectCode: course.subjectCode,
-        courseNumber: course.courseNumber
-      }
+      subjectCode: course.subjectCode,
+      courseNumber: course.courseNumber
     };
 
     setPlanData(prev => prev ? {

@@ -58,8 +58,8 @@ const Programs: React.FC = () => {
         setPlanData(result.data);
 
         // Initialize checked programs from plan data
-        const selectedProgramIds = new Set(
-          result.data.programs.map((p: any) => p.program.id)
+        const selectedProgramIds = new Set<number>(
+          result.data.programs.map((p: any) => p.program.id as number)
         );
         setCheckedPrograms(selectedProgramIds);
       } catch (err) {
@@ -136,8 +136,8 @@ const Programs: React.FC = () => {
         setPlanData(planResult.data);
 
         // Update checked programs from fresh data
-        const updatedProgramIds = new Set(
-          planResult.data.programs.map((p: any) => p.program.id)
+        const updatedProgramIds = new Set<number>(
+          planResult.data.programs.map((p: any) => p.program.id as number)
         );
         setCheckedPrograms(updatedProgramIds);
       }
@@ -252,7 +252,6 @@ const Programs: React.FC = () => {
 
             // If names are the same, Major comes before Minor
             const typeA = a.type.toLowerCase();
-            const typeB = b.type.toLowerCase();
             return typeA === 'major' ? -1 : 1;
           });
 

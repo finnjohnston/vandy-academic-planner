@@ -1,6 +1,7 @@
 export interface Course {
   id: number;
   courseId: string;
+  classId?: string; // Present when course is from term search (Class table)
   subjectCode: string;
   courseNumber: string;
   title: string;
