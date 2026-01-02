@@ -138,14 +138,7 @@ const TakeFromListRuleComponent: React.FC<TakeFromListRuleComponentProps> = ({
       )}
       {requirementProgress.constraintValidation &&
        requirementProgress.constraintValidation.results.length > 0 && (
-        <>
-          {requirementProgress.constraintValidation.results.map((result, index) => (
-            <ConstraintField
-              key={index}
-              constraint={result.message}
-            />
-          ))}
-        </>
+        <ConstraintField constraintValidation={requirementProgress.constraintValidation} />
       )}
     </div>
   );

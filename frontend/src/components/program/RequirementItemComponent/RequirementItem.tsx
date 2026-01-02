@@ -27,7 +27,7 @@ const RequirementItem: React.FC<RequirementItemProps> = ({
 
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [courseData, setCourseData] = useState<Course | null>(null);
-  const [isLoadingCourse, setIsLoadingCourse] = useState(false);
+  const [_isLoadingCourse, setIsLoadingCourse] = useState(false);
 
   const handleToggle = () => {
     onToggle?.(!isExpanded);

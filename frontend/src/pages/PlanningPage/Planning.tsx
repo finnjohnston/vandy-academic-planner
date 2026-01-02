@@ -14,6 +14,7 @@ import { useCourseDetails } from '../../hooks/useCourseDetails';
 import { useValidation } from '../../hooks/useValidation';
 import type { Course } from '../../types/Course';
 import type { DragData } from '../../types/DragData';
+import type { PlannedCourse } from '../../types/PlannedCourse';
 import './Planning.css';
 
 const API_BASE_URL = 'http://localhost:3000';
@@ -98,13 +99,13 @@ const Planning: React.FC = () => {
   }, [planId]);
 
   // Fetch course details for validation
-  const { courseDetailsMap, loading: detailsLoading } = useCourseDetails(
-    planData?.plannedCourses || []
+  const { courseDetailsMap } = useCourseDetails(
+    (planData?.plannedCourses || []) as PlannedCourse[]
   );
 
   // Validate all planned courses
   const validationMap = useValidation(
-    planData?.plannedCourses || [],
+    (planData?.plannedCourses || []) as PlannedCourse[],
     courseDetailsMap
   );
 
@@ -309,8 +310,10 @@ const Planning: React.FC = () => {
 
         if (isAdjacentToLast) {
           // Special case: dragging from N to N+1 where N+1 is last position
-          // Swap adjacent courses: insert after the last course
-          insertPosition = hoveredPosition;
+          // When dragging to the end, we want to insert AFTER the last course
+          // After removal, the last course will be at position (hoveredPosition - 1)
+          // So we insert at hoveredPosition to place it after the shifted last course
+          insertPosition = maxPosition;
         } else {
           // Normal downward drag: the hovered course will be at (hoveredPosition - 1) after removal
           insertPosition = hoveredPosition - 1;
@@ -377,13 +380,15 @@ const Planning: React.FC = () => {
     const tempId = -Date.now(); // Negative to distinguish from real IDs
     const tempPlannedCourse = {
       id: tempId,
-      courseId: isTermSearch ? undefined : course.courseId,
+      courseId: isTermSearch ? null : course.courseId,
       classId: isTermSearch ? course.classId : undefined,
       semesterNumber,
       position,
       credits: course.creditsMin,
-      subjectCode: course.subjectCode,
-      courseNumber: course.courseNumber
+      course: {
+        subjectCode: course.subjectCode,
+        courseNumber: course.courseNumber
+      }
     };
 
     setPlanData(prev => prev ? {

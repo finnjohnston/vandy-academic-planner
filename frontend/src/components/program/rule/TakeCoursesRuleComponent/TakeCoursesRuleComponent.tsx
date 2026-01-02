@@ -131,14 +131,7 @@ const TakeCoursesRuleComponent: React.FC<TakeCoursesRuleComponentProps> = ({
       )}
       {requirementProgress.constraintValidation &&
        requirementProgress.constraintValidation.results.length > 0 && (
-        <>
-          {requirementProgress.constraintValidation.results.map((result, index) => (
-            <ConstraintField
-              key={index}
-              constraint={result.message}
-            />
-          ))}
-        </>
+        <ConstraintField constraintValidation={requirementProgress.constraintValidation} />
       )}
     </div>
   );

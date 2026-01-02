@@ -13,7 +13,10 @@ interface PlannedCourseListProps {
   dragOverPosition: {
     semesterNumber: number;
     position: number;
-    indicatorPosition?: 'above' | 'below'
+    indicatorPosition: 'above' | 'below';
+    isLastInSemester?: boolean;
+    isSwapMode?: boolean;
+    hoveredPlannedCourseId?: number;
   } | null;
   validationMap?: ValidationMap;
 }

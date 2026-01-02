@@ -129,17 +129,17 @@ const TransferCredits: React.FC = () => {
 
     // Optimistic update
     const tempId = -Date.now();
-    const tempTransferCourse = {
+    const tempTransferCourse: PlannedCourse = {
       id: tempId,
+      planId: parseInt(planId),
       courseId: course.courseId,
       semesterNumber: 0,
       position: 0,
       credits: course.creditsMin,
-      course: {
-        subjectCode: course.subjectCode,
-        courseNumber: course.courseNumber,
-        title: course.title
-      }
+      subjectCode: course.subjectCode,
+      courseNumber: course.courseNumber,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     setTransferCourses(prev => [...prev, tempTransferCourse]);

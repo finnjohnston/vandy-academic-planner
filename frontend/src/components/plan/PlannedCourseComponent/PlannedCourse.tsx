@@ -19,6 +19,7 @@ interface PlannedCourseProps {
     semesterNumber: number;
     position: number;
     indicatorPosition: 'above' | 'below';
+    isLastInSemester?: boolean;
     isSwapMode?: boolean;
     hoveredPlannedCourseId?: number;
   } | null;
@@ -38,7 +39,7 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
   onDeleteCourseClick,
   dragOverPosition,
   isValid,
-  violations,
+  violations: _violations,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRecentlyDragged, setIsRecentlyDragged] = useState(false);
@@ -49,9 +50,9 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
     listeners,
     setNodeRef,
     transform,
-    transition,
+    transition: _transition,
     isDragging,
-    over,
+    over: _over,
     active,
   } = useSortable({
     id: `planned-course-${plannedCourseId}`,

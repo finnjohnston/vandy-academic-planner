@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import RuleDescriptionField from '../RuleDescriptionFieldComponent/RuleDescriptionField';
-import CourseTableHeader from '../CourseTableHeaderComponent/CourseTableHeader';
 import CourseList from '../CourseListComponent/CourseList';
 import ConstraintField from '../ConstraintFieldComponent/ConstraintField';
 import Toggle from '../../../common/ToggleComponent/Toggle';

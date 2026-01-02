@@ -18,6 +18,7 @@ interface PlanProps {
     id: number;
     courseId: string | null;
     semesterNumber: number;
+    position: number;
     credits: number;
     course?: {
       subjectCode: string;
@@ -30,7 +31,10 @@ interface PlanProps {
   dragOverPosition: {
     semesterNumber: number;
     position: number;
-    indicatorPosition: 'above' | 'below'
+    indicatorPosition: 'above' | 'below';
+    isLastInSemester?: boolean;
+    isSwapMode?: boolean;
+    hoveredPlannedCourseId?: number;
   } | null;
   activeDrag?: {
     source: 'search' | 'planned';
