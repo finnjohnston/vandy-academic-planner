@@ -133,14 +133,15 @@ export interface ConstraintValidationContext {
 
 /**
  * Fulfillment record for validation
+ * Supports both Course (catalog) and Class (semester-specific offering)
  */
 export interface FulfillmentRecord {
   requirementId: string;
   sectionId: string;
   course: {
     id: number;
-    courseId: string;
-    title: string;
+    courseId: string | null;
+    title?: string;
     credits: number;
     subjectCode: string;
     courseNumber: string;

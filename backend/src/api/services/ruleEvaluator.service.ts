@@ -5,7 +5,7 @@ import {
   TakeFromListRule,
   TakeAnyCoursesRule,
 } from '../types/program.types.js';
-import { Course } from '@prisma/client';
+import { Course, Class } from '@prisma/client';
 import {
   evaluateCourseFilter,
   calculateFilterSpecificity,
@@ -18,11 +18,17 @@ export interface RuleEvaluation {
 
 /**
  * Helper function to check if a course matches a course identifier
- * Supports both "SUBJ NUM" format (e.g., "MATH 1300") and raw courseId
+ * Supports both "SUBJ NUM" format (e.g., "MATH 1300") and raw courseId/classId
+ * Accepts both Course (catalog) and Class (semester-specific offering)
  */
-function courseMatchesIdentifier(course: Course, identifier: string): boolean {
-  // First try direct courseId match
-  if (course.courseId === identifier) {
+function courseMatchesIdentifier(course: Course | Class, identifier: string): boolean {
+  // First try direct courseId match (Course always has it, Class optionally has it)
+  if ('courseId' in course && course.courseId === identifier) {
+    return true;
+  }
+
+  // For Class objects, also try classId match
+  if ('classId' in course && course.classId === identifier) {
     return true;
   }
 
@@ -37,8 +43,9 @@ function courseMatchesIdentifier(course: Course, identifier: string): boolean {
 
 /**
  * Evaluates if a course matches a rule and returns specificity score
+ * Accepts both Course (catalog) and Class (semester-specific offering)
  */
-export function evaluateRule(rule: Rule, course: Course): RuleEvaluation {
+export function evaluateRule(rule: Rule, course: Course | Class): RuleEvaluation {
   switch (rule.type) {
     case 'take_courses':
       return evaluateTakeCourses(rule, course);
@@ -59,7 +66,7 @@ export function evaluateRule(rule: Rule, course: Course): RuleEvaluation {
 
 function evaluateTakeCourses(
   rule: TakeCoursesRule,
-  course: Course
+  course: Course | Class
 ): RuleEvaluation {
   // Course matches if it's in the required list (by courseId or subjectCode + courseNumber)
   const matches = rule.courses.some((identifier) =>
@@ -73,7 +80,7 @@ function evaluateTakeCourses(
 
 function evaluateTakeFromList(
   rule: TakeFromListRule,
-  course: Course
+  course: Course | Class
 ): RuleEvaluation {
   // Course matches if it's one of the options (by courseId or subjectCode + courseNumber)
   const matches = rule.courses.some((identifier) =>
@@ -87,7 +94,7 @@ function evaluateTakeFromList(
 
 function evaluateTakeAnyCourses(
   rule: TakeAnyCoursesRule,
-  course: Course
+  course: Course | Class
 ): RuleEvaluation {
   // Use real filter evaluation (Phase 6)
   const matches = evaluateCourseFilter(course, rule.filter);
@@ -99,7 +106,7 @@ function evaluateTakeAnyCourses(
   };
 }
 
-function evaluateGroup(rule: GroupRule, course: Course): RuleEvaluation {
+function evaluateGroup(rule: GroupRule, course: Course | Class): RuleEvaluation {
   // Evaluate all sub-rules
   const subEvaluations = rule.rules.map((subRule) =>
     evaluateRule(subRule, course)

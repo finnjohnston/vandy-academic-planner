@@ -26,7 +26,10 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
     where: { id: planId },
     include: {
       plannedCourses: {
-        include: { course: true },
+        include: {
+          course: true,
+          class: true  // Include semester-specific class offerings
+        },
         orderBy: [{ semesterNumber: 'asc' }, { position: 'asc' }],
       },
       planPrograms: {
@@ -91,10 +94,16 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
 
   // STEP 4: Process each course across ALL programs
   for (const plannedCourse of plan.plannedCourses) {
-    if (!plannedCourse.course) continue;
+    // Use class if available (semester-specific offering), otherwise use course (catalog)
+    const courseOrClass = plannedCourse.class || plannedCourse.course;
+    if (!courseOrClass) continue;
 
-    const course = plannedCourse.course;
-    logger.info(`Processing course ${course.courseId} across ${programData.length} programs`);
+    const identifier = 'courseId' in courseOrClass && courseOrClass.courseId
+      ? courseOrClass.courseId
+      : 'classId' in courseOrClass
+        ? courseOrClass.classId
+        : 'unknown';
+    logger.info(`Processing ${identifier} across ${programData.length} programs`);
 
     // STEP 5: For each program, find matches and assign fulfillments
     for (const data of programData) {
@@ -110,17 +119,17 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
       }
 
       // Find all requirements this course could fulfill in this program
-      const matches = findMatchingRequirements(course, programRequirements);
+      const matches = findMatchingRequirements(courseOrClass, programRequirements);
 
       if (matches.length === 0) {
         logger.info(
-          `No matches for ${course.courseId} in program ${planProgram.program.name}`
+          `No matches for ${identifier} in program ${planProgram.program.name}`
         );
         continue;
       }
 
       logger.info(
-        `Found ${matches.length} potential matches for ${course.courseId} in program ${planProgram.program.name}`
+        `Found ${matches.length} potential matches for ${identifier} in program ${planProgram.program.name}`
       );
 
       // Track which requirements we've assigned this course to IN THIS PROGRAM
@@ -176,14 +185,14 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
 
           if (hasUnfilledMatch) {
             logger.debug(
-              `Skipping ${course.courseId} for ${fullRequirementId} in ${planProgram.program.name}: ` +
+              `Skipping ${identifier} for ${fullRequirementId} in ${planProgram.program.name}: ` +
                 `requirement is full (${creditsAssigned}/${creditsRequired}) and unfilled matches exist`
             );
             continue; // Skip this full requirement, try next match
           }
           // If NO unfilled matches exist, allow assignment to this full requirement (overflow)
           logger.debug(
-            `Allowing overflow: ${course.courseId} to ${fullRequirementId} in ${planProgram.program.name} ` +
+            `Allowing overflow: ${identifier} to ${fullRequirementId} in ${planProgram.program.name} ` +
               `(${creditsAssigned}/${creditsRequired}) - all matches are full`
           );
         }
@@ -193,9 +202,9 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
 
         // If already assigned within this program, check if double counting is allowed
         if (alreadyAssignedInProgram) {
-          if (!canDoubleCount(course, fullRequirementId, doubleCountMap)) {
+          if (!canDoubleCount(courseOrClass, fullRequirementId, doubleCountMap)) {
             logger.debug(
-              `Skipping ${course.courseId} for ${fullRequirementId} in ${planProgram.program.name}: ` +
+              `Skipping ${identifier} for ${fullRequirementId} in ${planProgram.program.name}: ` +
                 `already assigned within program and double counting not allowed`
             );
             continue;
@@ -219,7 +228,7 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
 
         // Check enforcement constraints
         const enforcementCheck = checkEnforcementConstraints(
-          course,
+          courseOrClass,
           requirement,
           match.sectionId,
           allFulfillments,
@@ -228,7 +237,7 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
 
         if (!enforcementCheck.allowed) {
           logger.debug(
-            `Deferring ${course.courseId} for ${fullRequirementId} in ${planProgram.program.name}: ${enforcementCheck.reason}`
+            `Deferring ${identifier} for ${fullRequirementId} in ${planProgram.program.name}: ${enforcementCheck.reason}`
           );
           deferredMatches.push(match);
           continue;
@@ -258,19 +267,19 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
           requirementId: fullRequirementId,
           sectionId: match.sectionId,
           course: {
-            id: course.id,
-            courseId: course.courseId,
-            title: course.title,
+            id: courseOrClass.id,
+            courseId: 'courseId' in courseOrClass ? courseOrClass.courseId : null,
+            title: 'title' in courseOrClass ? courseOrClass.title : undefined,
             credits: plannedCourse.credits,
-            subjectCode: course.subjectCode,
-            courseNumber: course.courseNumber,
-            attributes: course.attributes,
+            subjectCode: courseOrClass.subjectCode,
+            courseNumber: courseOrClass.courseNumber,
+            attributes: courseOrClass.attributes,
           },
           creditsApplied: plannedCourse.credits,
         });
 
         logger.info(
-          `✓ Assigned ${course.courseId} to ${fullRequirementId} in program ${planProgram.program.name} ` +
+          `✓ Assigned ${identifier} to ${fullRequirementId} in program ${planProgram.program.name} ` +
             `(planProgramId: ${planProgram.id}, score: ${match.specificityScore})${alreadyAssignedInProgram ? ' [DOUBLE COUNT WITHIN PROGRAM]' : ''}`
         );
       }
@@ -296,7 +305,7 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
 
         // Re-check enforcement constraints first (they may pass now after other assignments)
         const enforcementCheck = checkEnforcementConstraints(
-          course,
+          courseOrClass,
           requirement,
           match.sectionId,
           allFulfillments,
@@ -309,7 +318,7 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
 
         // Check if double counting is allowed
         const alreadyAssignedInProgram = assignedRequirementIds.length > 0;
-        if (alreadyAssignedInProgram && !canDoubleCount(course, fullRequirementId, doubleCountMap)) {
+        if (alreadyAssignedInProgram && !canDoubleCount(courseOrClass, fullRequirementId, doubleCountMap)) {
           continue;
         }
 
@@ -335,19 +344,19 @@ export async function autoAssignFulfillments(planId: number): Promise<void> {
           requirementId: fullRequirementId,
           sectionId: match.sectionId,
           course: {
-            id: course.id,
-            courseId: course.courseId,
-            title: course.title,
+            id: courseOrClass.id,
+            courseId: 'courseId' in courseOrClass ? courseOrClass.courseId : null,
+            title: 'title' in courseOrClass ? courseOrClass.title : undefined,
             credits: plannedCourse.credits,
-            subjectCode: course.subjectCode,
-            courseNumber: course.courseNumber,
-            attributes: course.attributes,
+            subjectCode: courseOrClass.subjectCode,
+            courseNumber: courseOrClass.courseNumber,
+            attributes: courseOrClass.attributes,
           },
           creditsApplied: plannedCourse.credits,
         });
 
         logger.debug(
-          `Assigned ${course.courseId} to ${fullRequirementId} in program ${planProgram.program.name} [DEFERRED]`
+          `Assigned ${identifier} to ${fullRequirementId} in program ${planProgram.program.name} [DEFERRED]`
         );
       }
     }

@@ -1,5 +1,5 @@
 import { ProgramRequirements } from '../types/program.types.js';
-import { Course } from '@prisma/client';
+import { Course, Class } from '@prisma/client';
 import { evaluateRule } from './ruleEvaluator.service.js';
 
 export interface RequirementMatch {
@@ -11,9 +11,10 @@ export interface RequirementMatch {
 /**
  * Finds all requirements in program that this course could fulfill
  * Returns matches sorted by specificity (highest first)
+ * Accepts both Course (catalog) and Class (semester-specific offering)
  */
 export function findMatchingRequirements(
-  course: Course,
+  course: Course | Class,
   programRequirements: ProgramRequirements
 ): RequirementMatch[] {
   const matches: RequirementMatch[] = [];

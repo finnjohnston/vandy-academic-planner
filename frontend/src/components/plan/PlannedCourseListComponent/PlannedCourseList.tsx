@@ -52,6 +52,7 @@ const PlannedCourseList: React.FC<PlannedCourseListProps> = ({
               key={plannedCourse.id}
               plannedCourseId={plannedCourse.id}
               courseId={plannedCourse.courseId || ''}
+              classId={plannedCourse.classId}
               subjectCode={plannedCourse.subjectCode}
               courseNumber={plannedCourse.courseNumber}
               credits={plannedCourse.credits}

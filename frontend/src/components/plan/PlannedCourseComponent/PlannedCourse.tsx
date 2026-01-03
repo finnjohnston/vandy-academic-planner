@@ -8,12 +8,13 @@ import './PlannedCourse.css';
 interface PlannedCourseProps {
   plannedCourseId: number;
   courseId: string;
+  classId?: string;
   subjectCode: string;
   courseNumber: string;
   credits: number;
   semesterNumber: number;
   position: number;
-  onCourseDetailsClick?: (courseId: string) => void;
+  onCourseDetailsClick?: (courseId: string, classId?: string) => void;
   onDeleteCourseClick?: (plannedCourseId: number) => void;
   dragOverPosition: {
     semesterNumber: number;
@@ -30,6 +31,7 @@ interface PlannedCourseProps {
 const PlannedCourse: React.FC<PlannedCourseProps> = ({
   plannedCourseId,
   courseId,
+  classId,
   subjectCode,
   courseNumber,
   credits,
@@ -173,6 +175,7 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
       <PlannedCourseOptionsMenu
         plannedCourseId={plannedCourseId}
         courseId={courseId}
+        classId={classId}
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
         onCourseDetailsClick={onCourseDetailsClick}

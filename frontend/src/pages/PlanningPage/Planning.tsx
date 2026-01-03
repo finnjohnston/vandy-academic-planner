@@ -34,12 +34,18 @@ interface PlanData {
   plannedCourses: Array<{
     id: number;
     courseId: string | null;
+    classId: string | null;
     semesterNumber: number;
     position: number;
     credits: number;
     course?: {
       subjectCode: string;
       courseNumber: string;
+    } | null;
+    class?: {
+      subjectCode: string;
+      courseNumber: string;
+      title: string;
     } | null;
   }>;
   programs: Array<{
@@ -109,9 +115,16 @@ const Planning: React.FC = () => {
     courseDetailsMap
   );
 
-  const handlePlannedCourseClick = async (courseId: string) => {
+  const handlePlannedCourseClick = async (courseId: string, classId?: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/courses/by-course-id/${courseId}`);
+      let response;
+      if (classId) {
+        // Fetch class details for semester-specific offerings
+        response = await fetch(`${API_BASE_URL}/api/classes/by-class-id/${classId}`);
+      } else {
+        // Fetch course details for catalog courses
+        response = await fetch(`${API_BASE_URL}/api/courses/by-course-id/${courseId}`);
+      }
       if (!response.ok) throw new Error('Failed to fetch course');
       const data = await response.json();
       setSelectedCourse(data.data);
@@ -382,14 +395,19 @@ const Planning: React.FC = () => {
     const tempPlannedCourse = {
       id: tempId,
       courseId: isTermSearch ? null : course.courseId,
-      classId: isTermSearch ? course.classId : undefined,
+      classId: isTermSearch ? course.classId : null,
       semesterNumber,
       position,
       credits: course.creditsMin,
-      course: {
+      course: isTermSearch ? null : {
         subjectCode: course.subjectCode,
         courseNumber: course.courseNumber
-      }
+      },
+      class: isTermSearch ? {
+        subjectCode: course.subjectCode,
+        courseNumber: course.courseNumber,
+        title: course.title
+      } : null
     };
 
     setPlanData(prev => prev ? {

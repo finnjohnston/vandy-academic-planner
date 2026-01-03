@@ -56,7 +56,10 @@ export async function calculateProgramPreview(
     include: {
       academicYear: true,
       plannedCourses: {
-        include: { course: true },
+        include: {
+          course: true,
+          class: true
+        },
         orderBy: [{ semesterNumber: 'asc' }, { position: 'asc' }],
       },
     },
@@ -88,11 +91,12 @@ export async function calculateProgramPreview(
   const enrichedFulfillments: EnrichedFulfillment[] = [];
 
   for (const plannedCourse of plan.plannedCourses) {
-    if (!plannedCourse.course) continue;
+    // Use class if available (semester-specific offering), otherwise use course (catalog)
+    const courseOrClass = plannedCourse.class || plannedCourse.course;
+    if (!courseOrClass) continue;
 
-    const course = plannedCourse.course;
     // Find all requirements this course could fulfill
-    const matches = findMatchingRequirements(course, requirements);
+    const matches = findMatchingRequirements(courseOrClass, requirements);
 
     // For preview mode, assign each course to its first (most specific) match
     if (matches.length > 0) {
@@ -102,13 +106,13 @@ export async function calculateProgramPreview(
       enrichedFulfillments.push({
         requirementId: fullRequirementId,
         course: {
-          id: course.id,
-          courseId: course.courseId,
-          title: course.title,
+          id: courseOrClass.id,
+          courseId: 'courseId' in courseOrClass ? courseOrClass.courseId : null,
+          title: 'title' in courseOrClass ? courseOrClass.title : undefined,
           credits: plannedCourse.credits,
-          subjectCode: course.subjectCode,
-          courseNumber: course.courseNumber,
-          attributes: course.attributes,
+          subjectCode: courseOrClass.subjectCode,
+          courseNumber: courseOrClass.courseNumber,
+          attributes: courseOrClass.attributes,
         },
         creditsApplied: plannedCourse.credits,
         semesterNumber: plannedCourse.semesterNumber,
@@ -184,7 +188,10 @@ export async function calculateProgramProgress(
       fulfillments: {
         include: {
           plannedCourse: {
-            include: { course: true },
+            include: {
+              course: true,
+              class: true
+            },
           },
         },
       },
@@ -202,20 +209,28 @@ export async function calculateProgramProgress(
   const academicYearStart = planProgram.plan.academicYear.start;
   const academicYearId = planProgram.plan.academicYear.id;
 
-  const enrichedFulfillments: EnrichedFulfillment[] = planProgram.fulfillments.map((f) => ({
-    requirementId: f.requirementId,
-    course: {
-      id: f.plannedCourse.course.id,
-      courseId: f.plannedCourse.course.courseId,
-      title: f.plannedCourse.course.title,
-      credits: f.plannedCourse.credits,
-      subjectCode: f.plannedCourse.course.subjectCode,
-      courseNumber: f.plannedCourse.course.courseNumber,
-      attributes: f.plannedCourse.course.attributes,
-    },
-    creditsApplied: f.creditsApplied,
-    semesterNumber: f.plannedCourse.semesterNumber,
-  }));
+  const enrichedFulfillments: EnrichedFulfillment[] = planProgram.fulfillments.map((f) => {
+    // Use class if available (semester-specific offering), otherwise use course (catalog)
+    const courseOrClass = f.plannedCourse.class || f.plannedCourse.course;
+    if (!courseOrClass) {
+      throw new Error(`PlannedCourse ${f.plannedCourse.id} has neither course nor class`);
+    }
+
+    return {
+      requirementId: f.requirementId,
+      course: {
+        id: courseOrClass.id,
+        courseId: 'courseId' in courseOrClass ? courseOrClass.courseId : null,
+        title: 'title' in courseOrClass ? courseOrClass.title : undefined,
+        credits: f.plannedCourse.credits,
+        subjectCode: courseOrClass.subjectCode,
+        courseNumber: courseOrClass.courseNumber,
+        attributes: courseOrClass.attributes,
+      },
+      creditsApplied: f.creditsApplied,
+      semesterNumber: f.plannedCourse.semesterNumber,
+    };
+  });
 
   // Calculate progress for each section
   const sectionProgress = await Promise.all(
@@ -413,11 +428,11 @@ async function calculateRequirementProgress(
     // Extract courses from fulfillments for other rule types
     coursesForEvaluation = reqFulfillments.map((f) => ({
       id: f.course.id,
-      courseId: f.course.courseId,
+      courseId: f.course.courseId || `${f.course.subjectCode} ${f.course.courseNumber}`,
       academicYearId: 0, // Not needed for progress calculation
       subjectCode: f.course.subjectCode,
       courseNumber: f.course.courseNumber,
-      title: f.course.title,
+      title: f.course.title || '',
       school: '',
       creditsMin: f.course.credits,
       creditsMax: f.course.credits,
@@ -500,8 +515,8 @@ async function calculateRequirementProgress(
     percentage,
     ruleProgress,
     fulfillingCourses: reqFulfillments.map((f) => ({
-      courseId: f.course.courseId,
-      title: f.course.title,
+      courseId: f.course.courseId || `${f.course.subjectCode} ${f.course.courseNumber}`,
+      title: f.course.title || '',
       credits: f.course.credits,
       creditsApplied: f.creditsApplied,
       semesterNumber: f.semesterNumber,
