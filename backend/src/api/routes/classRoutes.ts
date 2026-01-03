@@ -4,6 +4,7 @@ import {
   getClasses,
   getClassById,
   getClassByClassId,
+  getAvailableCoursesForTerm,
   createClass,
   updateClass,
 } from '../controllers/classController.js';
@@ -18,6 +19,10 @@ const idParamSchema = z.object({
 
 const classIdParamSchema = z.object({
   classId: z.string().min(1).max(255),
+});
+
+const termIdParamSchema = z.object({
+  termId: z.string().min(1).max(50),
 });
 
 const classSearchSchema = z.object({
@@ -82,6 +87,12 @@ router.get('/', validate({ query: classSearchSchema }), getClasses);
  * Get specific class by classId
  */
 router.get('/by-class-id/:classId', validate({ params: classIdParamSchema }), getClassByClassId);
+
+/**
+ * GET /api/classes/term/:termId/available-courses
+ * Get available course codes for a specific term
+ */
+router.get('/term/:termId/available-courses', validate({ params: termIdParamSchema }), getAvailableCoursesForTerm);
 
 /**
  * GET /api/classes/:id

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import ReactDOM from 'react-dom';
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, pointerWithin } from '@dnd-kit/core';
@@ -12,6 +12,7 @@ import TransferCredits from '../../components/course/TransferCreditsComponent/Tr
 import { PlanProvider } from '../../contexts/PlanContext';
 import { useCourseDetails } from '../../hooks/useCourseDetails';
 import { useValidation } from '../../hooks/useValidation';
+import { useTermAvailability } from '../../hooks/useTermAvailability';
 import type { Course } from '../../types/Course';
 import type { DragData } from '../../types/DragData';
 import type { PlannedCourse } from '../../types/PlannedCourse';
@@ -104,15 +105,34 @@ const Planning: React.FC = () => {
     fetchPlan();
   }, [planId]);
 
+  // Memoize planned courses to prevent infinite re-renders
+  const plannedCourses = useMemo(
+    () => (planData?.plannedCourses || []) as PlannedCourse[],
+    [planData?.plannedCourses]
+  );
+
   // Fetch course details for validation
-  const { courseDetailsMap } = useCourseDetails(
-    (planData?.plannedCourses || []) as PlannedCourse[]
+  const { courseDetailsMap } = useCourseDetails(plannedCourses);
+
+  // Calculate max semester number for term availability fetching
+  const maxSemesterNumber = useMemo(
+    () => Math.max(0, ...plannedCourses.map(pc => pc.semesterNumber)),
+    [plannedCourses]
+  );
+
+  // Fetch term availability data for all semesters in the plan
+  const { data: termAvailability, isLoading: isLoadingTerms } = useTermAvailability(
+    planData?.academicYear?.start || 2024,
+    maxSemesterNumber
   );
 
   // Validate all planned courses
   const validationMap = useValidation(
-    (planData?.plannedCourses || []) as PlannedCourse[],
-    courseDetailsMap
+    plannedCourses,
+    courseDetailsMap,
+    planData?.academicYear?.start || 2024,
+    termAvailability,
+    isLoadingTerms
   );
 
   const handlePlannedCourseClick = async (courseId: string, classId?: string) => {

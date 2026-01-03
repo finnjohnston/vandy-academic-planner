@@ -39,9 +39,13 @@
 }
 
 .planned-course-invalid {
-  border: 1px solid #ff4444 !important;
+  border: 1px solid var(--color-text-red)!important;
   border-radius: 4px;
   position: relative;
+}
+
+.planned-course-invalid .planned-course-code {
+  color: var(--color-text-red);
 }
 
 /* Only collapse borders when two invalid courses are adjacent */

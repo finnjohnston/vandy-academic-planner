@@ -11,4 +11,10 @@ export interface PlannedCourse {
   title?: string;
   createdAt: string;
   updatedAt: string;
+  class?: {
+    termId: string;
+    subjectCode: string;
+    courseNumber: string;
+    title: string;
+  };
 }

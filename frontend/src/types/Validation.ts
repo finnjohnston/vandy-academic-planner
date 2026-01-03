@@ -4,7 +4,8 @@ export type ViolationType =
   | 'corequisite-not-taken'
   | 'corequisite-wrong-semester'
   | 'mutual-corequisite-missing'
-  | 'mutual-corequisite-different-semester';
+  | 'mutual-corequisite-different-semester'
+  | 'wrong-term';
 
 export interface Violation {
   type: ViolationType;
@@ -12,6 +13,8 @@ export interface Violation {
   relatedCourseId?: string;
   expectedSemester?: number;
   actualSemester?: number;
+  expectedTermId?: string;
+  actualTermId?: string;
 }
 
 export interface ValidationResult {

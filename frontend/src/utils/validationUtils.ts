@@ -338,3 +338,39 @@ export const validatePlannedCourse = (
     violations,
   };
 };
+
+/**
+ * Validates that PlannedCourse is available in the semester's term
+ * Checks ALL courses (both catalog and semester-specific) against term availability
+ * Skips validation if term data is not available
+ */
+export const validateTermPlacement = (
+  plannedCourse: PlannedCourse,
+  termAvailability: Map<number, Set<string>>
+): Violation[] => {
+  const violations: Violation[] = [];
+
+  // Skip validation if course data is incomplete (drag placeholder)
+  if (!plannedCourse.subjectCode || !plannedCourse.courseNumber) {
+    return violations;
+  }
+
+  // Skip validation if we don't have data for this semester
+  const availableCoursesForSemester = termAvailability.get(plannedCourse.semesterNumber);
+  if (!availableCoursesForSemester) {
+    return violations;
+  }
+
+  // Construct course code to check
+  const courseCode = `${plannedCourse.subjectCode} ${plannedCourse.courseNumber}`;
+
+  // Check if course is available in this semester
+  if (!availableCoursesForSemester.has(courseCode)) {
+    violations.push({
+      type: 'wrong-term',
+      message: `${courseCode} is not offered in this semester`,
+    });
+  }
+
+  return violations;
+};

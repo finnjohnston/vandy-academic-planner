@@ -112,6 +112,34 @@ export async function getClassByClassId(
 }
 
 /**
+ * GET /api/classes/term/:termId/available-courses
+ * Get available course codes for a specific term (lightweight for validation)
+ */
+export async function getAvailableCoursesForTerm(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { termId } = req.params;
+    logger.http(`GET /api/classes/term/${termId}/available-courses`);
+
+    const classes = await prisma.class.findMany({
+      where: { termId },
+      select: {
+        subjectCode: true,
+        courseNumber: true,
+      },
+      distinct: ['subjectCode', 'courseNumber'],
+    });
+
+    sendSuccess(res, classes);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * GET /api/classes/:id
  * Get specific class by primary database ID
  */
