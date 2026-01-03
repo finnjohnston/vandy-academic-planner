@@ -1,0 +1,112 @@
+.program-dropdown-container {
+  width: 200px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.program-dropdown-button {
+  width: 100%;
+  height: 35px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.program-dropdown-button:hover {
+  border-color: var(--color-border);
+}
+
+.program-dropdown-button:focus {
+  outline: none;
+}
+
+.program-dropdown-button:active {
+  outline: none;
+}
+
+.program-dropdown-value {
+  color: var(--color-text-dark);
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  flex: 1;
+  text-align: left;
+}
+
+.program-dropdown-icon {
+  width: 10px;
+  height: 10px;
+  filter: brightness(0) saturate(100%) invert(60%);
+  flex-shrink: 0;
+}
+
+.program-dropdown-icon.open {
+  transform: rotate(180deg);
+}
+
+.program-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background-color: var(--color-bg);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+}
+
+.program-dropdown-item {
+  height: 30px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  color: var(--color-text-dark);
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.program-dropdown-item:hover {
+  background-color: var(--color-btn-bg);
+}
+
+.program-dropdown-item.selected {
+  color: var(--color-text-dark);
+  background-color: var(--color-btn-bg);
+}
+
+/* Scrollbar styling for dropdown menu */
+.program-dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.program-dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.program-dropdown-menu::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.program-dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: #3e3e3e;
+}

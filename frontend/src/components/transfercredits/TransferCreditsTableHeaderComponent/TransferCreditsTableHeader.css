@@ -1,0 +1,30 @@
+.transfer-credits-table-header {
+  width: 100%;
+  max-width: 1175px;
+  height: 50px;
+  background-color: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  position: relative;
+  border-radius: 8px 8px 0 0;
+}
+
+.transfer-credits-table-header span {
+  font-size: 14px;
+  color: var(--color-text-dark);
+  font-weight: 500;
+  position: absolute;
+}
+
+.transfer-credits-header-course {
+  left: 0;
+}
+
+.transfer-credits-header-title {
+  left: 300px;
+}
+
+.transfer-credits-header-credits {
+  left: 882px;
+}

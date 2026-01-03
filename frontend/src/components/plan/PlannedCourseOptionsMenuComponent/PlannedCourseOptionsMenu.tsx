@@ -7,9 +7,10 @@ import './PlannedCourseOptionsMenu.css';
 interface PlannedCourseOptionsMenuProps {
   plannedCourseId: number;
   courseId: string;
+  classId?: string;
   isOpen: boolean;
   onClose: () => void;
-  onCourseDetailsClick?: (courseId: string) => void;
+  onCourseDetailsClick?: (courseId: string, classId?: string) => void;
   onDeleteCourseClick?: (plannedCourseId: number) => void;
   anchorElement?: HTMLElement | null;
 }
@@ -17,6 +18,7 @@ interface PlannedCourseOptionsMenuProps {
 const PlannedCourseOptionsMenu: React.FC<PlannedCourseOptionsMenuProps> = ({
   plannedCourseId,
   courseId,
+  classId,
   isOpen,
   onClose,
   onCourseDetailsClick,
@@ -57,7 +59,7 @@ const PlannedCourseOptionsMenu: React.FC<PlannedCourseOptionsMenuProps> = ({
     e.stopPropagation();
     onClose();
     if (onCourseDetailsClick) {
-      onCourseDetailsClick(courseId);
+      onCourseDetailsClick(courseId, classId);
     }
   };
 

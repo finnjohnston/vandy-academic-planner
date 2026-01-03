@@ -3,6 +3,8 @@ import { z } from 'zod';
 import {
   getClasses,
   getClassById,
+  getClassByClassId,
+  getAvailableCoursesForTerm,
   createClass,
   updateClass,
 } from '../controllers/classController.js';
@@ -13,6 +15,14 @@ const router = Router();
 // Validation schemas
 const idParamSchema = z.object({
   id: z.coerce.number().int().positive(),
+});
+
+const classIdParamSchema = z.object({
+  classId: z.string().min(1).max(255),
+});
+
+const termIdParamSchema = z.object({
+  termId: z.string().min(1).max(50),
 });
 
 const classSearchSchema = z.object({
@@ -71,6 +81,18 @@ const updateClassSchema = z
  * Search/list classes by term with optional query
  */
 router.get('/', validate({ query: classSearchSchema }), getClasses);
+
+/**
+ * GET /api/classes/by-class-id/:classId
+ * Get specific class by classId
+ */
+router.get('/by-class-id/:classId', validate({ params: classIdParamSchema }), getClassByClassId);
+
+/**
+ * GET /api/classes/term/:termId/available-courses
+ * Get available course codes for a specific term
+ */
+router.get('/term/:termId/available-courses', validate({ params: termIdParamSchema }), getAvailableCoursesForTerm);
 
 /**
  * GET /api/classes/:id

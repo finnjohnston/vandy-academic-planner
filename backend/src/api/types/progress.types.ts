@@ -174,13 +174,14 @@ export type PlanProgressOverview = {
 
 /**
  * Internal helper type for enriched fulfillments
+ * Supports both Course (catalog) and Class (semester-specific offering)
  */
 export type EnrichedFulfillment = {
   requirementId: string;
   course: {
     id: number;
-    courseId: string;
-    title: string;
+    courseId: string | null;
+    title?: string;
     credits: number;
     subjectCode: string;
     courseNumber: string;

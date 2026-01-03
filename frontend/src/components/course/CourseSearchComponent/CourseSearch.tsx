@@ -32,9 +32,17 @@ interface CourseSearchProps {
   onPopupOpen?: () => void;
   onPopupClose?: () => void;
   isBlurred?: boolean;
+  hideFilters?: boolean;
+  fixedAcademicYearId?: number;
 }
 
-const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose, isBlurred = false }) => {
+const CourseSearch: React.FC<CourseSearchProps> = ({
+  onPopupOpen,
+  onPopupClose,
+  isBlurred = false,
+  hideFilters = false,
+  fixedAcademicYearId
+}) => {
   // Search state
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [courses, setCourses] = useState<Course[]>([]);
@@ -67,6 +75,19 @@ const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose, 
     const fetchAcademicYears = async () => {
       try {
         setIsLoadingYears(true);
+
+        // If a fixed academic year ID is provided, fetch only that year
+        if (fixedAcademicYearId) {
+          const yearResponse = await fetch(`${API_BASE_URL}/api/academic-years/${fixedAcademicYearId}`);
+          if (!yearResponse.ok) throw new Error('Failed to fetch academic year');
+          const yearData = await yearResponse.json();
+
+          setAcademicYears([yearData.data]);
+          setSelectedAcademicYear(yearData.data);
+          setError(null);
+          setIsLoadingYears(false);
+          return;
+        }
 
         // Fetch all academic years
         const yearsResponse = await fetch(`${API_BASE_URL}/api/academic-years`);
@@ -110,11 +131,14 @@ const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose, 
     };
 
     fetchAcademicYears();
-  }, []);
+  }, [fixedAcademicYearId]);
 
   // Fetch terms when academic year changes
   useEffect(() => {
     if (!selectedAcademicYear) return;
+
+    // Skip fetching terms if filters are hidden
+    if (hideFilters) return;
 
     const fetchTerms = async () => {
       try {
@@ -137,7 +161,7 @@ const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose, 
     };
 
     fetchTerms();
-  }, [selectedAcademicYear]);
+  }, [selectedAcademicYear, hideFilters]);
 
   const handleAcademicYearChange = (yearString: string) => {
     const year = academicYears.find((y) => y.year === yearString);
@@ -223,25 +247,27 @@ const CourseSearch: React.FC<CourseSearchProps> = ({ onPopupOpen, onPopupClose, 
 
         {error && <div className="error-message">{error}</div>}
 
-        <div className="dropdowns-container">
-          <Dropdown
-            label="Academic Year"
-            value={selectedAcademicYear?.year || 'Loading...'}
-            options={academicYears.map((year) => year.year)}
-            onChange={handleAcademicYearChange}
-            disabled={isLoadingYears || academicYears.length === 0}
-            className="year-dropdown"
-          />
+        {!hideFilters && (
+          <div className="dropdowns-container">
+            <Dropdown
+              label="Academic Year"
+              value={selectedAcademicYear?.year || 'Loading...'}
+              options={academicYears.map((year) => year.year)}
+              onChange={handleAcademicYearChange}
+              disabled={isLoadingYears || academicYears.length === 0}
+              className="year-dropdown"
+            />
 
-          <Dropdown
-            label="Term"
-            value={selectedTerm}
-            options={['Year', ...terms.map((term) => term.name)]}
-            onChange={setSelectedTerm}
-            disabled={isLoadingTerms || !selectedAcademicYear}
-            className="term-dropdown"
-          />
-        </div>
+            <Dropdown
+              label="Term"
+              value={selectedTerm}
+              options={['Year', ...terms.map((term) => term.name)]}
+              onChange={setSelectedTerm}
+              disabled={isLoadingTerms || !selectedAcademicYear}
+              className="term-dropdown"
+            />
+          </div>
+        )}
       </div>
 
       {isLoadingCourses ? (

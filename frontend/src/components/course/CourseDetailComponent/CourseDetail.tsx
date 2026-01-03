@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import type { Course } from '../../../types/Course';
+import { usePlanContext } from '../../../contexts/PlanContext';
+import { isCourseInPlan, extractCourseIds } from '../../../utils/courseUtils';
 import './CourseDetail.css';
 import exitIcon from '../../../assets/exit_icon.png';
 
@@ -9,6 +11,7 @@ interface CourseDetailProps {
 }
 
 const CourseDetail: React.FC<CourseDetailProps> = ({ course, onClose }) => {
+  const { plannedCourses } = usePlanContext();
   const formatCredits = (min: number, max: number): string => {
     return min === max ? `${min}` : `${min}-${max}`;
   };
@@ -26,7 +29,8 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onClose }) => {
     return allAttributes;
   };
 
-  const formatCourseLogic = (logic: any): string => {
+  // Helper function to format logic as plain text without colors
+  const formatCourseLogicPlain = (logic: any): string => {
     if (typeof logic === 'string') {
       return logic;
     }
@@ -34,8 +38,8 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onClose }) => {
     if (typeof logic === 'object' && logic !== null) {
       if (logic.$and && Array.isArray(logic.$and)) {
         const formatted = logic.$and.map((item: any) => {
-          const result = formatCourseLogic(item);
-          const needsParens = typeof item === 'object' && item !== null && typeof item !== 'string';
+          const result = formatCourseLogicPlain(item);
+          const needsParens = typeof item === 'object' && item !== null;
           return needsParens ? `(${result})` : result;
         });
         return formatted.join(' and ');
@@ -43,8 +47,8 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onClose }) => {
 
       if (logic.$or && Array.isArray(logic.$or)) {
         const formatted = logic.$or.map((item: any) => {
-          const result = formatCourseLogic(item);
-          const needsParens = typeof item === 'object' && item !== null && typeof item !== 'string';
+          const result = formatCourseLogicPlain(item);
+          const needsParens = typeof item === 'object' && item !== null;
           return needsParens ? `(${result})` : result;
         });
         return formatted.join(' or ');
@@ -54,18 +58,118 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onClose }) => {
     return '';
   };
 
-  const getPrerequisitesText = (requirements?: Record<string, unknown>): string | null => {
+  const formatCourseLogicWithColors = (logic: any): React.ReactNode => {
+    // Base case: individual course
+    if (typeof logic === 'string') {
+      const isInPlan = isCourseInPlan(logic, plannedCourses);
+      return (
+        <span className={isInPlan ? 'course-in-plan' : 'course-not-in-plan'}>
+          {logic}
+        </span>
+      );
+    }
+
+    // Handle $or groups
+    if (typeof logic === 'object' && logic !== null && logic.$or && Array.isArray(logic.$or)) {
+      const allCoursesInGroup = extractCourseIds(logic);
+      const anyInPlan = allCoursesInGroup.some(id => isCourseInPlan(id, plannedCourses));
+
+      // OR is satisfied if ANY course is in plan - color whole group green
+      if (anyInPlan && allCoursesInGroup.length > 1) {
+        const plainText = formatCourseLogicPlain(logic);
+        return <span className="course-group-satisfied">{plainText}</span>;
+      }
+
+      // Otherwise format with individual colors
+      const formatted = logic.$or.map((item: any, index: number) => {
+        const result = formatCourseLogicWithColors(item);
+        const needsParens = typeof item === 'object' && item !== null;
+
+        let content;
+        if (needsParens) {
+          // Check if the nested group is satisfied to color parentheses
+          const nestedCourses = extractCourseIds(item);
+          const isNestedSatisfied = item.$or
+            ? nestedCourses.some(id => isCourseInPlan(id, plannedCourses))
+            : nestedCourses.every(id => isCourseInPlan(id, plannedCourses));
+
+          if (isNestedSatisfied) {
+            content = <span className="course-group-satisfied">({result})</span>;
+          } else {
+            content = <span className="course-not-in-plan">({result})</span>;
+          }
+        } else {
+          content = result;
+        }
+
+        // Add 'or' separator between items
+        if (index < logic.$or.length - 1) {
+          return <React.Fragment key={index}>{content} or </React.Fragment>;
+        }
+        return <React.Fragment key={index}>{content}</React.Fragment>;
+      });
+
+      return <>{formatted}</>;
+    }
+
+    // Handle $and groups
+    if (typeof logic === 'object' && logic !== null && logic.$and && Array.isArray(logic.$and)) {
+      const allCoursesInGroup = extractCourseIds(logic);
+      const allInPlan = allCoursesInGroup.every(id => isCourseInPlan(id, plannedCourses));
+
+      // AND is satisfied if ALL courses are in plan - color whole group green
+      if (allInPlan && allCoursesInGroup.length > 1) {
+        const plainText = formatCourseLogicPlain(logic);
+        return <span className="course-group-satisfied">{plainText}</span>;
+      }
+
+      // Otherwise format with individual colors
+      const formatted = logic.$and.map((item: any, index: number) => {
+        const result = formatCourseLogicWithColors(item);
+        const needsParens = typeof item === 'object' && item !== null;
+
+        let content;
+        if (needsParens) {
+          // Check if the nested group is satisfied to color parentheses
+          const nestedCourses = extractCourseIds(item);
+          const isNestedSatisfied = item.$or
+            ? nestedCourses.some(id => isCourseInPlan(id, plannedCourses))
+            : nestedCourses.every(id => isCourseInPlan(id, plannedCourses));
+
+          if (isNestedSatisfied) {
+            content = <span className="course-group-satisfied">({result})</span>;
+          } else {
+            content = <span className="course-not-in-plan">({result})</span>;
+          }
+        } else {
+          content = result;
+        }
+
+        // Add 'and' separator between items
+        if (index < logic.$and.length - 1) {
+          return <React.Fragment key={index}>{content} and </React.Fragment>;
+        }
+        return <React.Fragment key={index}>{content}</React.Fragment>;
+      });
+
+      return <>{formatted}</>;
+    }
+
+    return null;
+  };
+
+  const getPrerequisitesJSX = (requirements?: Record<string, unknown>): React.ReactNode => {
     if (!requirements) return null;
     const prereqs = (requirements as any).prerequisites;
     if (!prereqs || !prereqs.courses) return null;
-    return formatCourseLogic(prereqs.courses);
+    return formatCourseLogicWithColors(prereqs.courses);
   };
 
-  const getCorequisitesText = (requirements?: Record<string, unknown>): string | null => {
+  const getCorequisitesJSX = (requirements?: Record<string, unknown>): React.ReactNode => {
     if (!requirements) return null;
     const coreqs = (requirements as any).corequisites;
     if (!coreqs || !coreqs.courses) return null;
-    return formatCourseLogic(coreqs.courses);
+    return formatCourseLogicWithColors(coreqs.courses);
   };
 
   // Close on Escape key
@@ -119,13 +223,13 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onClose }) => {
           <div className="course-detail-prerequisites-section">
             <div className="course-detail-prerequisites-label">Prerequisites</div>
             <div className="course-detail-prerequisites-value">
-              {getPrerequisitesText(course.requirements) || 'None'}
+              {getPrerequisitesJSX(course.requirements) || 'None'}
             </div>
           </div>
           <div className="course-detail-corequisites-section">
             <div className="course-detail-corequisites-label">Corequisites</div>
             <div className="course-detail-corequisites-value">
-              {getCorequisitesText(course.requirements) || 'None'}
+              {getCorequisitesJSX(course.requirements) || 'None'}
             </div>
           </div>
           <div className="course-detail-description-section">

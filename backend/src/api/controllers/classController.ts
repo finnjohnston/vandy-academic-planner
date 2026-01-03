@@ -66,6 +66,80 @@ export async function getClasses(
 }
 
 /**
+ * GET /api/classes/by-class-id/:classId
+ * Get specific class by classId (unique string identifier)
+ */
+export async function getClassByClassId(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { classId } = req.params;
+    logger.http(`GET /api/classes/by-class-id/${classId}`);
+
+    const classItem = await prisma.class.findUnique({
+      where: { classId },
+    });
+
+    if (!classItem) {
+      throw new NotFoundError('Class not found');
+    }
+
+    // Transform data - return relevant fields
+    const transformedClass = {
+      id: classItem.id,
+      classId: classItem.classId,
+      termId: classItem.termId,
+      courseId: classItem.courseId,
+      subjectCode: classItem.subjectCode,
+      courseNumber: classItem.courseNumber,
+      title: classItem.title,
+      school: classItem.school,
+      creditsMin: classItem.creditsMin,
+      creditsMax: classItem.creditsMax,
+      description: classItem.description,
+      attributes: classItem.attributes,
+      requirements: classItem.requirements,
+      createdAt: classItem.createdAt,
+      updatedAt: classItem.updatedAt,
+    };
+
+    sendSuccess(res, transformedClass);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/classes/term/:termId/available-courses
+ * Get available course codes for a specific term (lightweight for validation)
+ */
+export async function getAvailableCoursesForTerm(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { termId } = req.params;
+    logger.http(`GET /api/classes/term/${termId}/available-courses`);
+
+    const classes = await prisma.class.findMany({
+      where: { termId },
+      select: {
+        subjectCode: true,
+        courseNumber: true,
+      },
+      distinct: ['subjectCode', 'courseNumber'],
+    });
+
+    sendSuccess(res, classes);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * GET /api/classes/:id
  * Get specific class by primary database ID
  */

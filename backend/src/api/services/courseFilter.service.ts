@@ -1,4 +1,4 @@
-import { Course } from '@prisma/client';
+import { Course, Class } from '@prisma/client';
 import {
   CourseFilter,
   AnyFilter,
@@ -14,11 +14,12 @@ import { prisma } from '../../config/prisma.js';
 
 /**
  * Evaluate if a course matches a filter
- * @param course - Course to evaluate
+ * @param course - Course or Class to evaluate
  * @param filter - Filter to evaluate against
  * @returns true if course matches filter
+ * Accepts both Course (catalog) and Class (semester-specific offering)
  */
-export function evaluateCourseFilter(course: Course, filter: CourseFilter): boolean {
+export function evaluateCourseFilter(course: Course | Class, filter: CourseFilter): boolean {
   switch (filter.type) {
     case 'any':
       return evaluateAny(course, filter);
@@ -42,14 +43,14 @@ export function evaluateCourseFilter(course: Course, filter: CourseFilter): bool
 /**
  * Placeholder filter - always matches
  */
-function evaluateAny(course: Course, filter: AnyFilter): boolean {
+function evaluateAny(course: Course | Class, filter: AnyFilter): boolean {
   return true;
 }
 
 /**
  * Subject number filter - matches by subject code, number ranges, and exclusions
  */
-function evaluateSubjectNumber(course: Course, filter: SubjectNumberFilter): boolean {
+function evaluateSubjectNumber(course: Course | Class, filter: SubjectNumberFilter): boolean {
   // Step 1: Check subject code
   if (!filter.subjects.includes(course.subjectCode)) {
     return false;
@@ -72,8 +73,20 @@ function evaluateSubjectNumber(course: Course, filter: SubjectNumberFilter): boo
   }
 
   // Step 3: Check exclusions (if provided)
-  if (filter.exclude && filter.exclude.includes(course.courseId)) {
-    return false;
+  if (filter.exclude) {
+    // Check if excluded by courseId (if it exists)
+    if ('courseId' in course && course.courseId && filter.exclude.includes(course.courseId)) {
+      return false;
+    }
+    // Check if excluded by classId (for Class objects)
+    if ('classId' in course && course.classId && filter.exclude.includes(course.classId)) {
+      return false;
+    }
+    // Check if excluded by "SUBJ NUM" format
+    const courseCode = `${course.subjectCode} ${course.courseNumber}`;
+    if (filter.exclude.includes(courseCode)) {
+      return false;
+    }
   }
 
   return true;
@@ -82,7 +95,7 @@ function evaluateSubjectNumber(course: Course, filter: SubjectNumberFilter): boo
 /**
  * Attribute filter - matches by AXLE/CORE attributes with exclusions
  */
-function evaluateAttribute(course: Course, filter: AttributeFilter): boolean {
+function evaluateAttribute(course: Course | Class, filter: AttributeFilter): boolean {
   // Step 1: Check exclusions first
   if (filter.exclude?.subjects?.includes(course.subjectCode)) {
     return false;
@@ -101,15 +114,27 @@ function evaluateAttribute(course: Course, filter: AttributeFilter): boolean {
  * Course number suffix filter - matches by suffix with optional subject and exclusions
  */
 function evaluateCourseNumberSuffix(
-  course: Course,
+  course: Course | Class,
   filter: CourseNumberSuffixFilter
 ): boolean {
   if (filter.subjects && !filter.subjects.includes(course.subjectCode)) {
     return false;
   }
 
-  if (filter.exclude && filter.exclude.includes(course.courseId)) {
-    return false;
+  if (filter.exclude) {
+    // Check if excluded by courseId (if it exists)
+    if ('courseId' in course && course.courseId && filter.exclude.includes(course.courseId)) {
+      return false;
+    }
+    // Check if excluded by classId (for Class objects)
+    if ('classId' in course && course.classId && filter.exclude.includes(course.classId)) {
+      return false;
+    }
+    // Check if excluded by "SUBJ NUM" format
+    const courseCode = `${course.subjectCode} ${course.courseNumber}`;
+    if (filter.exclude.includes(courseCode)) {
+      return false;
+    }
   }
 
   return filter.suffixes.some((suffix) => course.courseNumber.endsWith(suffix));
@@ -118,7 +143,7 @@ function evaluateCourseNumberSuffix(
 /**
  * Number + attribute filter - matches by number constraints and attribute strings
  */
-function evaluateNumberAttribute(course: Course, filter: NumberAttributeFilter): boolean {
+function evaluateNumberAttribute(course: Course | Class, filter: NumberAttributeFilter): boolean {
   if (filter.subjects && !filter.subjects.includes(course.subjectCode)) {
     return false;
   }
@@ -127,8 +152,20 @@ function evaluateNumberAttribute(course: Course, filter: NumberAttributeFilter):
     return false;
   }
 
-  if (filter.exclude?.courses?.includes(course.courseId)) {
-    return false;
+  if (filter.exclude?.courses) {
+    // Check if excluded by courseId (if it exists)
+    if ('courseId' in course && course.courseId && filter.exclude.courses.includes(course.courseId)) {
+      return false;
+    }
+    // Check if excluded by classId (for Class objects)
+    if ('classId' in course && course.classId && filter.exclude.courses.includes(course.classId)) {
+      return false;
+    }
+    // Check if excluded by "SUBJ NUM" format
+    const courseCode = `${course.subjectCode} ${course.courseNumber}`;
+    if (filter.exclude.courses.includes(courseCode)) {
+      return false;
+    }
   }
 
   if (!matchesNumberConstraints(course.courseNumber, filter.numbers)) {
@@ -142,7 +179,7 @@ function evaluateNumberAttribute(course: Course, filter: NumberAttributeFilter):
 }
 
 function getCourseAttributes(
-  course: Course,
+  course: Course | Class,
   attributeType?: 'axle' | 'core'
 ): string[] {
   if (!course.attributes) return [];
@@ -173,14 +210,25 @@ function matchesNumberConstraints(
 /**
  * Course list filter - matches specific course IDs
  */
-function evaluateCourseList(course: Course, filter: CourseListFilter): boolean {
-  return filter.courses.includes(course.courseId);
+function evaluateCourseList(course: Course | Class, filter: CourseListFilter): boolean {
+  // Check if course matches any identifier in the list
+  // Try courseId (if it exists)
+  if ('courseId' in course && course.courseId && filter.courses.includes(course.courseId)) {
+    return true;
+  }
+  // Try classId (for Class objects)
+  if ('classId' in course && course.classId && filter.courses.includes(course.classId)) {
+    return true;
+  }
+  // Try "SUBJ NUM" format (e.g., "CS 1101")
+  const courseCode = `${course.subjectCode} ${course.courseNumber}`;
+  return filter.courses.includes(courseCode);
 }
 
 /**
  * Composite filter - combines filters with AND/OR logic
  */
-function evaluateComposite(course: Course, filter: CompositeFilter): boolean {
+function evaluateComposite(course: Course | Class, filter: CompositeFilter): boolean {
   if (filter.operator === 'AND') {
     return filter.filters.every((f) => evaluateCourseFilter(course, f));
   } else {

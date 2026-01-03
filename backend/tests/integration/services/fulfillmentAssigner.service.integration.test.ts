@@ -987,4 +987,244 @@ describe('fulfillmentAssigner.service - Integration Tests', () => {
       'restricted.writing',
     ]);
   });
+
+  it('should prioritize unfilled requirements over filled ones', async () => {
+    // Create a program with two requirements that both accept CS courses
+    // One is a specific 3-credit requirement, the other is a broader 12-credit requirement
+    const programRequirements: ProgramRequirements = {
+      sections: [
+        {
+          id: 'core_requirements',
+          title: 'Core Requirements',
+          creditsRequired: 15,
+          requirements: [
+            {
+              id: 'specific_cs_requirement',
+              title: 'Specific CS Requirement',
+              description: 'Take specific CS courses',
+              creditsRequired: 3,
+              rule: {
+                type: 'take_from_list',
+                count: 3,
+                countType: 'credits',
+                courses: ['CS 1101', 'CS 2201', 'CS 2212', 'CS 1151'],
+              },
+            },
+            {
+              id: 'broader_cs_core',
+              title: 'Broader CS Core',
+              description: 'Take any CS courses',
+              creditsRequired: 12,
+              rule: {
+                type: 'take_any_courses',
+                credits: 12,
+                filter: {
+                  type: 'any',
+                },
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const program = await prisma.program.create({
+      data: {
+        programId: 'prioritization_test_major',
+        name: 'Prioritization Test Major',
+        type: 'major',
+        totalCredits: 15,
+        requirements: programRequirements as any,
+        academicYearId,
+        schoolId: schoolEngineering,
+      },
+    });
+
+    const plan = await prisma.plan.create({
+      data: {
+        name: 'Prioritization Test Plan',
+        academicYearId,
+        schoolId: schoolEngineering,
+      },
+    });
+
+    const planProgram = await prisma.planProgram.create({
+      data: {
+        planId: plan.id,
+        programId: program.id,
+      },
+    });
+
+    // Add first CS course - should fill the specific requirement (more specific)
+    const course1 = await prisma.plannedCourse.create({
+      data: {
+        planId: plan.id,
+        courseId: 'CS 1101',
+        semesterNumber: 1,
+        position: 0,
+        credits: 3,
+      },
+    });
+
+    await autoAssignFulfillments(plan.id);
+
+    let fulfillments = await prisma.requirementFulfillment.findMany({
+      where: { planProgramId: planProgram.id },
+    });
+
+    // First course should go to the specific requirement (higher specificity)
+    expect(fulfillments).toHaveLength(1);
+    expect(fulfillments[0].requirementId).toBe('core_requirements.specific_cs_requirement');
+    expect(fulfillments[0].creditsApplied).toBe(3);
+
+    // Add second CS course - should go to broader requirement (specific one is now full)
+    const course2 = await prisma.plannedCourse.create({
+      data: {
+        planId: plan.id,
+        courseId: 'CS 2201',
+        semesterNumber: 1,
+        position: 1,
+        credits: 3,
+      },
+    });
+
+    await autoAssignFulfillments(plan.id);
+
+    fulfillments = await prisma.requirementFulfillment.findMany({
+      where: { planProgramId: planProgram.id },
+      orderBy: [{ plannedCourseId: 'asc' }],
+    });
+
+    // Should have 2 fulfillments now
+    expect(fulfillments).toHaveLength(2);
+
+    // First course still assigned to specific requirement
+    expect(fulfillments[0].requirementId).toBe('core_requirements.specific_cs_requirement');
+    expect(fulfillments[0].plannedCourseId).toBe(course1.id);
+
+    // Second course should go to broader requirement (not overflow the specific one)
+    expect(fulfillments[1].requirementId).toBe('core_requirements.broader_cs_core');
+    expect(fulfillments[1].plannedCourseId).toBe(course2.id);
+    expect(fulfillments[1].creditsApplied).toBe(3);
+
+    // Add third and fourth CS courses - should also go to broader requirement
+    await prisma.plannedCourse.create({
+      data: {
+        planId: plan.id,
+        courseId: 'CS 2212',
+        semesterNumber: 2,
+        position: 0,
+        credits: 3,
+      },
+    });
+
+    await prisma.plannedCourse.create({
+      data: {
+        planId: plan.id,
+        courseId: 'CS 1151',
+        semesterNumber: 2,
+        position: 1,
+        credits: 3,
+      },
+    });
+
+    await autoAssignFulfillments(plan.id);
+
+    fulfillments = await prisma.requirementFulfillment.findMany({
+      where: { planProgramId: planProgram.id },
+      orderBy: [{ requirementId: 'asc' }],
+    });
+
+    // Should have 4 fulfillments total
+    expect(fulfillments).toHaveLength(4);
+
+    // Count by requirement
+    const specificCount = fulfillments.filter(
+      (f) => f.requirementId === 'core_requirements.specific_cs_requirement'
+    ).length;
+    const broaderCount = fulfillments.filter(
+      (f) => f.requirementId === 'core_requirements.broader_cs_core'
+    ).length;
+
+    // Specific requirement should have exactly 1 course (3/3 credits)
+    expect(specificCount).toBe(1);
+
+    // Broader requirement should have 3 courses (9/12 credits)
+    expect(broaderCount).toBe(3);
+
+    // Verify broader requirement is not yet full (9 < 12)
+    const broaderCredits = fulfillments
+      .filter((f) => f.requirementId === 'core_requirements.broader_cs_core')
+      .reduce((sum, f) => sum + f.creditsApplied, 0);
+    expect(broaderCredits).toBe(9);
+
+    // Add fifth CS course - should still go to broader requirement
+    await prisma.plannedCourse.create({
+      data: {
+        planId: plan.id,
+        courseId: 'CS 1101', // Reusing course ID for test
+        semesterNumber: 3,
+        position: 0,
+        credits: 3,
+      },
+    });
+
+    await autoAssignFulfillments(plan.id);
+
+    fulfillments = await prisma.requirementFulfillment.findMany({
+      where: { planProgramId: planProgram.id },
+      orderBy: [{ requirementId: 'asc' }],
+    });
+
+    // Should have 5 fulfillments total
+    expect(fulfillments).toHaveLength(5);
+
+    const finalSpecificCount = fulfillments.filter(
+      (f) => f.requirementId === 'core_requirements.specific_cs_requirement'
+    ).length;
+    const finalBroaderCount = fulfillments.filter(
+      (f) => f.requirementId === 'core_requirements.broader_cs_core'
+    ).length;
+
+    // Specific requirement should still have exactly 1 course
+    expect(finalSpecificCount).toBe(1);
+
+    // Broader requirement should now have 4 courses (12/12 credits - full)
+    expect(finalBroaderCount).toBe(4);
+
+    // Add sixth CS course - now BOTH requirements are full, should overflow to specific (higher specificity)
+    await prisma.plannedCourse.create({
+      data: {
+        planId: plan.id,
+        courseId: 'CS 2201', // Reusing course ID for test
+        semesterNumber: 3,
+        position: 1,
+        credits: 3,
+      },
+    });
+
+    await autoAssignFulfillments(plan.id);
+
+    fulfillments = await prisma.requirementFulfillment.findMany({
+      where: { planProgramId: planProgram.id },
+      orderBy: [{ requirementId: 'asc' }],
+    });
+
+    // Should have 6 fulfillments total
+    expect(fulfillments).toHaveLength(6);
+
+    const overflowSpecificCount = fulfillments.filter(
+      (f) => f.requirementId === 'core_requirements.specific_cs_requirement'
+    ).length;
+    const overflowBroaderCount = fulfillments.filter(
+      (f) => f.requirementId === 'core_requirements.broader_cs_core'
+    ).length;
+
+    // When all requirements are full, overflow should go to most specific
+    // So specific requirement should now have 2 courses (overflow)
+    expect(overflowSpecificCount).toBe(2);
+
+    // Broader requirement should still have 4 courses
+    expect(overflowBroaderCount).toBe(4);
+  });
 });

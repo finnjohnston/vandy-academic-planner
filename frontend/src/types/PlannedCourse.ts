@@ -8,6 +8,13 @@ export interface PlannedCourse {
   credits: number;
   subjectCode: string;
   courseNumber: string;
+  title?: string;
   createdAt: string;
   updatedAt: string;
+  class?: {
+    termId: string;
+    subjectCode: string;
+    courseNumber: string;
+    title: string;
+  };
 }

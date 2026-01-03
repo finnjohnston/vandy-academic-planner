@@ -1,6 +1,7 @@
 import React from 'react';
 import Semester from '../SemesterComponent/Semester';
 import type { PlannedCourse } from '../../../types/PlannedCourse';
+import type { ValidationMap } from '../../../types/Validation';
 import './Plan.css';
 
 interface PlanProps {
@@ -17,6 +18,7 @@ interface PlanProps {
     id: number;
     courseId: string | null;
     semesterNumber: number;
+    position: number;
     credits: number;
     course?: {
       subjectCode: string;
@@ -29,12 +31,16 @@ interface PlanProps {
   dragOverPosition: {
     semesterNumber: number;
     position: number;
-    indicatorPosition: 'above' | 'below'
+    indicatorPosition: 'above' | 'below';
+    isLastInSemester?: boolean;
+    isSwapMode?: boolean;
+    hoveredPlannedCourseId?: number;
   } | null;
   activeDrag?: {
     source: 'search' | 'planned';
     currentSemester?: number;
   } | null;
+  validationMap?: ValidationMap;
 }
 
 const Plan: React.FC<PlanProps> = ({
@@ -46,25 +52,36 @@ const Plan: React.FC<PlanProps> = ({
   onCourseDetailsClick,
   onDeleteCourseClick,
   dragOverPosition,
-  activeDrag
+  activeDrag,
+  validationMap
 }) => {
   const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
 
   // Transform API response to PlannedCourse format
   const transformedCourses: PlannedCourse[] = plannedCourses
-    .filter(pc => pc.courseId && pc.course && typeof pc.position === 'number')
-    .map(pc => ({
-      id: pc.id,
-      planId: planId,
-      courseId: pc.courseId!,
-      semesterNumber: pc.semesterNumber,
-      position: pc.position,
-      credits: pc.credits,
-      subjectCode: pc.course!.subjectCode,
-      courseNumber: pc.course!.courseNumber,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }));
+    .filter(pc => {
+      const hasCourseData = pc.courseId && pc.course;
+      const hasClassData = pc.classId && pc.class;
+      return (hasCourseData || hasClassData) && typeof pc.position === 'number';
+    })
+    .map(pc => {
+      const sourceData = pc.class || pc.course;
+
+      return {
+        id: pc.id,
+        planId: planId,
+        courseId: pc.courseId!,
+        classId: pc.classId!,
+        semesterNumber: pc.semesterNumber,
+        position: pc.position,
+        credits: pc.credits,
+        subjectCode: sourceData!.subjectCode,
+        courseNumber: sourceData!.courseNumber,
+        title: pc.class?.title,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    });
 
   const calculateSemesterCredits = (semesterNumber: number): number => {
     return transformedCourses
@@ -88,6 +105,7 @@ const Plan: React.FC<PlanProps> = ({
               onDeleteCourseClick={onDeleteCourseClick}
               dragOverPosition={dragOverPosition}
               activeDrag={activeDrag}
+              validationMap={validationMap}
             />
           ))}
         </div>

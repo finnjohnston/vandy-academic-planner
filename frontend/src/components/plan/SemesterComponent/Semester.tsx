@@ -3,6 +3,7 @@ import { useDroppable } from '@dnd-kit/core';
 import './Semester.css';
 import PlannedCourseList from '../PlannedCourseListComponent/PlannedCourseList';
 import type { PlannedCourse } from '../../../types/PlannedCourse';
+import type { ValidationMap } from '../../../types/Validation';
 
 interface SemesterProps {
   semesterNumber: number;
@@ -20,12 +21,16 @@ interface SemesterProps {
   dragOverPosition: {
     semesterNumber: number;
     position: number;
-    indicatorPosition?: 'above' | 'below'
+    indicatorPosition: 'above' | 'below';
+    isLastInSemester?: boolean;
+    isSwapMode?: boolean;
+    hoveredPlannedCourseId?: number;
   } | null;
   activeDrag?: {
     source: 'search' | 'planned';
     currentSemester?: number;
   } | null;
+  validationMap?: ValidationMap;
 }
 
 interface SemesterInfo {
@@ -42,6 +47,7 @@ const Semester: React.FC<SemesterProps> = ({
   onDeleteCourseClick,
   dragOverPosition,
   activeDrag,
+  validationMap,
 }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `semester-${semesterNumber}`,
@@ -65,6 +71,17 @@ const Semester: React.FC<SemesterProps> = ({
 
   const { year, season } = getSemesterInfo(semesterNumber, academicYear);
 
+  // Aggregate wrong-term violations for this semester
+  const wrongTermCourses = plannedCourses
+    .filter(pc => pc.semesterNumber === semesterNumber)
+    .filter(pc => {
+      const validation = validationMap?.get(pc.id);
+      return validation?.violations.some(v => v.type === 'wrong-term');
+    })
+    .map(pc => `${pc.subjectCode} ${pc.courseNumber}`);
+
+  const hasWrongTermError = wrongTermCourses.length > 0;
+
   // Calculate number of courses in this semester
   const coursesInSemester = plannedCourses.filter(
     pc => pc.semesterNumber === semesterNumber
@@ -87,25 +104,33 @@ const Semester: React.FC<SemesterProps> = ({
   );
 
   return (
-    <div className={`semester-card${shouldHighlight ? ' semester-card-over' : ''}`}>
-      <div className="semester-header">
-        <span className="semester-name">
-          {year} {season}
-        </span>
-        <span className="semester-credits">{credits} credits</span>
+    <div className="semester-container">
+      <div className={`semester-card${shouldHighlight ? ' semester-card-over' : ''}`}>
+        <div className="semester-header">
+          <span className="semester-name">
+            {year} {season}
+          </span>
+          <span className="semester-credits">{credits} credits</span>
+        </div>
+        <div
+          ref={setNodeRef}
+          className="semester-body"
+        >
+          <PlannedCourseList
+            semesterNumber={semesterNumber}
+            plannedCourses={plannedCourses}
+            onCourseDetailsClick={onCourseDetailsClick}
+            onDeleteCourseClick={onDeleteCourseClick}
+            dragOverPosition={dragOverPosition}
+            validationMap={validationMap}
+          />
+        </div>
       </div>
-      <div
-        ref={setNodeRef}
-        className="semester-body"
-      >
-        <PlannedCourseList
-          semesterNumber={semesterNumber}
-          plannedCourses={plannedCourses}
-          onCourseDetailsClick={onCourseDetailsClick}
-          onDeleteCourseClick={onDeleteCourseClick}
-          dragOverPosition={dragOverPosition}
-        />
-      </div>
+      {hasWrongTermError && (
+        <div className="semester-error">
+          Not offered in {season} {year}: {wrongTermCourses.join(', ')}
+        </div>
+      )}
     </div>
   );
 };

@@ -137,17 +137,21 @@ export const db = {
 /**
  * Handle graceful shutdown
  * Disconnect from database when process exits
+ *
+ * NOTE: These event handlers are commented out because they interfere with
+ * the long-running Express server. They should only be used in CLI scripts.
+ * The main server has its own shutdown handlers in config/prisma.ts
  */
-process.on('beforeExit', async () => {
-  await db.disconnect();
-});
+// process.on('beforeExit', async () => {
+//   await db.disconnect();
+// });
 
-process.on('SIGINT', async () => {
-  await db.disconnect();
-  process.exit(0);
-});
+// process.on('SIGINT', async () => {
+//   await db.disconnect();
+//   process.exit(0);
+// });
 
-process.on('SIGTERM', async () => {
-  await db.disconnect();
-  process.exit(0);
-});
+// process.on('SIGTERM', async () => {
+//   await db.disconnect();
+//   process.exit(0);
+// });

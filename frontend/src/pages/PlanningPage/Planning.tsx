@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import ReactDOM from 'react-dom';
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, pointerWithin } from '@dnd-kit/core';
@@ -8,8 +8,14 @@ import CourseSearch from '../../components/course/CourseSearchComponent/CourseSe
 import Plan from '../../components/plan/PlanComponent/Plan';
 import Requirement from '../../components/program/RequirementComponent/Requirement';
 import CourseDetail from '../../components/course/CourseDetailComponent/CourseDetail';
+import TransferCredits from '../../components/course/TransferCreditsComponent/TransferCredits';
+import { PlanProvider } from '../../contexts/PlanContext';
+import { useCourseDetails } from '../../hooks/useCourseDetails';
+import { useValidation } from '../../hooks/useValidation';
+import { useTermAvailability } from '../../hooks/useTermAvailability';
 import type { Course } from '../../types/Course';
 import type { DragData } from '../../types/DragData';
+import type { PlannedCourse } from '../../types/PlannedCourse';
 import './Planning.css';
 
 const API_BASE_URL = 'http://localhost:3000';
@@ -29,12 +35,18 @@ interface PlanData {
   plannedCourses: Array<{
     id: number;
     courseId: string | null;
+    classId: string | null;
     semesterNumber: number;
     position: number;
     credits: number;
     course?: {
       subjectCode: string;
       courseNumber: string;
+    } | null;
+    class?: {
+      subjectCode: string;
+      courseNumber: string;
+      title: string;
     } | null;
   }>;
   programs: Array<{
@@ -52,7 +64,6 @@ interface PlanData {
 const Planning: React.FC = () => {
   const { planId } = useParams<{ planId: string }>();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [isEditProgramsOpen, setIsEditProgramsOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [planData, setPlanData] = useState<PlanData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,9 +105,46 @@ const Planning: React.FC = () => {
     fetchPlan();
   }, [planId]);
 
-  const handlePlannedCourseClick = async (courseId: string) => {
+  // Memoize planned courses to prevent infinite re-renders
+  const plannedCourses = useMemo(
+    () => (planData?.plannedCourses || []) as PlannedCourse[],
+    [planData?.plannedCourses]
+  );
+
+  // Fetch course details for validation
+  const { courseDetailsMap } = useCourseDetails(plannedCourses);
+
+  // Calculate max semester number for term availability fetching
+  const maxSemesterNumber = useMemo(
+    () => Math.max(0, ...plannedCourses.map(pc => pc.semesterNumber)),
+    [plannedCourses]
+  );
+
+  // Fetch term availability data for all semesters in the plan
+  const { data: termAvailability, isLoading: isLoadingTerms } = useTermAvailability(
+    planData?.academicYear?.start || 2024,
+    maxSemesterNumber
+  );
+
+  // Validate all planned courses
+  const validationMap = useValidation(
+    plannedCourses,
+    courseDetailsMap,
+    planData?.academicYear?.start || 2024,
+    termAvailability,
+    isLoadingTerms
+  );
+
+  const handlePlannedCourseClick = async (courseId: string, classId?: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/courses/by-course-id/${courseId}`);
+      let response;
+      if (classId) {
+        // Fetch class details for semester-specific offerings
+        response = await fetch(`${API_BASE_URL}/api/classes/by-class-id/${classId}`);
+      } else {
+        // Fetch course details for catalog courses
+        response = await fetch(`${API_BASE_URL}/api/courses/by-course-id/${courseId}`);
+      }
       if (!response.ok) throw new Error('Failed to fetch course');
       const data = await response.json();
       setSelectedCourse(data.data);
@@ -142,50 +190,14 @@ const Planning: React.FC = () => {
     }
   };
 
-  const handleSavePrograms = async (programIds: number[]) => {
-    if (!planData) return;
-
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/plans/${planData.id}/programs`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ programIds })
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to update programs');
-      }
-
-      // Refetch the plan to get updated programs data
-      const planResponse = await fetch(`${API_BASE_URL}/api/plans/${planData.id}`);
-      if (!planResponse.ok) {
-        throw new Error('Failed to refetch plan data');
-      }
-
-      const planResult = await planResponse.json();
-      if (planResult.data) {
-        setPlanData(planResult.data);
-      } else {
-        throw new Error('Invalid plan data received');
-      }
-    } catch (err) {
-      console.error('Error updating programs:', err);
-      // Don't set error state, just log it - keep the UI intact
-      alert(err instanceof Error ? err.message : 'Failed to update programs');
-    }
-  };
-
   const handleClosePopup = () => {
     setSelectedCourse(null);
     setIsPopupOpen(false);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveDrag(event.active.data.current as DragData);
+    const dragData = event.active.data.current as DragData;
+    setActiveDrag(dragData);
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -210,8 +222,12 @@ const Planning: React.FC = () => {
       const indicatorPosition: 'above' | 'below' = 'above';
 
       // Calculate if this is the last position in the semester
+      // Filter to match Plan component's filtering logic (exclude courses with null courseId/course)
       const semesterCourses = planData?.plannedCourses.filter(
-        pc => pc.semesterNumber === overData.currentSemester && pc.id > 0
+        pc => pc.semesterNumber === overData.currentSemester &&
+              pc.id > 0 &&
+              pc.courseId &&
+              pc.course
       ) || [];
       const maxPosition = Math.max(...semesterCourses.map(pc => pc.position), -1);
       const isLastInSemester = hoveredPosition === maxPosition;
@@ -239,9 +255,12 @@ const Planning: React.FC = () => {
       // Filter courses in target semester, excluding:
       // 1. The course being dragged if it's in the same semester
       // 2. Temporary courses from optimistic updates (negative IDs)
+      // 3. Courses with null courseId/course (to match Plan component filtering)
       const semesterCourses = planData?.plannedCourses.filter(
         pc => pc.semesterNumber === overData.semesterNumber &&
               pc.id > 0 && // Exclude temp courses (negative IDs from optimistic updates)
+              pc.courseId && // Exclude courses with null courseId
+              pc.course && // Exclude courses with null course data
               !(dragData.source === 'planned' &&
                 dragData.plannedCourseId === pc.id &&
                 dragData.currentSemester === overData.semesterNumber)
@@ -279,7 +298,9 @@ const Planning: React.FC = () => {
     const targetPosition = dragOverPosition;
     setDragOverPosition(null);
 
-    if (!over || !planData || !targetPosition) return;
+    if (!over || !planData || !targetPosition) {
+      return;
+    }
 
     const dragData = active.data.current as DragData;
     const semesterNumber = targetPosition.semesterNumber;
@@ -302,13 +323,17 @@ const Planning: React.FC = () => {
     } else {
       // Normal insertion logic
       // Get the current count of courses in the target semester
+      // Filter to match Plan component's filtering logic (exclude courses with null courseId/course)
       const targetSemesterCourses = planData?.plannedCourses.filter(
-        pc => pc.semesterNumber === semesterNumber && pc.id > 0
+        pc => pc.semesterNumber === semesterNumber &&
+              pc.id > 0 &&
+              pc.courseId &&
+              pc.course
       ) || [];
 
-      // For same-semester moves, we remove one course first, so max position is count - 1
-      // For cross-semester/search, we're adding a course, so max position is count
-      const maxPosition = isSameSemester ? targetSemesterCourses.length - 1 : targetSemesterCourses.length;
+      // Get the actual maximum position value (not array length)
+      // This correctly handles 1-indexed positions
+      const currentMaxPosition = Math.max(...targetSemesterCourses.map(pc => pc.position), 0);
 
       // Since we always use 'above' indicator, we always insert before the hovered course
       if (isSameSemester && activePosition !== undefined && activePosition < hoveredPosition) {
@@ -318,8 +343,10 @@ const Planning: React.FC = () => {
 
         if (isAdjacentToLast) {
           // Special case: dragging from N to N+1 where N+1 is last position
-          // Swap adjacent courses: insert after the last course
-          insertPosition = hoveredPosition;
+          // When dragging to the end, we want to insert AFTER the current last course
+          // After removal, position 6 is still at position 6 (backend doesn't renumber)
+          // So we insert at currentMaxPosition + 1 to place it after the last course
+          insertPosition = currentMaxPosition + 1;
         } else {
           // Normal downward drag: the hovered course will be at (hoveredPosition - 1) after removal
           insertPosition = hoveredPosition - 1;
@@ -330,7 +357,8 @@ const Planning: React.FC = () => {
       }
 
       // Ensure position doesn't exceed valid range
-      insertPosition = Math.min(insertPosition, maxPosition);
+      // Allow maxPosition + 1 for appending to the end
+      insertPosition = Math.min(insertPosition, currentMaxPosition + 1);
     }
 
     // Handle swap mode: delete the hovered course before inserting
@@ -376,7 +404,7 @@ const Planning: React.FC = () => {
     const isTermSearch = dragData.searchContext?.type === 'term';
 
     const requestBody: { courseId?: string; classId?: string; semesterNumber: number; credits: number; position: number } = {
-      [isTermSearch ? 'classId' : 'courseId']: course.courseId,
+      [isTermSearch ? 'classId' : 'courseId']: isTermSearch ? course.classId : course.courseId,
       semesterNumber,
       credits: course.creditsMin,
       position
@@ -386,14 +414,20 @@ const Planning: React.FC = () => {
     const tempId = -Date.now(); // Negative to distinguish from real IDs
     const tempPlannedCourse = {
       id: tempId,
-      courseId: course.courseId,
+      courseId: isTermSearch ? null : course.courseId,
+      classId: isTermSearch ? course.classId : null,
       semesterNumber,
       position,
       credits: course.creditsMin,
-      course: {
+      course: isTermSearch ? null : {
         subjectCode: course.subjectCode,
         courseNumber: course.courseNumber
-      }
+      },
+      class: isTermSearch ? {
+        subjectCode: course.subjectCode,
+        courseNumber: course.courseNumber,
+        title: course.title
+      } : null
     };
 
     setPlanData(prev => prev ? {
@@ -522,98 +556,100 @@ const Planning: React.FC = () => {
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-      collisionDetection={pointerWithin}
-    >
-      <div className="planning-page">
-        <NavBar isBlurred={isPopupOpen || isEditProgramsOpen} />
-        <CourseSearch
-          onPopupOpen={() => setIsPopupOpen(true)}
-          onPopupClose={() => setIsPopupOpen(false)}
-          isBlurred={isPopupOpen || isEditProgramsOpen}
-        />
-        <div className="plan-requirements-container">
-          <Plan
-            planId={planData.id}
-            planName={planData.name}
-            academicYear={planData.academicYear}
-            plannedCourses={planData.plannedCourses}
-            isBlurred={isPopupOpen || isEditProgramsOpen}
-            onCourseDetailsClick={handlePlannedCourseClick}
-            onDeleteCourseClick={handleDeleteCourse}
-            dragOverPosition={dragOverPosition}
-            activeDrag={activeDrag}
-          />
-          <Requirement
+    <PlanProvider value={planData.plannedCourses}>
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+        collisionDetection={pointerWithin}
+      >
+        <div className="planning-page">
+          <NavBar isBlurred={isPopupOpen} />
+          <CourseSearch
+            onPopupOpen={() => setIsPopupOpen(true)}
+            onPopupClose={() => setIsPopupOpen(false)}
             isBlurred={isPopupOpen}
-            planId={planData.id}
-            programs={planData.programs.map((planProgram) => ({
-              id: planProgram.id,
-              name: planProgram.program.name,
-              type: planProgram.program.type,
-              totalCredits: planProgram.program.totalCredits,
-            }))}
-            plannedCourses={planData.plannedCourses}
-            academicYearId={planData.academicYearId}
-            schoolId={planData.schoolId}
-            currentProgramIds={planData.programs.map((planProgram) => planProgram.program.id)}
-            isEditProgramsOpen={isEditProgramsOpen}
-            onEditProgramsOpen={() => setIsEditProgramsOpen(true)}
-            onEditProgramsClose={() => setIsEditProgramsOpen(false)}
-            onSavePrograms={handleSavePrograms}
           />
+          <div className="plan-requirements-container">
+            <div className="transfer-credits-wrapper">
+              <TransferCredits planId={planData.id} />
+            </div>
+            <Plan
+              planId={planData.id}
+              planName={planData.name}
+              academicYear={planData.academicYear}
+              plannedCourses={planData.plannedCourses}
+              isBlurred={isPopupOpen}
+              onCourseDetailsClick={handlePlannedCourseClick}
+              onDeleteCourseClick={handleDeleteCourse}
+              dragOverPosition={dragOverPosition}
+              activeDrag={activeDrag}
+              validationMap={validationMap}
+            />
+            <Requirement
+              isBlurred={isPopupOpen}
+              planId={planData.id}
+              programs={planData.programs.map((planProgram) => ({
+                id: planProgram.id,
+                name: planProgram.program.name,
+                type: planProgram.program.type,
+                totalCredits: planProgram.program.totalCredits,
+              }))}
+              plannedCourses={planData.plannedCourses}
+              academicYearId={planData.academicYearId}
+              schoolId={planData.schoolId}
+              currentProgramIds={planData.programs.map((planProgram) => planProgram.program.id)}
+            />
+          </div>
+
+          {selectedCourse && ReactDOM.createPortal(
+            <CourseDetail course={selectedCourse} onClose={handleClosePopup} />,
+            document.body
+          )}
         </div>
 
-        {selectedCourse && ReactDOM.createPortal(
-          <CourseDetail course={selectedCourse} onClose={handleClosePopup} />,
-          document.body
-        )}
-      </div>
-
-      <DragOverlay dropAnimation={null}>
-        {activeDrag && (
-          activeDrag.source === 'search' ? (
-            // CourseCard preview - match CourseCard structure exactly
-            <div className="course" style={{ opacity: 0.25 }}>
-              <span className="course-code">
-                {activeDrag.course.subjectCode || ''} {activeDrag.course.courseNumber || ''}
-              </span>
-              <span className="course-title">
-                {activeDrag.course.title && activeDrag.course.title.length > 40
-                  ? activeDrag.course.title.substring(0, 40) + '...'
-                  : (activeDrag.course.title || '')}
-              </span>
-              <span className="course-credits">
-                {activeDrag.course.creditsMin === activeDrag.course.creditsMax
-                  ? activeDrag.course.creditsMin
-                  : `${activeDrag.course.creditsMin} - ${activeDrag.course.creditsMax}`}
-              </span>
-            </div>
-          ) : (
-            // PlannedCourse preview - keep existing drag-preview structure
-            <div className="drag-preview">
-              <span className="drag-preview-code">
-                {activeDrag.course.subjectCode || ''} {activeDrag.course.courseNumber || ''}
-              </span>
-              {activeDrag.course.title && (
-                <span className="drag-preview-title">
-                  {activeDrag.course.title.length > 40
-                    ? activeDrag.course.title.substring(0, 40) + '...'
-                    : activeDrag.course.title}
+        <DragOverlay dropAnimation={null}>
+          {activeDrag && (
+            activeDrag.source === 'search' ? (
+              // CourseCard preview - match CourseCard structure exactly
+              <div className="course" style={{ opacity: 0.25 }}>
+                <span className="course-code">
+                  {activeDrag.course.subjectCode || ''} {activeDrag.course.courseNumber || ''}
                 </span>
-              )}
-              <span className="drag-preview-credits">
-                {activeDrag.course.creditsMin}
-              </span>
-            </div>
-          )
-        )}
-      </DragOverlay>
-    </DndContext>
+                <span className="course-title">
+                  {activeDrag.course.title && activeDrag.course.title.length > 40
+                    ? activeDrag.course.title.substring(0, 40) + '...'
+                    : (activeDrag.course.title || '')}
+                </span>
+                <span className="course-credits">
+                  {activeDrag.course.creditsMin === activeDrag.course.creditsMax
+                    ? activeDrag.course.creditsMin
+                    : `${activeDrag.course.creditsMin} - ${activeDrag.course.creditsMax}`}
+                </span>
+              </div>
+            ) : (
+              // PlannedCourse preview - keep existing drag-preview structure
+              <div className="drag-preview">
+                <span className="drag-preview-code">
+                  {activeDrag.course.subjectCode || ''} {activeDrag.course.courseNumber || ''}
+                </span>
+                {activeDrag.course.title && (
+                  <span className="drag-preview-title">
+                    {activeDrag.course.title.length > 40
+                      ? activeDrag.course.title.substring(0, 40) + '...'
+                      : activeDrag.course.title}
+                  </span>
+                )}
+                <span className="drag-preview-credits">
+                  {activeDrag.course.creditsMin}
+                </span>
+              </div>
+            )
+          )}
+        </DragOverlay>
+      </DndContext>
+    </PlanProvider>
   );
 };
 

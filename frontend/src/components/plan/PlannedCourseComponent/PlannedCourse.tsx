@@ -2,30 +2,36 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import PlannedCourseOptionsMenu from '../PlannedCourseOptionsMenuComponent/PlannedCourseOptionsMenu';
+import type { Violation } from '../../../types/Validation';
 import './PlannedCourse.css';
 
 interface PlannedCourseProps {
   plannedCourseId: number;
   courseId: string;
+  classId?: string;
   subjectCode: string;
   courseNumber: string;
   credits: number;
   semesterNumber: number;
   position: number;
-  onCourseDetailsClick?: (courseId: string) => void;
+  onCourseDetailsClick?: (courseId: string, classId?: string) => void;
   onDeleteCourseClick?: (plannedCourseId: number) => void;
   dragOverPosition: {
     semesterNumber: number;
     position: number;
     indicatorPosition: 'above' | 'below';
+    isLastInSemester?: boolean;
     isSwapMode?: boolean;
     hoveredPlannedCourseId?: number;
   } | null;
+  isValid?: boolean;
+  violations?: Violation[];
 }
 
 const PlannedCourse: React.FC<PlannedCourseProps> = ({
   plannedCourseId,
   courseId,
+  classId,
   subjectCode,
   courseNumber,
   credits,
@@ -34,6 +40,8 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
   onCourseDetailsClick,
   onDeleteCourseClick,
   dragOverPosition,
+  isValid,
+  violations: _violations,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRecentlyDragged, setIsRecentlyDragged] = useState(false);
@@ -44,9 +52,9 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
     listeners,
     setNodeRef,
     transform,
-    transition,
+    transition: _transition,
     isDragging,
-    over,
+    over: _over,
     active,
   } = useSortable({
     id: `planned-course-${plannedCourseId}`,
@@ -124,8 +132,9 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
     : '';
 
   const swapClass = isSwapTarget ? ' planned-course-swap-target' : '';
+  const validationClass = isValid === false ? ' planned-course-invalid' : '';
 
-  const finalClassName = `planned-course${isDragging ? ' planned-course-dragging' : ''}${gapClass}${swapClass}`;
+  const finalClassName = `planned-course${isDragging ? ' planned-course-dragging' : ''}${gapClass}${swapClass}${validationClass}`;
 
   useEffect(() => {
     if (isDragging) {
@@ -166,6 +175,7 @@ const PlannedCourse: React.FC<PlannedCourseProps> = ({
       <PlannedCourseOptionsMenu
         plannedCourseId={plannedCourseId}
         courseId={courseId}
+        classId={classId}
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
         onCourseDetailsClick={onCourseDetailsClick}

@@ -1,4 +1,4 @@
-import { Course } from '@prisma/client';
+import { Course, Class } from '@prisma/client';
 import {
   Constraint,
   ConstraintValidationContext,
@@ -89,23 +89,33 @@ function processConstraintsForDoubleCount(
  * Checks both direct courseId match and subjectCode + courseNumber format
  */
 export function canDoubleCount(
-  courseIdOrCourse: string | Course,
+  courseIdOrCourse: string | Course | Class,
   targetRequirementId: string,
   doubleCountMap: DoubleCountMap
 ): boolean {
-  // If a Course object is passed, try both courseId and subjectCode + courseNumber
+  // If a Course or Class object is passed, try both courseId and subjectCode + courseNumber
   if (typeof courseIdOrCourse === 'object') {
     const course = courseIdOrCourse;
 
-    // Try direct courseId match
-    let info = doubleCountMap.get(course.courseId);
-    if (info && info.allowedRequirementIds.includes(targetRequirementId)) {
-      return true;
+    // Try direct courseId match (if it exists - Class has optional courseId)
+    if ('courseId' in course && course.courseId) {
+      let info = doubleCountMap.get(course.courseId);
+      if (info && info.allowedRequirementIds.includes(targetRequirementId)) {
+        return true;
+      }
+    }
+
+    // For Class objects, also try classId
+    if ('classId' in course && course.classId) {
+      let info = doubleCountMap.get(course.classId);
+      if (info && info.allowedRequirementIds.includes(targetRequirementId)) {
+        return true;
+      }
     }
 
     // Try subjectCode + courseNumber format (e.g., "MATH 1300")
     const courseCode = `${course.subjectCode} ${course.courseNumber}`;
-    info = doubleCountMap.get(courseCode);
+    let info = doubleCountMap.get(courseCode);
     if (info && info.allowedRequirementIds.includes(targetRequirementId)) {
       return true;
     }
@@ -128,7 +138,7 @@ export function canDoubleCount(
  * Returns { allowed: boolean, reason?: string }
  */
 export function checkEnforcementConstraints(
-  course: Course,
+  course: Course | Class,
   requirement: Requirement,
   sectionId: string,
   allFulfillments: FulfillmentRecord[],
@@ -173,14 +183,26 @@ export function checkEnforcementConstraints(
 }
 
 function checkRequireCourseFromSections(
-  course: Course,
+  course: Course | Class,
   constraint: RequireCourseFromSectionsConstraint,
   allFulfillments: FulfillmentRecord[]
 ): { allowed: boolean; reason?: string } {
   // Check if this course is assigned to any of the allowed sections
-  const courseFulfillments = allFulfillments.filter(
-    (f) => f.course.courseId === course.courseId
-  );
+  // Match by courseId (if both exist), classId (for Class objects), or subjectCode+courseNumber
+  const courseFulfillments = allFulfillments.filter((f) => {
+    // Try courseId match (if both have courseId and they're not null)
+    if ('courseId' in course && course.courseId && f.course.courseId && f.course.courseId === course.courseId) {
+      return true;
+    }
+    // Try classId match (for Class objects)
+    if ('classId' in course && course.classId && f.course.courseId === course.classId) {
+      return true;
+    }
+    // Fallback to subjectCode + courseNumber match
+    const courseCode = `${course.subjectCode} ${course.courseNumber}`;
+    const fulfillmentCode = `${f.course.subjectCode} ${f.course.courseNumber}`;
+    return courseCode === fulfillmentCode;
+  });
 
   const fulfilledSections = new Set(
     courseFulfillments.map((f) => f.sectionId)
@@ -377,9 +399,16 @@ function validateMaxCreditsFromCourses(
   constraint: MaxCreditsFromCoursesConstraint,
   fulfillments: FulfillmentRecord[]
 ): ConstraintValidationResult {
-  const matchingFulfillments = fulfillments.filter((f) =>
-    constraint.courseIds.includes(f.course.courseId)
-  );
+  const matchingFulfillments = fulfillments.filter((f) => {
+    // Check if courseId matches (if it exists)
+    if (f.course.courseId && constraint.courseIds.includes(f.course.courseId)) {
+      return true;
+    }
+    // For Class objects, the courseId might be stored as the identifier
+    // Also check subjectCode + courseNumber format
+    const courseCode = `${f.course.subjectCode} ${f.course.courseNumber}`;
+    return constraint.courseIds.includes(courseCode);
+  });
 
   const totalCredits = matchingFulfillments.reduce(
     (sum, f) => sum + f.creditsApplied,
@@ -398,9 +427,16 @@ function validateMinCreditsFromCourses(
   constraint: MinCreditsFromCoursesConstraint,
   fulfillments: FulfillmentRecord[]
 ): ConstraintValidationResult {
-  const matchingFulfillments = fulfillments.filter((f) =>
-    constraint.courseIds.includes(f.course.courseId)
-  );
+  const matchingFulfillments = fulfillments.filter((f) => {
+    // Check if courseId matches (if it exists)
+    if (f.course.courseId && constraint.courseIds.includes(f.course.courseId)) {
+      return true;
+    }
+    // For Class objects, the courseId might be stored as the identifier
+    // Also check subjectCode + courseNumber format
+    const courseCode = `${f.course.subjectCode} ${f.course.courseNumber}`;
+    return constraint.courseIds.includes(courseCode);
+  });
 
   const totalCredits = matchingFulfillments.reduce(
     (sum, f) => sum + f.creditsApplied,

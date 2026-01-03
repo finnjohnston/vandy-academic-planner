@@ -149,3 +149,21 @@
   padding: 0;
   text-align: left;
 }
+
+/* Individual course in plan - green */
+.course-in-plan {
+  color: var(--color-text-green);
+  font-weight: 500;
+}
+
+/* Individual course not in plan - red */
+.course-not-in-plan {
+  color: var(--color-text-red);
+  font-weight: 500;
+}
+
+/* Satisfied group (AND with all courses, OR with all courses) */
+.course-group-satisfied {
+  color: var(--color-text-green);
+  font-weight: 500;
+}

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import RuleDescriptionField from '../RuleDescriptionFieldComponent/RuleDescriptionField';
-import CourseTableHeader from '../CourseTableHeaderComponent/CourseTableHeader';
 import CourseList from '../CourseListComponent/CourseList';
 import ConstraintField from '../ConstraintFieldComponent/ConstraintField';
-import FilterCoursesToggle from '../../../../components/program/rule/FilterCoursesToggleComponent/FilterCoursesToggle';
+import Toggle from '../../../common/ToggleComponent/Toggle';
 import type { RequirementProgress, TakeAnyCoursesProgressDetails } from '../../../../types/RequirementProgress';
 import './TakeAnyCoursesRuleComponent.css';
 
@@ -100,41 +99,39 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
 
   const transformCoursesForDisplay = () => {
     if (filterToggle) {
-      // Toggle ON: Show ALL matching courses, sorted with taken first
+      // Toggle ON: Show only matching courses that haven't been taken yet
       if (!details.matchingCourses || details.matchingCourses.length === 0) {
         return [];
       }
 
-      const coursesWithTakenStatus = details.matchingCourses.map((matchingCourse) => {
-        const courseId = matchingCourse.courseId;
-        const course = courseData.get(courseId);
-        const fulfillment = requirementProgress.fulfillingCourses.find(
-          (fc) => fc.courseId === courseId
-        );
-        const [subjectCode, ...numberParts] = courseId.split(' ');
+      const coursesWithTakenStatus = details.matchingCourses
+        .map((matchingCourse) => {
+          const courseId = matchingCourse.courseId;
+          const course = courseData.get(courseId);
+          const fulfillment = requirementProgress.fulfillingCourses.find(
+            (fc) => fc.courseId === courseId
+          );
+          const [subjectCode, ...numberParts] = courseId.split(' ');
 
-        return {
-          courseId,
-          subjectCode: subjectCode || courseId,
-          courseNumber: numberParts.join(' ') || '',
-          title: course?.title || (loading ? 'Loading...' : courseId),
-          term: fulfillment?.termLabel,
-          credits: course?.creditsMin || 0,
-          isTaken: !!fulfillment,
-        };
-      });
+          return {
+            courseId,
+            subjectCode: subjectCode || courseId,
+            courseNumber: numberParts.join(' ') || '',
+            title: course?.title || (loading ? 'Loading...' : courseId),
+            term: fulfillment?.semesterNumber === 0 ? 'Transferred' : fulfillment?.termLabel,
+            credits: course?.creditsMin || 0,
+            isTaken: !!fulfillment,
+          };
+        })
+        .filter(course => !course.isTaken); // Filter out courses that have been taken
 
-      // Sort: taken courses first, then by subject code, then by course number
+      // Sort by subject code, then by course number
       return coursesWithTakenStatus.sort((a, b) => {
-        // First, sort by taken status (taken first)
-        if (a.isTaken && !b.isTaken) return -1;
-        if (!a.isTaken && b.isTaken) return 1;
-
-        // Then sort by subject code
+        // Sort by subject code
         const subjectCompare = a.subjectCode.localeCompare(b.subjectCode);
         if (subjectCompare !== 0) return subjectCompare;
 
-        // Finally, sort by course number (convert to number for proper numeric sorting)
+        // Sort by course number (convert to number for proper numeric sorting)
         const aNum = parseInt(a.courseNumber.replace(/\D/g, ''), 10) || 0;
         const bNum = parseInt(b.courseNumber.replace(/\D/g, ''), 10) || 0;
         return aNum - bNum;
@@ -155,7 +152,7 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
           subjectCode: subjectCode || courseId,
           courseNumber: numberParts.join(' ') || '',
           title: course?.title || (loading ? 'Loading...' : courseId),
-          term: fulfillment.termLabel,
+          term: fulfillment.semesterNumber === 0 ? 'Transferred' : fulfillment.termLabel,
           credits: course?.creditsMin || 0,
           isTaken: true,
         };
@@ -173,11 +170,13 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
           nestingLevel={nestingLevel}
         />
       )}
-      <div className="take-any-courses-header-wrapper">
+      <div
+        className="take-any-courses-header-wrapper"
+        style={{ width: `calc(100% - ${60 * (nestingLevel + 1)}px)` }}
+      >
         <div
           className={`take-any-courses-header${filterToggle ? ' take-any-courses-header-no-term' : ''}`}
           style={{
-            width: `calc(100% - ${60 * (nestingLevel + 1)}px)`,
             gridTemplateColumns: filterToggle
               ? `${260 - indent}px 1fr auto`
               : `${260 - indent}px 1fr 507px auto`
@@ -189,7 +188,7 @@ const TakeAnyCoursesRuleComponent: React.FC<TakeAnyCoursesRuleComponentProps> = 
           <span className="take-any-courses-header-credits">Credits</span>
         </div>
         <div className="take-any-courses-header-toggle-section">
-          <FilterCoursesToggle
+          <Toggle
             isOn={filterToggle}
             onToggle={() => setFilterToggle(!filterToggle)}
           />

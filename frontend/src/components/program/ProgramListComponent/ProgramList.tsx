@@ -9,6 +9,7 @@ interface ProgramListProps {
   planId: number;
   programs: Array<{
     id: number;
+    programId?: number; // Actual program ID for checkmarks
     name: string;
     type: string;
     totalCredits: number;
@@ -19,9 +20,20 @@ interface ProgramListProps {
     semesterNumber: number;
   }>;
   academicYearId: number;
+  showCheckmarks?: boolean;
+  checkedProgramIds?: Set<number>;
+  onCheckChange?: (programId: number, checked: boolean) => void;
 }
 
-const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCourses, academicYearId }) => {
+const ProgramList: React.FC<ProgramListProps> = ({
+  planId,
+  programs,
+  plannedCourses,
+  academicYearId,
+  showCheckmarks = false,
+  checkedProgramIds = new Set(),
+  onCheckChange
+}) => {
   const [progressByProgramId, setProgressByProgramId] = useState<
     Record<number, {
       fulfilled: number;
@@ -49,9 +61,18 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
       const results = await Promise.all(
         programs.map(async (program) => {
           try {
-            const response = await fetch(
+            // Try regular endpoint first (assumes program is in plan with planProgram ID)
+            let response = await fetch(
               `${API_BASE_URL}/api/plans/${planId}/programs/${program.id}/progress`
             );
+
+            // If 404, try preview endpoint (program not in plan, using program ID)
+            if (response.status === 404) {
+              response = await fetch(
+                `${API_BASE_URL}/api/programs/${program.id}/preview?planId=${planId}`
+              );
+            }
+
             if (!response.ok) throw new Error('Failed to fetch program progress');
             const data = await response.json();
             return {
@@ -110,6 +131,9 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
         const sections = progressByProgramId[program.id]?.sections ?? [];
         const progressPercent = required > 0 ? (fulfilled / required) * 100 : 0;
 
+        // Use programId for checkbox if available, otherwise fall back to id
+        const checkboxId = program.programId ?? program.id;
+
         return (
           <Program
             key={program.id}
@@ -119,6 +143,9 @@ const ProgramList: React.FC<ProgramListProps> = ({ planId, programs, plannedCour
             creditsText={`${fulfilled} / ${required} credits`}
             sections={sections}
             academicYearId={academicYearId}
+            showCheckmark={showCheckmarks}
+            checked={checkedProgramIds.has(checkboxId)}
+            onCheckChange={onCheckChange ? (checked) => onCheckChange(checkboxId, checked) : undefined}
           />
         );
       })}

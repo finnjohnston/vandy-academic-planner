@@ -17,10 +17,19 @@
   gap: 12px;
   cursor: pointer;
   box-sizing: border-box;
+  outline: none;
 }
 
 .dropdown-button:hover:not(:disabled) {
   background-color: #2a2a2a;
+}
+
+.dropdown-button:focus {
+  outline: none;
+}
+
+.dropdown-button:active {
+  outline: none;
 }
 
 .dropdown-button:disabled {

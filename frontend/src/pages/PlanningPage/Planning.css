@@ -35,6 +35,13 @@
   display: none;
 }
 
+.transfer-credits-wrapper {
+  position: absolute;
+  top: 20px;
+  right: calc((100% - 1280px) / 2 + 12px);
+  z-index: 100;
+}
+
 /* Drag Preview */
 .drag-preview {
   width: 300px;
